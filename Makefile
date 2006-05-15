@@ -1,5 +1,7 @@
 # vim:ts=8
 
+BINPATH = "/home/bho/bin"
+
 CC	:= /usr/bin/gcc
 CODE	:=\
 	hash.c\
@@ -25,12 +27,13 @@ CFLAGS	:= -Wall -W -pedantic -ansi -Os -lcrypto -lmad -lreadline -lncurses
 OUTPUT	:= shell-fm
 BACKUP	:= $(PWD)/../backup/shell-fm_`date +"%F_%T"`
 
+.PHONY: all
 all	: $(CODE) $(HEAD)
 	$(CC) -o $(OUTPUT) $(CFLAGS) $(CODE) && /usr/bin/strip $(OUTPUT)
 
 install	: $(all)
-	mkdir -p /usr/local/bin
-	install -m 755 shell-fm /usr/local/bin
+	mkdir -p $(BINPATH)
+	install -m 755 shell-fm $(BINPATH)
 
 backup	:;
 	cp -r $(PWD) $(BACKUP)
