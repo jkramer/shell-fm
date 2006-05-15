@@ -145,9 +145,18 @@ int main(int argc, char ** argv) {
 				}
 			}
 
-			if(haskey(& rc, "np-cmd") && !fork())
-				system(meta(value(& rc, "np-cmd"), 0));
+			if(haskey(& rc, "np-cmd")) {
+				FILE * fd = popen(meta(value(& rc, "np-cmd"), 0), "r");
+				if(fd) {
+					int ch;
+					while(0 != (ch = fgetc(fd)) && !feof(fd))
+						fputc(ch, stdout);
+					pclose(fd);
+				}
+			}
 		}
+		fflush(stderr);
+		fflush(stdout);
 
 		interface(!0);
 	}

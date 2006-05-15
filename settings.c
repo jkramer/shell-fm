@@ -32,10 +32,16 @@ int settings(const char * path, int first) {
 	while(!feof(fd)) {
 		char * line = NULL, * ptr;
 		unsigned size = 0;
-		getline(& line, & size, fd);
+		signed length = getline(& line, & size, fd);
 
 		++nline;
-		
+
+		if(length < 2) {
+			if(size)
+				free(line);
+			continue;
+		}
+	
 		ptr = line;
 		while((ptr = strchr(ptr, '#')) != NULL)
 			if(ptr == line || ptr[-1] != '\\')
@@ -43,10 +49,10 @@ int settings(const char * path, int first) {
 			else
 				++ptr;
 		
-		if(strlen(line) > 0) {
+		if(strlen(line) > 1) {
 			char key[64] = { 0 }, value[256] = { 0 };
 
-			if(sscanf(line, " %63[^= \t] = %255[^\r\n]", key, value) == 2)
+			if(sscanf(line, "%63[^= \t] = %255[^\r\n]", key, value) == 2)
 				set(& rc, key, value);
 			else {
 				fprintf(stderr, "%s, line %d invalid.\n", path, nline);
