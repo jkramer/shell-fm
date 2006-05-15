@@ -37,7 +37,14 @@ int settings(const char * path, int first) {
 		++nline;
 		
 		if(length > 0) {
-			char key[64] = { 0 }, value[256] = { 0 };
+			char key[64] = { 0 }, value[256] = { 0 }, * ptr = line;
+			
+			while((ptr = strchr(ptr, '#')) != NULL)
+				if(ptr == line || ptr[-1] != '\\')
+					* ptr = (char) 0;
+				else
+					++ptr;
+
 			if(sscanf(line, "%63[^= \t] = %255[^\r\n]", key, value) == 2)
 				set(& rc, key, value);
 			else {
