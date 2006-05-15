@@ -33,6 +33,8 @@ int fetchkey(unsigned);
 void canon(int);
 const char * meta(const char *, int);
 void radioprompt(const char *);
+void run(const char *);
+
 struct hash track;
 
 void interface(int interactive) {
@@ -106,8 +108,8 @@ void interface(int interactive) {
 
 			default:
 				snprintf(customkey, sizeof(customkey), "key0x%02X", key & 0xFF);
-				if(haskey(& rc, customkey) && !fork())
-					system(meta(value(& rc, customkey), 0));
+				if(haskey(& rc, customkey))
+					run(meta(value(& rc, customkey), 0));
 		}
 	}
 }
@@ -204,3 +206,13 @@ const char * meta(const char * fmt, int colored) {
 	return string;
 }
 #undef remn
+
+void run(const char * cmd) {
+	FILE * fd = popen(cmd, "r");
+	if(fd) {
+		char ch;
+		while((ch = fgetc(fd)) != EOF)
+			fputc(ch, stdout);
+		pclose(fd);
+	}
+}

@@ -145,16 +145,10 @@ int main(int argc, char ** argv) {
 				}
 			}
 
-			if(haskey(& rc, "np-cmd")) {
-				FILE * fd = popen(meta(value(& rc, "np-cmd"), 0), "r");
-				if(fd) {
-					int ch;
-					while(0 != (ch = fgetc(fd)) && !feof(fd))
-						fputc(ch, stdout);
-					pclose(fd);
-				}
-			}
+			if(haskey(& rc, "np-cmd"))
+				run(meta(value(& rc, "np-cmd"), 0));
 		}
+
 		fflush(stderr);
 		fflush(stdout);
 
