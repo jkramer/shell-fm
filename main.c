@@ -47,7 +47,7 @@ unsigned
 
 int main(int argc, char ** argv) {
 	puts("Shell.FM v" VERSION ", written 2006 by Jonas Kramer");
-	puts("Publised under the terms of the GNU General Public License (GPL)");
+	puts("Publicized under the terms of the GNU General Public License (GPL)");
 	
 	if(argc > 2) {
 		fprintf(stderr, "usage: %s [lastfm://...]\n", * argv);
