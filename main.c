@@ -99,8 +99,14 @@ int main(int argc, char ** argv) {
 			unsigned count = 0;
 
 			if(last) {
-				while(!strcmp(last, meta("%a %t")))
-					update(& track) || ++count;
+				while(!strcmp(last, meta("%a %t"))) {
+					if(count)
+						fprintf(stderr, "No new data.\n");
+					if(!update(& track)) {
+						++count;
+						fprintf(stderr, "Failed to fetch.\n");
+					}
+				}
 				free(last);
 			}
 
