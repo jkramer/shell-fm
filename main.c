@@ -95,11 +95,11 @@ int main(int argc, char ** argv) {
 
 	while(!0) {
 		if(changed) {
-			char * last = strdup(meta("%a %t"));
+			char * last = strdup(meta("%a %t", 0));
 			unsigned count = 0;
 
 			if(last) {
-				while(!strcmp(last, meta("%a %t"))) {
+				while(!strcmp(last, meta("%a %t", 0))) {
 					if(count)
 						fprintf(stderr, "No new data.\n");
 					if(!update(& track)) {
@@ -110,9 +110,9 @@ int main(int argc, char ** argv) {
 				free(last);
 			}
 
-			if(banned(value(& track, "artist"))) {
+			if(banned(meta("%a", 0))) {
 				const char * msg = meta(control("ban") ?
-						"\"%t\" by %a auto-banned." : "Failed to auto-ban \"%t\" by %a.");
+						"\"%t\" by %a auto-banned." : "Failed to auto-ban \"%t\" by %a.", !0);
 
 				puts(msg);
 				changed = 0;
@@ -121,11 +121,11 @@ int main(int argc, char ** argv) {
 			}
 			
 			if(chstation) {
-				printf("Receiving %s.\n", meta("%s")); 
+				printf("Receiving %s.\n", meta("%s", !0)); 
 				chstation = 0;
 			}
 
-			printf("%s\n", meta("Now playing \"%t\" by %a."));
+			printf("%s\n", meta("Now playing \"%t\" by %a.", !0));
 			changed = 0;
 
 			if(haskey(& rc, "np-file") && haskey(& rc, "np-file-format")) {
@@ -138,7 +138,7 @@ int main(int argc, char ** argv) {
 				np = open(file, O_WRONLY | O_CREAT, 0600);
 
 				if(np != -1) {
-					const char * output = meta(fmt);
+					const char * output = meta(fmt, 0);
 					if(output)
 						write(np, output, strlen(output));
 					close(np);
@@ -146,7 +146,7 @@ int main(int argc, char ** argv) {
 			}
 
 			if(haskey(& rc, "np-cmd") && !fork())
-				system(meta(value(& rc, "np-cmd")));
+				system(meta(value(& rc, "np-cmd"), 0));
 		}
 
 		interface(!0);

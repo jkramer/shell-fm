@@ -31,7 +31,7 @@ extern unsigned skipped, discovery, chstation, record;
 
 int fetchkey(unsigned);
 void canon(int);
-const char * meta(const char *);
+const char * meta(const char *, int);
 void radioprompt(const char *);
 struct hash track;
 
@@ -66,9 +66,9 @@ void interface(int interactive) {
 
 			case 'i':
 				if(playfork) {
-					puts(meta("Station:\t%s (%u)"));
-					puts(meta("Track:\t\t\"%t\" by %a"));
-					puts(meta("Album:\t\t%A"));
+					puts(meta("Station:\t%s (%u)", !0));
+					puts(meta("Track:\t\t\"%t\" by %a", !0));
+					puts(meta("Album:\t\t%A", !0));
 				}
 				break;
 
@@ -85,12 +85,12 @@ void interface(int interactive) {
 				break;
 
 			case 'A':
-				printf(meta("Really ban all tracks by artist %a? [yN]"));
+				printf(meta("Really ban all tracks by artist %a? [yN]", !0));
 				fflush(stdout);
 				if(fetchkey(5) != 'y')
 					printf("\nAbort.\n");
 				else if(autoban(value(& track, "artist"))) {
-					printf("\n%s banned.\n", meta("%a"));
+					printf("\n%s banned.\n", meta("%a", !0));
 					control("ban");
 				}
 				fflush(stdout);
@@ -107,7 +107,7 @@ void interface(int interactive) {
 			default:
 				snprintf(customkey, sizeof(customkey), "key0x%02X", key & 0xFF);
 				if(haskey(& rc, customkey) && !fork())
-					system(meta(value(& rc, customkey)));
+					system(meta(value(& rc, customkey), 0));
 		}
 	}
 }
@@ -156,7 +156,7 @@ void canon(int enable) {
 }
 
 #define remn (sizeof(string) - length - 1)
-const char * meta(const char * fmt) {
+const char * meta(const char * fmt, int colored) {
 	static char string[4096];
 	unsigned length = 0, x = 0;
 	
@@ -184,12 +184,14 @@ const char * meta(const char * fmt) {
 			
 			while(i--)
 				if(fmt[x] == keys[i][0]) {
-					const char * val = value(& track, keys[i] + 1), * color;
-					char colorkey[64] = { 0 };
-					snprintf(colorkey, sizeof(colorkey), "%c-color", keys[i][0]);
-					color = value(& rc, colorkey);
-					if(color)
-						length += snprintf(string + length, remn, "\x1B[%sm", color);
+					const char * val = value(& track, keys[i] + 1), * color = NULL;
+					if(colored) {
+						char colorkey[64] = { 0 };
+						snprintf(colorkey, sizeof(colorkey), "%c-color", keys[i][0]);
+						color = value(& rc, colorkey);
+						if(color)
+							length += snprintf(string + length, remn, "\x1B[%sm", color);
+					}
 					length = strlen(strncat(string, val ? val : "(unknown)", remn));
 					if(color)
 						length = strlen(strncat(string, "\x1B[0;37m", remn));
