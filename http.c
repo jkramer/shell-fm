@@ -47,7 +47,7 @@ char ** fetch(char * const url, FILE ** pHandle) {
 	
 	fprintf(fd, "GET /%s HTTP/1.1\r\n", file ? file : "");
 	fprintf(fd, "Host: %s\r\n", host);
-	fprintf(fd, "User-Agent: Shell-FM v0.1.2\r\n\r\n");
+	fprintf(fd, "User-Agent: Shell-FM v" VERSION "\r\n\r\n");
 	fflush(fd);
 
 	length = getline(& status, & size, fd);

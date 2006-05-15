@@ -24,6 +24,7 @@
 #include "include/interface.h"
 #include "include/settings.h"
 #include "include/autoban.h"
+#include "include/version.h"
 
 #define PATH_MAX 4096
 
@@ -45,6 +46,9 @@ unsigned
 	;
 
 int main(int argc, char ** argv) {
+	puts("Shell.FM v" VERSION ", written 2006 by Jonas Kramer\n");
+	puts("Publised under the terms of the GNU General Public License (GPL)\n");
+	
 	if(argc > 2) {
 		fprintf(stderr, "usage: %s [lastfm://...]\n", * argv);
 		exit(EXIT_FAILURE);
