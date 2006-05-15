@@ -84,7 +84,7 @@ int main(int argc, char ** argv) {
 
 	if(!handshake(value(& rc, "username"), value(& rc, "password")))
 		exit(EXIT_FAILURE);
-	
+
 	if(argc == 2)
 		station(argv[1]);
 	else if(haskey(& rc, "default-radio"))
@@ -99,13 +99,8 @@ int main(int argc, char ** argv) {
 			unsigned count = 0;
 
 			if(last) {
-				while(count < 10) {
+				while(!strcmp(last, meta("%a %t")))
 					update(& track) || ++count;
-					if(!strcmp(last, meta("%a %t")))
-						sleep(1);
-					else
-						break;
-				}
 				free(last);
 			}
 
