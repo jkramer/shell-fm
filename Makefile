@@ -1,6 +1,6 @@
 # vim:ts=8
 
-BINPATH = "/home/bho/bin"
+BINPATH = "/usr/local/bin"
 
 CC	:= /usr/bin/gcc
 CODE	:=\
