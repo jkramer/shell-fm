@@ -105,7 +105,7 @@ int main(int argc, char ** argv) {
 				free(last);
 			}
 
-			if(banned(meta("%a"))) {
+			if(banned(value(& track, "artist"))) {
 				const char * msg = meta(control("ban") ?
 						"\"%t\" by %a auto-banned." : "Failed to auto-ban \"%t\" by %a.");
 

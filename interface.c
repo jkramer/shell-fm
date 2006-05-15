@@ -85,11 +85,11 @@ void interface(int interactive) {
 				break;
 
 			case 'A':
-				printf("Really ban all tracks by artist %s? [yN]", meta("%a"));
+				puts(meta("Really ban all tracks by artist %a? [yN]"));
 				fflush(stdout);
 				if(fetchkey(5) != 'y')
 					printf("\nAbort.\n");
-				else if(autoban(meta("%a"))) {
+				else if(autoban(value(& track, "artist"))) {
 					printf("\n%s banned.\n", meta("%a"));
 					control("ban");
 				}
