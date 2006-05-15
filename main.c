@@ -34,6 +34,7 @@ extern pid_t playfork;
 void cleanup(void);
 void killchild(int);
 void songchanged(int);
+void dying(int);
 
 /* globals */
 unsigned
@@ -42,7 +43,7 @@ unsigned
 	lastchange = 0 /* UNIX timestamp of the last songchange */,
 	discovery = 0 /* discovery mode on/off switch */,
 	chstation = 0 /* true if station changed */,
-	record = !0
+	record = !0 /* record tracks to profile */
 	;
 
 int main(int argc, char ** argv) {
@@ -81,6 +82,8 @@ int main(int argc, char ** argv) {
 	atexit(cleanup);
 	signal(SIGCHLD, killchild);
 	signal(SIGUSR1, songchanged);
+	signal(SIGQUIT, dying);
+	signal(SIGINT, dying);
 
 	if(!handshake(value(& rc, "username"), value(& rc, "password")))
 		exit(EXIT_FAILURE);
@@ -135,9 +138,7 @@ int main(int argc, char ** argv) {
 					* fmt = value(& rc, "np-file-format");
 
 				unlink(file);
-				np = open(file, O_WRONLY | O_CREAT, 0600);
-
-				if(np != -1) {
+				if(-1 != (np = open(file, O_WRONLY | O_CREAT, 0600))) {
 					const char * output = meta(fmt, 0);
 					if(output)
 						write(np, output, strlen(output));
@@ -182,4 +183,11 @@ void songchanged(int sig) {
 		changed = !0;
 		lastchange = time(NULL);
 	}
+}
+
+void dying(int sig) {
+	fprintf(stderr, "Caught signal %d. Trying to clean up. Please use Q in future!\n",
+			sig);
+	cleanup();
+	exit(0);
 }
