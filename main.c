@@ -34,7 +34,7 @@ extern pid_t playfork;
 void cleanup(void);
 void killchild(int);
 void songchanged(int);
-void dying(int);
+void pebcak(int);
 
 /* globals */
 unsigned
@@ -82,8 +82,7 @@ int main(int argc, char ** argv) {
 	atexit(cleanup);
 	signal(SIGCHLD, killchild);
 	signal(SIGUSR1, songchanged);
-	signal(SIGQUIT, dying);
-	signal(SIGINT, dying);
+	signal(SIGINT, pebcak);
 
 	if(!handshake(value(& rc, "username"), value(& rc, "password")))
 		exit(EXIT_FAILURE);
@@ -185,7 +184,7 @@ void songchanged(int sig) {
 	}
 }
 
-void dying(int sig) {
+void pebcak(int sig) {
 	fprintf(stderr, "Caught signal %d. Trying to clean up. Please use Q in future!\n",
 			sig);
 	cleanup();
