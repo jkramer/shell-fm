@@ -30,7 +30,7 @@ np-file-format = np: %a - %t
 # Shell.FM whenever the track changes. The arguments may
 # contain the same variables as the "np-file-format" option.
 
-np-cmd = echo "%a - %t" /tmp/shell-fm-history
+np-cmd = echo "%a - %t" >> /tmp/shell-fm-history
 
 
 # If you want Shell.FM to automatically start playing a
