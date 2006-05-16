@@ -46,6 +46,8 @@ unsigned
 	record = !0 /* record tracks to profile */
 	;
 
+int death = 0;
+
 int main(int argc, char ** argv) {
 	puts("Shell.FM v" VERSION ", written 2006 by Jonas Kramer");
 	puts("Published under the terms of the GNU General Public License (GPL)\n");
@@ -96,6 +98,14 @@ int main(int argc, char ** argv) {
 	read_history(rcpath("radio-history"));
 
 	while(!0) {
+		if(death) {
+			pid_t pid;
+			while((pid = waitpid(-1, NULL, WNOHANG)) > 0)
+				if(pid == playfork && playfork)
+					playfork = 0;
+			death = 0;
+		}
+		
 		if(changed) {
 			char * last = strdup(meta("%a %t", 0));
 			unsigned count = 0;
@@ -171,25 +181,17 @@ void cleanup(void) {
 
 /* Called when play process died. */
 void killchild(int sig) {
-	if(sig == SIGCHLD) {
-		if(wait(NULL) == playfork) {
-			playfork = 0;
-			lastchange = 0;
-		}
-	}
+	if(sig == SIGCHLD)
+		death = !0;
 }
 
 /* Called when a new track starts. */
 void songchanged(int sig) {
-	if(sig == SIGUSR1) {
+	if(sig == SIGUSR1)
 		changed = !0;
-		lastchange = time(NULL);
-	}
 }
 
 void pebcak(int sig) {
-	fprintf(stderr, "Caught signal %d. Trying to clean up. Please use Q in future!\n",
-			sig);
-	cleanup();
-	exit(0);
+	if(sig == SIGINT)
+		fputs("Use Q to quit!\n", stderr);
 }

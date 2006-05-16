@@ -208,11 +208,16 @@ const char * meta(const char * fmt, int colored) {
 #undef remn
 
 void run(const char * cmd) {
-	FILE * fd = popen(cmd, "r");
-	if(fd) {
-		char ch;
-		while((ch = fgetc(fd)) != EOF)
-			fputc(ch, stdout);
-		pclose(fd);
+	if(!fork()) {
+		FILE * fd = popen(cmd, "r");
+		if(!fd)
+			exit(EXIT_FAILURE);
+		else {
+			char ch;
+			while((ch = fgetc(fd)) != EOF)
+				fputc(ch, stdout);
+			fflush(stdout);
+			exit(pclose(fd));
+		}
 	}
 }
