@@ -214,10 +214,12 @@ void run(const char * cmd) {
 			exit(EXIT_FAILURE);
 		else {
 			char ch;
+			
 			while((ch = fgetc(fd)) != EOF)
 				fputc(ch, stdout);
+
 			fflush(stdout);
-			exit(pclose(fd));
+			_exit(pclose(fd));
 		}
 	}
 }

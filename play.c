@@ -33,8 +33,6 @@ struct stream {
 
 #define BUFSIZE 40960
 
-void handle(int);
-
 static enum mad_flow input(void *, struct mad_stream *);
 static enum mad_flow output(void *, const struct mad_header *, struct mad_pcm *);
 signed scale(mad_fixed_t);
@@ -47,18 +45,6 @@ void * playback(FILE * streamfd) {
 	signed res;
 	unsigned arg;
 
-	signal(SIGCHLD, handle);
-	signal(SIGTERM, handle);
-	signal(SIGINT, handle);
-	signal(SIGQUIT, handle);
-	signal(SIGABRT, handle);
-	signal(SIGSEGV, handle);
-	signal(SIGALRM, handle);
-	signal(SIGPIPE, handle);
-	signal(SIGSTOP, handle);
-	signal(SIGCONT, handle);
-	signal(SIGILL, handle);
-	
 	memset(& data, 0, sizeof(struct stream));
 	
 	data.streamfd = streamfd;
@@ -172,9 +158,4 @@ void * findsync(register unsigned char * ptr, unsigned size) {
 		++ptr;
 	}
 	return NULL;
-}
-
-void handle(int sig) {
-	fprintf(stderr, "CAUGHT SIGNAL %d.\n", sig);
-	fflush(stderr);
 }

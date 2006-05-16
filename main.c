@@ -82,6 +82,7 @@ int main(int argc, char ** argv) {
 	memset(& track, 0, sizeof(struct hash));
 	
 	atexit(cleanup);
+	
 	signal(SIGCHLD, killchild);
 	signal(SIGUSR1, songchanged);
 	signal(SIGINT, pebcak);
