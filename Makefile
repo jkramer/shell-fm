@@ -25,7 +25,6 @@ HEAD	:=\
 	include/version.h
 CFLAGS	:= -Wall -W -pedantic -ansi -Os -lcrypto -lmad -lreadline -lncurses
 OUTPUT	:= shell-fm
-BACKUP	:= $(PWD)/../backup/shell-fm_`date +"%F_%T"`
 
 .PHONY: all
 all	: $(CODE) $(HEAD)
@@ -34,6 +33,3 @@ all	: $(CODE) $(HEAD)
 install	: $(all)
 	mkdir -p $(BINPATH)
 	install -m 755 shell-fm $(BINPATH)
-
-backup	:;
-	cp -r $(PWD) $(BACKUP)
