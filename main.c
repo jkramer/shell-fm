@@ -48,6 +48,24 @@ int main(int argc, char ** argv) {
 
 	settings(rcpath("shell-fm.rc"), !0);
 
+	if(!haskey(& rc, "password")) {
+		char * password;
+		if(!haskey(& rc, "username")) {
+			char username[256] = { 0 };
+
+			fputs("Login: ", stdout);
+			if(!scanf("%255s", username))
+				exit(EXIT_SUCCESS);
+
+			set(& rc, "username", username);
+		}
+		
+		if(!(password = getpass("Password: ")))
+			exit(EXIT_FAILURE);
+
+		set(& rc, "password", password);
+	}
+
 	memset(& data, 0, sizeof(struct hash));
 	memset(& track, 0, sizeof(struct hash));
 	
@@ -159,5 +177,5 @@ void songchanged(int sig) {
 
 void pebcak(int sig) {
 	if(sig == SIGINT)
-		fputs("Use Q to quit!\n", stderr);
+		fputs("Please use Q to quit.\n", stderr);
 }

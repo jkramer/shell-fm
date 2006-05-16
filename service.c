@@ -14,6 +14,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <signal.h>
 
 #include <openssl/md5.h>
 
@@ -134,6 +135,7 @@ int station(const char * stationURL) {
 			playfork = pid;
 		else {
 			FILE * fd = NULL;
+			signal(SIGINT, SIG_IGN);
 			fetch(value(& data, "stream_url"), & fd);
 			playback(fd);
 			fclose(fd);
