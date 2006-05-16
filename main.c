@@ -15,8 +15,6 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/wait.h>
-#include <sys/select.h>
-#include <time.h>
 #include <readline/history.h>
 
 #include "include/hash.h"
@@ -31,22 +29,13 @@
 extern struct hash data, track;
 extern pid_t playfork;
 
+int changed = 0, discovery = 0, stationChanged = 0, record = !0, death = 0;
+
 void cleanup(void);
-void killchild(int);
+void deadchild(int);
 void songchanged(int);
 void pebcak(int);
 
-/* globals */
-unsigned
-	changed = 0 /* true if song changed */,
-	skipped = 0 /* true if last song couldn't finish (skipped or banned) */,
-	lastchange = 0 /* UNIX timestamp of the last songchange */,
-	discovery = 0 /* discovery mode on/off switch */,
-	chstation = 0 /* true if station changed */,
-	record = !0 /* record tracks to profile */
-	;
-
-int death = 0;
 
 int main(int argc, char ** argv) {
 	puts("Shell.FM v" VERSION ", written 2006 by Jonas Kramer");
@@ -59,31 +48,12 @@ int main(int argc, char ** argv) {
 
 	settings(rcpath("shell-fm.rc"), !0);
 
-	if(!haskey(& rc, "password")) {
-		char * password;
-		if(!haskey(& rc, "username")) {
-			char username[256] = { 0 };
-			printf("Login: ");
-			
-			if(!scanf("%255s", username))
-				exit(EXIT_SUCCESS);
-
-			set(& rc, "username", username);
-		}
-		
-		if(!(password = getpass("Password: ")))
-			exit(EXIT_FAILURE);
-
-		set(& rc, "password", password);
-	}
-
-
 	memset(& data, 0, sizeof(struct hash));
 	memset(& track, 0, sizeof(struct hash));
 	
 	atexit(cleanup);
 	
-	signal(SIGCHLD, killchild);
+	signal(SIGCHLD, deadchild);
 	signal(SIGUSR1, songchanged);
 	signal(SIGINT, pebcak);
 
@@ -97,6 +67,7 @@ int main(int argc, char ** argv) {
 
 	using_history();
 	read_history(rcpath("radio-history"));
+
 
 	while(!0) {
 		if(death) {
@@ -124,18 +95,18 @@ int main(int argc, char ** argv) {
 			}
 
 			if(banned(meta("%a", 0))) {
-				const char * msg = meta(control("ban") ?
-						"\"%t\" by %a auto-banned." : "Failed to auto-ban \"%t\" by %a.", !0);
+				const char * msg = meta(control("ban")
+						? "\"%t\" by %a auto-banned."
+						: "Failed to auto-ban \"%t\" by %a.", !0);
 
 				puts(msg);
 				changed = 0;
-
 				continue;
 			}
 			
-			if(chstation) {
-				printf("Receiving %s.\n", meta("%s", !0)); 
-				chstation = 0;
+			if(stationChanged) {
+				puts(meta("Receiving %s.", !0));
+				stationChanged = 0;
 			}
 
 			printf("%s\n", meta("Now playing \"%t\" by %a.", !0));
@@ -160,16 +131,12 @@ int main(int argc, char ** argv) {
 				run(meta(value(& rc, "np-cmd"), 0));
 		}
 
-		fflush(stderr);
-		fflush(stdout);
-
 		interface(!0);
 	}
 	
 	return 0;
 }
 
-/* Clean up before exiting. Called by atexit(3). */
 void cleanup(void) {
 	write_history(rcpath("radio-history"));
 	
@@ -180,13 +147,11 @@ void cleanup(void) {
 		kill(playfork, SIGTERM);
 }
 
-/* Called when play process died. */
-void killchild(int sig) {
+void deadchild(int sig) {
 	if(sig == SIGCHLD)
 		death = !0;
 }
 
-/* Called when a new track starts. */
 void songchanged(int sig) {
 	if(sig == SIGUSR1)
 		changed = !0;

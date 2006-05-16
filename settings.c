@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "include/hash.h"
 
@@ -64,6 +65,25 @@ int settings(const char * path, int first) {
 	}
 
 	fclose(fd);
+
+	if(!haskey(& rc, "password")) {
+		char * password;
+		if(!haskey(& rc, "username")) {
+			char username[256] = { 0 };
+
+			fputs("Login: ", stdout);
+			if(!scanf("%255s", username))
+				exit(EXIT_SUCCESS);
+
+			set(& rc, "username", username);
+		}
+		
+		if(!(password = getpass("Password: ")))
+			exit(EXIT_FAILURE);
+
+		set(& rc, "password", password);
+	}
+
 	return retval;
 }
 

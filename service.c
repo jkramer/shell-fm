@@ -21,7 +21,7 @@
 #include "include/http.h"
 #include "include/play.h"
 
-extern unsigned chstation;
+extern int stationChanged;
 
 struct hash data; /* Warning! MUST be bzero'd ASAP or we're all gonna die! */
 pid_t playfork = 0; /* PID of the decoding & playing process, if running */
@@ -125,7 +125,7 @@ int station(const char * stationURL) {
 	free(response);
 	
 	retval
-		? (int) (chstation = !0)
+		? (stationChanged = !0)
 		: printf("Sorry, couldn't set station to %s.\n", stationURL);
 
 	if(!playfork) {
