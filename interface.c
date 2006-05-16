@@ -106,6 +106,16 @@ void interface(int interactive) {
 					printf("Sorry, failed to %s RTP.\n", record ? "enable" : "disable");
 				break;
 
+			case 'f':
+				if(playfork)
+					station(meta("lastfm://artist/%a/fans", 0));
+				break;
+				
+			case 's':
+				if(playfork)
+					station(meta("lastfm://artist/%a/similar", 0));
+				break;
+
 			default:
 				snprintf(customkey, sizeof(customkey), "key0x%02X", key & 0xFF);
 				if(haskey(& rc, customkey))
