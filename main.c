@@ -15,6 +15,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <time.h>
 #include <readline/history.h>
 
 #include "include/hash.h"
@@ -30,6 +31,7 @@ extern struct hash data, track;
 extern pid_t playfork;
 
 int changed = 0, discovery = 0, stationChanged = 0, record = !0, death = 0;
+time_t changeTime = 0;
 
 void cleanup(void);
 void deadchild(int);
@@ -91,10 +93,9 @@ int main(int argc, char ** argv) {
 	while(!0) {
 		if(death) {
 			pid_t pid;
-			while((pid = waitpid(-1, NULL, WNOHANG)) > 0)
-				if(pid == playfork && playfork)
-					playfork = 0;
 			death = 0;
+			while((pid = waitpid(-1, NULL, WNOHANG)) > 0)
+				(pid == playfork && playfork) && (playfork = 0);
 		}
 		
 		if(changed) {
@@ -142,6 +143,13 @@ int main(int argc, char ** argv) {
 				run(meta(value(& rc, "np-cmd"), 0));
 		}
 
+		if(playfork && changeTime && haskey(& track, "trackduration")) {
+			int rem =
+				(changeTime + atoi(value(& track, "trackduration"))) - time(NULL);
+			printf("%c%02d:%02d\r", rem < 0 ? '-' : ' ', rem / 60, rem % 60);
+			fflush(stdout);
+		}
+
 		interface(!0);
 	}
 	
@@ -165,7 +173,10 @@ void deadchild(int sig) {
 
 
 void songchanged(int sig) {
-	sig == SIGUSR1 && (changed = !0);
+	if(sig == SIGUSR1) {
+		changed = !0;
+		changeTime = time(NULL);
+	}
 }
 
 
