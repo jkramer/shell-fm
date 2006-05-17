@@ -83,8 +83,11 @@ char ** fetch(char * const url, FILE ** pHandle) {
 		resp = realloc(resp, (nline + 2) * sizeof(char *));
 		assert(resp != NULL);
 
-		if(fgets(buf, sizeof(buf), fd))
+		if(fgets(buf, sizeof(buf), fd)) {
+			char * ptr = strchr(buf, 10);
+			ptr && (* ptr = (char) 0);
 			resp[nline] = strdup(buf);
+		}
 
 		resp[++nline] = NULL;
 	}

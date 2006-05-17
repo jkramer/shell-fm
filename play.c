@@ -48,7 +48,7 @@ void * playback(FILE * streamfd) {
 	memset(& data, 0, sizeof(struct stream));
 	
 	data.streamfd = streamfd;
-	data.audiofd = open("/dev/dsp", O_WRONLY);
+	data.audiofd = open("/dev/audio", O_WRONLY);
 	data.parent = getppid();
 
 	if(-1 == data.audiofd) {
