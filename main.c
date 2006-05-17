@@ -50,12 +50,13 @@ int main(int argc, char ** argv) {
 
 	if(!haskey(& rc, "password")) {
 		char * password;
+		
 		if(!haskey(& rc, "username")) {
 			char username[256] = { 0 };
 
 			fputs("Login: ", stdout);
 			if(!scanf("%255s", username))
-				exit(EXIT_SUCCESS);
+				exit(EXIT_FAILURE);
 
 			set(& rc, "username", username);
 		}
@@ -98,17 +99,11 @@ int main(int argc, char ** argv) {
 		
 		if(changed) {
 			char * last = strdup(meta("%a %t", 0));
-			unsigned count = 0;
+			unsigned retries = 0;
 
 			if(last) {
-				while(!strcmp(last, meta("%a %t", 0))) {
-					if(count)
-						fprintf(stderr, "No new data.\n");
-					if(!update(& track)) {
-						++count;
-						fprintf(stderr, "Failed to fetch.\n");
-					}
-				}
+				while(retries < 10 && !strcmp(last, meta("%a %t", 0)))
+					update(& track) || ++retries;
 				free(last);
 			}
 
@@ -116,7 +111,6 @@ int main(int argc, char ** argv) {
 				const char * msg = meta(control("ban")
 						? "\"%t\" by %a auto-banned."
 						: "Failed to auto-ban \"%t\" by %a.", !0);
-
 				puts(msg);
 				changed = 0;
 				continue;
@@ -139,8 +133,7 @@ int main(int argc, char ** argv) {
 				unlink(file);
 				if(-1 != (np = open(file, O_WRONLY | O_CREAT, 0600))) {
 					const char * output = meta(fmt, 0);
-					if(output)
-						write(np, output, strlen(output));
+					output && write(np, output, strlen(output));
 					close(np);
 				}
 			}
@@ -155,27 +148,27 @@ int main(int argc, char ** argv) {
 	return 0;
 }
 
+
 void cleanup(void) {
 	write_history(rcpath("radio-history"));
-	
+
 	empty(& data);
 	empty(& rc);
-
-	if(playfork)
-		kill(playfork, SIGTERM);
+	
+	playfork && kill(playfork, SIGTERM);
 }
+
 
 void deadchild(int sig) {
-	if(sig == SIGCHLD)
-		death = !0;
+	sig == SIGCHLD && (death = !0);
 }
+
 
 void songchanged(int sig) {
-	if(sig == SIGUSR1)
-		changed = !0;
+	sig == SIGUSR1 && (changed = !0);
 }
 
+
 void pebcak(int sig) {
-	if(sig == SIGINT)
-		fputs("Please use Q to quit.\n", stderr);
+	sig == SIGINT && fputs("Please use Q to quit.\n", stderr);
 }

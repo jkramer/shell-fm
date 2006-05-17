@@ -25,17 +25,14 @@ int banned(const char * artist) {
 		return 0;
 
 	while(!feof(fd) && !match) {
-		char * line = NULL, * ptr;
-		unsigned size = 0;
-		signed length = getline(& line, & size, fd);
+		char line[1024] = { 0 }, * ptr;
+		if(!fgets(line, sizeof(line), fd))
+			continue;
 	
-		if(length > 1) {
+		if(strlen(line) > 1) {
 			(ptr = strrchr(line, 10)) && (* ptr = (char) 0);
 			match = !strncasecmp(line, artist, strlen(line));
 		}
-		
-		if(size)
-			free(line);
 	}
 
 	fclose(fd);

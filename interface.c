@@ -25,15 +25,17 @@
 #include "include/interface.h"
 #include "include/autoban.h"
 #include "include/settings.h"
+#include "include/http.h"
 
 extern pid_t playfork;
-extern unsigned skipped, discovery, chstation, record;
+extern unsigned discovery, record;
 
 int fetchkey(unsigned);
 void canon(int);
 const char * meta(const char *, int);
 void radioprompt(const char *);
 void run(const char *);
+void fetchnprint(const char *);
 
 struct hash track;
 
@@ -231,5 +233,21 @@ void run(const char * cmd) {
 			fflush(stdout);
 			_exit(pclose(fd));
 		}
+	}
+}
+
+void fetchnprint(const char * url) {
+	char ** response = fetch(url, NULL);
+	if(!response)
+		printf("Sorry, failed to fetch %s.\n", url);
+	else {
+		register unsigned x = 0;
+		while(response[x]) {
+			register char * ptr = strchr(response[x], 10);
+			ptr && (* ptr = (char) 0);
+			puts(response[x]);
+			free(response[x++]);
+		}
+		free(response);
 	}
 }

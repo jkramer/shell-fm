@@ -24,8 +24,8 @@ extern void fshutdown(FILE *);
 char ** fetch(char * const url, FILE ** pHandle) {
 	char ** resp = NULL, * host, * file, * port;
 	unsigned short nport = 80;
-	unsigned nline = 0, size = 0, nstatus = 0, length;
-	char * status = NULL;
+	unsigned nline = 0, nstatus = 0;
+	char status[1024] = { 0 };
 	FILE * fd;
 
 	if(pHandle)
@@ -50,8 +50,8 @@ char ** fetch(char * const url, FILE ** pHandle) {
 	fprintf(fd, "User-Agent: Shell-FM v" VERSION "\r\n\r\n");
 	fflush(fd);
 
-	length = getline(& status, & size, fd);
-	if(length >= 12)
+	fgets(status, sizeof(status), fd);
+	if(strlen(status) >= 12)
 		sscanf(status, "HTTP/%*f %u", & nstatus);
 
 	if(nstatus != 200 && nstatus != 301) {
@@ -61,21 +61,16 @@ char ** fetch(char * const url, FILE ** pHandle) {
 	}
 
 	while(!0) {
-		char * line = NULL;
-		size = 0;
-		if(getline(& line, & size, fd) <= 2) {
-			if(size)
-				free(line);
+		char line[1024] = { 0 };
+		if(!fgets(line, sizeof(line), fd) || strlen(line) < 3)
 			break;
-		}
+
 		if(nstatus == 301 && !strncasecmp(line, "Location: ", 10)) {
 			char newurl[512 + 1] = { 0 };
 			sscanf(line, "Location: %512[^\r\n]", newurl);
-			free(line);
 			fshutdown(fd);
 			return fetch(newurl, pHandle);
 		}
-		free(line);
 	}
 
 	if(pHandle) {
@@ -84,11 +79,13 @@ char ** fetch(char * const url, FILE ** pHandle) {
 	}
 	
 	while(!feof(fd)) {
+		char buf[1024] = { 0 };
 		resp = realloc(resp, (nline + 2) * sizeof(char *));
 		assert(resp != NULL);
 
-		resp[nline] = NULL, size = 0;
-		getline(& resp[nline], & size, fd);
+		if(fgets(buf, sizeof(buf), fd))
+			resp[nline] = strdup(buf);
+
 		resp[++nline] = NULL;
 	}
 	

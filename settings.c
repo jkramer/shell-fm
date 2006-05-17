@@ -31,17 +31,14 @@ int settings(const char * path, int first) {
 		return 0;
 		
 	while(!feof(fd)) {
-		char * line = NULL, * ptr;
-		unsigned size = 0;
-		signed length = getline(& line, & size, fd);
+		char line[1024] = { 0 }, * ptr;
+		if(!fgets(line, sizeof(line), fd))
+			continue;
 
 		++nline;
 
-		if(length < 2) {
-			if(size)
-				free(line);
+		if(strlen(line) < 2)
 			continue;
-		}
 	
 		ptr = line;
 		while((ptr = strchr(ptr, '#')) != NULL)
@@ -60,8 +57,6 @@ int settings(const char * path, int first) {
 				retval = 0;
 			}
 		}
-		if(size)
-			free(line);
 	}
 
 	fclose(fd);
