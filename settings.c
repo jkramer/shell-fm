@@ -45,7 +45,13 @@ int settings(const char * path, int first) {
 			if(ptr == line || ptr[-1] != '\\')
 				* ptr = (char) 0;
 			else
-				++ptr;
+				if(ptr[-1] == '\\') {
+					unsigned restlen = strlen(ptr);
+					ptr[-1] = '#';
+					if(restlen > 1)
+						memmove(ptr, ptr + 1, restlen - 1);
+					ptr[restlen] = (char) 0;
+				}
 		
 		if(strlen(line) > 1) {
 			char key[64] = { 0 }, value[256] = { 0 };
