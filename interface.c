@@ -236,18 +236,20 @@ void run(const char * cmd) {
 	}
 }
 
-void fetchnprint(const char * url) {
-	char ** response = fetch(url, NULL);
-	if(!response)
-		printf("Sorry, failed to fetch %s.\n", url);
-	else {
-		register unsigned x = 0;
-		while(response[x]) {
-			register char * ptr = strchr(response[x], 10);
-			ptr && (* ptr = (char) 0);
-			puts(response[x]);
-			free(response[x++]);
+/*
+	void fetchnprint(const char * url) {
+		char ** response = fetch(url, NULL);
+		if(!response)
+			printf("Sorry, failed to fetch %s.\n", url);
+		else {
+			register unsigned x = 0;
+			while(response[x]) {
+				register char * ptr = strchr(response[x], 10);
+				ptr && (* ptr = (char) 0);
+				puts(response[x]);
+				free(response[x++]);
+			}
+			free(response);
 		}
-		free(response);
 	}
-}
+*/

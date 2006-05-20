@@ -12,7 +12,9 @@ CODE	:=\
 	ropen.c\
 	service.c\
 	settings.c\
-	autoban.c
+	autoban.c\
+	getln.c\
+	sckif.c
 HEAD	:=\
 	include/hash.h\
 	include/http.h\
@@ -22,7 +24,8 @@ HEAD	:=\
 	include/service.h\
 	include/settings.h\
 	include/autoban.h\
-	include/version.h
+	include/version.h\
+	include/sckif.h
 CFLAGS	:= -Wall -W -pedantic -ansi -Os -lcrypto -lmad -lreadline -lncurses
 OUTPUT	:= shell-fm
 

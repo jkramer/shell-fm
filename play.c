@@ -39,10 +39,9 @@ signed scale(mad_fixed_t);
 
 void * findsync(register unsigned char *, unsigned);
 
-void * playback(FILE * streamfd) {
+void playback(FILE * streamfd) {
 	struct stream data;
 	struct mad_decoder dec;
-	signed res;
 	unsigned arg;
 
 	memset(& data, 0, sizeof(struct stream));
@@ -53,19 +52,17 @@ void * playback(FILE * streamfd) {
 
 	if(-1 == data.audiofd) {
 		fprintf(stderr, "Couldn't open /dev/dsp! %s.\n", strerror(errno));
-		return NULL;
+		return;
 	}
 
 	arg = 16; /* 16 bits */
 	ioctl(data.audiofd, SOUND_PCM_WRITE_BITS, & arg);
 
 	mad_decoder_init(& dec, & data, input, NULL, NULL, output, NULL, NULL);
-	res = mad_decoder_run(& dec, MAD_DECODER_MODE_SYNC);
+	mad_decoder_run(& dec, MAD_DECODER_MODE_SYNC);
 	mad_decoder_finish(& dec);
 
 	fprintf(stderr, "Reached end of stream.\n");
-
-	return (void *) res;
 }
 
 static enum mad_flow input(void * data, struct mad_stream * stream) {

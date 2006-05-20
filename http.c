@@ -20,12 +20,14 @@
 
 extern FILE * ropen(const char *, unsigned short);
 extern void fshutdown(FILE *);
+extern unsigned getln(char **, unsigned *, FILE *);
+
+void freeln(char **, unsigned *);
 
 char ** fetch(char * const url, FILE ** pHandle) {
-	char ** resp = NULL, * host, * file, * port;
+	char ** resp = NULL, * host, * file, * port, * status = NULL, * line = NULL;
 	unsigned short nport = 80;
-	unsigned nline = 0, nstatus = 0;
-	char status[1024] = { 0 };
+	unsigned nline = 0, nstatus = 0, size = 0;
 	FILE * fd;
 
 	if(pHandle)
@@ -50,19 +52,23 @@ char ** fetch(char * const url, FILE ** pHandle) {
 	fprintf(fd, "User-Agent: Shell-FM v" VERSION "\r\n\r\n");
 	fflush(fd);
 
-	fgets(status, sizeof(status), fd);
-	if(strlen(status) >= 12)
+	
+	if(getln(& status, & size, fd) >= 12)
 		sscanf(status, "HTTP/%*f %u", & nstatus);
 
 	if(nstatus != 200 && nstatus != 301) {
 		fshutdown(fd);
-		fprintf(stderr, "%s", status);
+		if(size) {
+			fprintf(stderr, "HTTP Response: %s", status);
+			free(status);
+		}
 		return NULL;
 	}
 
+	freeln(& status, & size);
+	
 	while(!0) {
-		char line[1024] = { 0 };
-		if(!fgets(line, sizeof(line), fd) || strlen(line) < 3)
+		if(!getln(& line, & size, fd) < 3)
 			break;
 
 		if(nstatus == 301 && !strncasecmp(line, "Location: ", 10)) {
@@ -73,27 +79,32 @@ char ** fetch(char * const url, FILE ** pHandle) {
 		}
 	}
 
+	freeln(& line, & size);
+
 	if(pHandle) {
 		* pHandle = fd;
 		return NULL;
 	}
 	
 	while(!feof(fd)) {
-		char buf[1024] = { 0 };
+		line = NULL;
+		size = 0;
+		
 		resp = realloc(resp, (nline + 2) * sizeof(char *));
 		assert(resp != NULL);
 
-		if(fgets(buf, sizeof(buf), fd)) {
-			char * ptr = strchr(buf, 10);
+		if(getln(& line, & size, fd)) {
+			char * ptr = strchr(line, 10);
 			ptr && (* ptr = (char) 0);
-			resp[nline] = strdup(buf);
-		}
+			resp[nline] = line;
+		} else if(size)
+			free(line);
 
 		resp[++nline] = NULL;
 	}
 	
 	fshutdown(fd);
-	return resp;
+		return resp;
 }
 
 unsigned encode(const char * orig, char ** encoded) {
@@ -110,4 +121,12 @@ unsigned encode(const char * orig, char ** encoded) {
 		++i;
 	}
 	return x;
+}
+
+void freeln(char ** line, unsigned * size) {
+	if(* size) {
+		free(* line);
+		* line = NULL;
+		* size = 0;
+	}
 }

@@ -4,6 +4,6 @@
 
 #include <stdio.h>
 
-void * playback(FILE *);
+void playback(FILE *);
 
 #endif

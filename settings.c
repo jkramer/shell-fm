@@ -17,12 +17,15 @@
 
 struct hash rc; /* settings read from ~/.shell-fm.rc */
 
+extern unsigned getln(char **, unsigned *, FILE *);
 const char * rcpath(const char *);
 
 int settings(const char * path, int first) {
 	int retval = !0;
 	FILE * fd = fopen(path, "r");
 	unsigned nline = 0;
+	char * line = NULL;
+	unsigned size = 0;
 
 	if(first)
 		memset(& rc, 0, sizeof(struct hash));
@@ -31,8 +34,9 @@ int settings(const char * path, int first) {
 		return 0;
 		
 	while(!feof(fd)) {
-		char line[1024] = { 0 }, * ptr;
-		if(!fgets(line, sizeof(line), fd))
+		char * ptr;
+		
+		if(!getln(& line, & size, fd))
 			continue;
 
 		++nline;
@@ -66,7 +70,8 @@ int settings(const char * path, int first) {
 	}
 
 	fclose(fd);
-
+	if(size)
+		free(line);
 
 	return retval;
 }

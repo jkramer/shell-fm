@@ -14,9 +14,13 @@
 
 #include "include/settings.h"
 
+extern unsigned getln(char **, unsigned *, FILE *);
+
 int banned(const char * artist) {
 	FILE * fd;
 	signed match = 0;
+	char * line = NULL;
+	size_t size = 0;
 	
 	if(!artist)
 		return 0;
@@ -25,8 +29,8 @@ int banned(const char * artist) {
 		return 0;
 
 	while(!feof(fd) && !match) {
-		char line[1024] = { 0 }, * ptr;
-		if(!fgets(line, sizeof(line), fd))
+		char * ptr;
+		if(!getln(& line, & size, fd))
 			continue;
 	
 		if(strlen(line) > 1) {
@@ -34,6 +38,9 @@ int banned(const char * artist) {
 			match = !strncasecmp(line, artist, strlen(line));
 		}
 	}
+
+	if(line)
+		free(line);
 
 	fclose(fd);
 	return match;
