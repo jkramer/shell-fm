@@ -158,6 +158,7 @@ int main(int argc, char ** argv) {
 
 
 void cleanup(void) {
+	canon(!0);
 	write_history(rcpath("radio-history"));
 
 	empty(& data);
