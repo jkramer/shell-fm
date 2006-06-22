@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <sys/time.h>
+#include <signal.h>
 
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -28,7 +29,7 @@
 #include "include/http.h"
 
 extern pid_t playfork;
-extern unsigned discovery, record;
+extern unsigned discovery, record, paused;
 
 int fetchkey(unsigned);
 void canon(int);
@@ -116,6 +117,21 @@ void interface(int interactive) {
 			case 's':
 				if(playfork)
 					station(meta("lastfm://artist/%a/similar", 0));
+				break;
+
+			case 'p':
+				if (playfork) {
+					if (paused)
+						kill(playfork, SIGCONT);
+					else
+						kill(playfork, SIGSTOP);
+					paused = !paused;
+				}
+				break;
+
+			case 'S':
+				if (playfork)
+					kill(playfork, SIGKILL);
 				break;
 
 			default:

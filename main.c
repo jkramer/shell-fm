@@ -31,7 +31,8 @@ extern struct hash data, track;
 extern pid_t playfork;
 
 int changed = 0, discovery = 0, stationChanged = 0, record = !0, death = 0;
-time_t changeTime = 0;
+unsigned paused = 0;
+time_t changeTime = 0, pausetime = 0;
 
 void cleanup(void);
 void deadchild(int);
@@ -93,9 +94,17 @@ int main(int argc, char ** argv) {
 	while(!0) {
 		if(death) {
 			pid_t pid;
+			int status;
+
 			death = 0;
-			while((pid = waitpid(-1, NULL, WNOHANG)) > 0)
+			while((pid = waitpid(-1, &status, WNOHANG)) > 0) {
 				(pid == playfork && playfork) && (playfork = 0);
+				if (WIFSIGNALED(status) && !playfork) {
+					paused = paused ? !paused : paused;
+					printf("stopped\r");
+					fflush(stdout);
+				}
+			}
 		}
 		
 		if(changed) {
@@ -143,13 +152,26 @@ int main(int argc, char ** argv) {
 				run(meta(value(& rc, "np-cmd"), 0));
 		}
 
-		if(playfork && changeTime && haskey(& track, "trackduration")) {
-			int rem =
+		if(playfork && changeTime && haskey(& track, "trackduration") && !paused) {
+			int rem;
+			if (pausetime) {
+				changeTime += time(NULL) - pausetime;
+				pausetime = 0;
+			}
+
+			rem = 
 				(changeTime + atoi(value(& track, "trackduration"))) - time(NULL);
 			printf("%c%02d:%02d\r", rem < 0 ? '-' : ' ', rem / 60, rem % 60);
 			fflush(stdout);
+		} else {
+			if (paused && playfork) {
+				if (!pausetime)
+					pausetime = time(NULL);
+				printf("paused\r");
+				fflush(stdout);
+			}
 		}
-
+		
 		interface(!0);
 	}
 	
