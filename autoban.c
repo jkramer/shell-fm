@@ -20,7 +20,7 @@ int banned(const char * artist) {
 	FILE * fd;
 	signed match = 0;
 	char * line = NULL;
-	size_t size = 0;
+	unsigned int size = 0;
 	
 	if(!artist)
 		return 0;
