@@ -33,6 +33,9 @@ OUTPUT	:= shell-fm
 all	: $(CODE) $(HEAD)
 	$(CC) -o $(OUTPUT) $(CFLAGS) $(CODE) && /usr/bin/strip $(OUTPUT)
 
+$(OUTPUT).ao: $(CODE) $(HEAD)
+	$(CC) -o $(OUTPUT).ao -D__HAVE_LIBAO__ $(CFLAGS) $(CODE) `pkg-config ao --cflags --libs` && /usr/bin/strip $(OUTPUT).ao
+
 install	: $(all)
 	mkdir -p $(BINPATH)
 	install -m 755 shell-fm $(BINPATH)

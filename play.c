@@ -23,11 +23,21 @@
 #include <signal.h>
 
 #include <sys/ioctl.h>
+#ifdef __HAVE_LIBAO__
+#include <ao/ao.h>
+#else
 #include <linux/soundcard.h>
+#endif
 
 struct stream {
 	FILE * streamfd;
+#ifdef __HAVE_LIBAO__
+	int driver_id;
+	ao_device *device;
+	ao_sample_format fmt;
+#else
 	int audiofd;
+#endif
 	pid_t parent;
 };
 
@@ -39,6 +49,46 @@ signed scale(mad_fixed_t);
 
 void * findsync(register unsigned char *, unsigned);
 
+#ifdef __HAVE_LIBAO__
+void playback(FILE * streamfd) {
+	static int ao_initialized = 0;
+	struct stream data;
+	struct mad_decoder dec;
+
+	if (!ao_initialized) {
+		ao_initialize();
+		ao_initialized = 1;
+	}
+
+	memset(& data, 0, sizeof(struct stream));
+	
+	data.streamfd = streamfd;
+	data.driver_id = ao_default_driver_id();
+	data.parent = getppid();
+
+	if(-1 == data.driver_id) {
+		fprintf(stderr, "Unable to find any usable output device!\n");
+		return;
+	}
+
+	data.fmt.bits = 16;
+	data.fmt.rate = 44100;
+	data.fmt.channels = 2;
+	data.fmt.byte_format = AO_FMT_BIG;
+	data.device = ao_open_live(data.driver_id,&data.fmt,NULL);
+
+	if (NULL == data.device) {
+		fprintf(stderr, "Unable to open device. Errno: %d\n",errno);
+		return;
+	}
+
+	mad_decoder_init(& dec, & data, input, NULL, NULL, output, NULL, NULL);
+	mad_decoder_run(& dec, MAD_DECODER_MODE_SYNC);
+	mad_decoder_finish(& dec);
+
+	fprintf(stderr, "Reached end of stream.\n");
+}
+#else
 void playback(FILE * streamfd) {
 	struct stream data;
 	struct mad_decoder dec;
@@ -64,6 +114,7 @@ void playback(FILE * streamfd) {
 
 	fprintf(stderr, "Reached end of stream.\n");
 }
+#endif
 
 static enum mad_flow input(void * data, struct mad_stream * stream) {
 	static unsigned nbyte = 0;
@@ -98,6 +149,54 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 	return MAD_FLOW_CONTINUE;
 }
 
+#ifdef __HAVE_LIBAO__
+static enum mad_flow output(
+		void * data,
+		const struct mad_header * head,
+		struct mad_pcm * pcm) {
+	struct stream * ptr = (struct stream *) data;
+
+	unsigned nchan = pcm->channels, rate = pcm->samplerate;
+	register unsigned nsample = pcm->length;
+	mad_fixed_t * left = pcm->samples[0], * right = pcm->samples[1];
+	char *stream, *stream_ptr;
+
+	head = NULL;
+
+	if ((signed) rate != ptr->fmt.rate || (signed) nchan != ptr->fmt.channels) {
+		ptr->fmt.rate = rate;
+		ptr->fmt.channels = nchan;
+		if (ptr->device != NULL)
+			ao_close(ptr->device);
+		ptr->device = ao_open_live(ptr->driver_id,&ptr->fmt,NULL);
+
+		if (NULL == ptr->device) {
+			fprintf(stderr, "Unable to open device. Errno: %d\n",errno);
+			return MAD_FLOW_BREAK;
+		}
+	}
+
+	stream_ptr = stream = malloc(pcm->length * (pcm->channels == 2 ? 4 : 2));
+	
+	while(nsample--) {
+		signed int sample;
+
+		sample = scale(* left++);
+		*stream_ptr++ = (sample & 0xFF);
+		*stream_ptr++ = (sample >> 8) & 0xFF;
+
+		if(nchan == 2) {
+			sample = scale(* right++);
+			*stream_ptr++ = (sample & 0xFF);
+			*stream_ptr++ = (sample >> 8) & 0xFF;
+		}
+	}
+	ao_play(ptr->device, stream, pcm->length * (pcm->channels == 2 ? 4 : 2));
+	free(stream);
+
+	return MAD_FLOW_CONTINUE;
+}
+#else
 static enum mad_flow output(
 		void * data,
 		const struct mad_header * head,
@@ -134,6 +233,7 @@ static enum mad_flow output(
 
 	return MAD_FLOW_CONTINUE;
 }
+#endif
 
 signed scale(register mad_fixed_t sample) {
 	sample += (1L << (MAD_F_FRACBITS - 16));
