@@ -134,6 +134,20 @@ void interface(int interactive) {
 					kill(playfork, SIGKILL);
 				break;
 
+			case '?':
+				puts("A = Autoban Artist");
+				puts("B = Ban Artist");
+				puts("d = Discovery Mode");
+				puts("f = Fan Station");
+				puts("i = Current Track Information");
+				puts("l = Love Track");
+				puts("n = Skip Track");
+				puts("s = Similiar Artist");
+				puts("r = change radio station");
+				puts("R = Enable/Disable RTP");
+				puts("Q = Quit Shell-FM");
+				break;
+
 			default:
 				snprintf(customkey, sizeof(customkey), "key0x%02X", key & 0xFF);
 				if(haskey(& rc, customkey))

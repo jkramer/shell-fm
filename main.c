@@ -43,6 +43,7 @@ void pebcak(int);
 int main(int argc, char ** argv) {
 	puts("Shell.FM v" VERSION ", written 2006 by Jonas Kramer");
 	puts("Published under the terms of the GNU General Public License (GPL)\n");
+	puts("Press ? for help\n");
 	
 	if(argc > 2) {
 		fprintf(stderr, "usage: %s [lastfm://...]\n", * argv);
