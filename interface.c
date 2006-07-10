@@ -142,10 +142,12 @@ void interface(int interactive) {
 				puts("i = Current Track Information");
 				puts("l = Love Track");
 				puts("n = Skip Track");
-				puts("s = Similiar Artist");
-				puts("r = change radio station");
-				puts("R = Enable/Disable RTP");
+				puts("p = Pause Track");
 				puts("Q = Quit Shell-FM");
+				puts("R = Enable/Disable RTP");
+				puts("r = change radio station");
+				puts("S = Stop");
+				puts("s = Similiar Artist");
 				break;
 
 			default:
