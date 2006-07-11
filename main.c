@@ -132,7 +132,10 @@ int main(int argc, char ** argv) {
 				stationChanged = 0;
 			}
 
-			printf("%s\n", meta("Now playing \"%t\" by %a.", !0));
+			if (haskey(&rc, "title-format"))
+				printf("%s\n", meta(value(& rc, "title-format"), !0));
+			else
+				printf("%s\n", meta("Now playing \"%t\" by %a.", !0));
 			changed = 0;
 
 			if(haskey(& rc, "np-file") && haskey(& rc, "np-file-format")) {
