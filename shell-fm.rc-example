@@ -82,3 +82,17 @@ a-color = 0;32 # dark green track artist names
 s-color = 1;37 # white station names
 # ...
 
+# If this is set to a valid IP or hostname,
+# shell-fm will open a listening socket where
+# you can send commands to. Use IP 127.0.0.1
+# or hostname to bind the socket to the loopback
+# interface (socket won't be available for others
+# over the network), or use the "real" IP or
+# hostname to make the socket available via
+# network.
+bind = localhost
+
+# By default, shell-fm binds to socket (see above)
+# to port 54311. With this option, you can specify
+# an other port, if you don't like the default.
+port = 1234

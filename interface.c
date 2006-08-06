@@ -36,7 +36,7 @@ void canon(int);
 const char * meta(const char *, int);
 void radioprompt(const char *);
 void run(const char *);
-void fetchnprint(const char *);
+/* void fetchnprint(const char *); */
 
 struct hash track;
 
@@ -120,8 +120,8 @@ void interface(int interactive) {
 				break;
 
 			case 'p':
-				if (playfork) {
-					if (paused)
+				if(playfork) {
+					if(paused)
 						kill(playfork, SIGCONT);
 					else
 						kill(playfork, SIGSTOP);
@@ -130,25 +130,25 @@ void interface(int interactive) {
 				break;
 
 			case 'S':
-				if (playfork)
+				if(playfork)
 					kill(playfork, SIGKILL);
 				break;
 
-			case '?':
-				puts("A = Autoban Artist");
-				puts("B = Ban Artist");
-				puts("d = Discovery Mode");
-				puts("f = Fan Station");
-				puts("i = Current Track Information");
-				puts("l = Love Track");
-				puts("n = Skip Track");
-				puts("p = Pause Track");
-				puts("Q = Quit Shell-FM");
-				puts("R = Enable/Disable RTP");
-				puts("r = change radio station");
-				puts("S = Stop");
-				puts("s = Similiar Artist");
-				break;
+      case '?':
+        puts("A = Autoban Artist");
+        puts("B = Ban Artist");
+        puts("d = Discovery Mode");
+        puts("f = Fan Station");
+        puts("i = Current Track Information");
+        puts("l = Love Track");
+        puts("n = Skip Track");
+        puts("p = Pause Track");
+        puts("Q = Quit Shell-FM");
+        puts("R = Enable/Disable RTP");
+        puts("r = change radio station");
+        puts("S = Stop");
+        puts("s = Similiar Artist");
+        break;
 
 			default:
 				snprintf(customkey, sizeof(customkey), "key0x%02X", key & 0xFF);
@@ -285,3 +285,5 @@ void run(const char * cmd) {
 		}
 	}
 */
+
+

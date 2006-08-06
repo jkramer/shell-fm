@@ -24,6 +24,7 @@
 #include "include/settings.h"
 #include "include/autoban.h"
 #include "include/version.h"
+#include "include/sckif.h"
 
 #define PATH_MAX 4096
 
@@ -39,26 +40,66 @@ void deadchild(int);
 void songchanged(int);
 void pebcak(int);
 
-
 int main(int argc, char ** argv) {
+	int option, nerror = 0, daemon = 0, haveSocket = 0;
+	opterr = 0;
+	
+	settings(rcpath("shell-fm.rc"), !0);
+	
+	while(-1 != (option = getopt(argc, argv, ":di:p:")))
+		switch(option) {
+			case 'd':
+				daemon = !0;
+				break;
+			case 'i':
+				set(& rc, "bind", optarg);
+				break;
+			case 'p':
+				if(atoi(optarg))
+					set(& rc, "port", optarg);
+				else {
+					fputs("Invalid port.\n", stderr);
+					++nerror;
+				}
+				break;
+			case ':':
+				fprintf(stderr, "Missing argument for option -%c.\n", optopt);
+				++nerror;
+				break;
+			case '?':
+			default:
+				fprintf(stderr, "Unknown option -%c.\n", optopt);
+				++nerror;
+				break;
+		}
+
+	if(nerror)
+		exit(EXIT_FAILURE);
+	
 	puts("Shell.FM v" VERSION ", written 2006 by Jonas Kramer");
 	puts("Published under the terms of the GNU General Public License (GPL)\n");
-	puts("Press ? for help\n");
+
+	if(!daemon)
+		puts("Press ? for help.\n");
 	
-	if(argc > 2) {
-		fprintf(stderr, "usage: %s [lastfm://...]\n", * argv);
-		exit(EXIT_FAILURE);
+	if(haskey(& rc, "bind")) {
+		unsigned short port =
+			haskey(& rc, "port") ? atoi(value(& rc, "port")) : 54311;
+		if(mksckif(value(& rc, "bind"), port))
+			haveSocket = !0;
 	}
 
-	settings(rcpath("shell-fm.rc"), !0);
+	if(daemon && !haveSocket) {
+		fputs("Can't daemonize without control socket.", stderr);
+		exit(EXIT_FAILURE);
+	}
 
 	if(!haskey(& rc, "password")) {
 		char * password;
 		
 		if(!haskey(& rc, "username")) {
 			char username[256] = { 0 };
-
-			fputs("Login: ", stdout);
+			fputs("Login: ", stderr);
 			if(!scanf("%255s", username))
 				exit(EXIT_FAILURE);
 
@@ -83,14 +124,21 @@ int main(int argc, char ** argv) {
 	if(!handshake(value(& rc, "username"), value(& rc, "password")))
 		exit(EXIT_FAILURE);
 
-	if(argc == 2)
-		station(argv[1]);
-	else if(haskey(& rc, "default-radio"))
+	if(haskey(& rc, "default-radio"))
 		station(value(& rc, "default-radio"));
 
-	using_history();
-	read_history(rcpath("radio-history"));
-
+	if(daemon) {
+		pid_t pid = fork();
+		if(pid == -1) {
+			fputs("Failed to daemonize.\n", stderr);
+			exit(EXIT_FAILURE);
+		} else if(pid) {
+			exit(EXIT_SUCCESS);
+		}
+	} else {
+		using_history();
+		read_history(rcpath("radio-history"));
+	}
 
 	while(!0) {
 		if(death) {
@@ -100,10 +148,12 @@ int main(int argc, char ** argv) {
 			death = 0;
 			while((pid = waitpid(-1, &status, WNOHANG)) > 0) {
 				(pid == playfork && playfork) && (playfork = 0);
-				if (WIFSIGNALED(status) && !playfork) {
-					paused = paused ? !paused : paused;
-					printf("stopped\r");
-					fflush(stdout);
+				if(WIFSIGNALED(status) && !playfork) {
+					paused = !paused;
+					if(!daemon) {
+						fputs("Stopped.\r", stdout);
+						fflush(stdout);
+					}
 				}
 			}
 		}
@@ -132,11 +182,12 @@ int main(int argc, char ** argv) {
 				stationChanged = 0;
 			}
 
-			if (haskey(&rc, "title-format"))
-				printf("%s\n", meta(value(& rc, "title-format"), !0));
-			else
-				printf("%s\n", meta("Now playing \"%t\" by %a.", !0));
-			changed = 0;
+			if(haskey(&rc, "title-format"))
+        printf("%s\n", meta(value(& rc, "title-format"), !0));
+      else
+        printf("%s\n", meta("Now playing \"%t\" by %a.", !0));
+
+      changed = 0;
 
 			if(haskey(& rc, "np-file") && haskey(& rc, "np-file-format")) {
 				signed np;
@@ -168,15 +219,17 @@ int main(int argc, char ** argv) {
 			printf("%c%02d:%02d\r", rem < 0 ? '-' : ' ', rem / 60, rem % 60);
 			fflush(stdout);
 		} else {
-			if (paused && playfork) {
-				if (!pausetime)
+			if(paused && playfork) {
+				if(!pausetime)
 					pausetime = time(NULL);
-				printf("paused\r");
+				printf("Paused.\r");
 				fflush(stdout);
 			}
 		}
 		
-		interface(!0);
+		interface(!daemon);
+		if(haveSocket)
+			sckif();
 	}
 	
 	return 0;

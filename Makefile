@@ -33,8 +33,8 @@ OUTPUT	:= shell-fm
 all	: $(CODE) $(HEAD)
 	$(CC) -o $(OUTPUT) $(CFLAGS) $(CODE) && /usr/bin/strip $(OUTPUT)
 
-$(OUTPUT).ao: $(CODE) $(HEAD)
-	$(CC) -o $(OUTPUT).ao -D__HAVE_LIBAO__ $(CFLAGS) $(CODE) `pkg-config ao --cflags --libs` && /usr/bin/strip $(OUTPUT).ao
+ao	: $(CODE) $(HEAD)
+	$(CC) -o $(OUTPUT) -D__HAVE_LIBAO__ $(CFLAGS) $(CODE) `pkg-config ao --cflags --libs` && /usr/bin/strip $(OUTPUT)
 
 install	: $(all)
 	mkdir -p $(BINPATH)
