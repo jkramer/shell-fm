@@ -55,7 +55,7 @@ void playback(FILE * streamfd) {
 	struct stream data;
 	struct mad_decoder dec;
 
-	if (!ao_initialized) {
+	if(!ao_initialized) {
 		ao_initialize();
 		ao_initialized = 1;
 	}
@@ -77,8 +77,8 @@ void playback(FILE * streamfd) {
 	data.fmt.byte_format = AO_FMT_BIG;
 	data.device = ao_open_live(data.driver_id,&data.fmt,NULL);
 
-	if (NULL == data.device) {
-		fprintf(stderr, "Unable to open device. Errno: %d\n",errno);
+	if(NULL == data.device) {
+		fprintf(stderr, "Unable to open device. %s.\n", strerror(errno));
 		return;
 	}
 
@@ -163,15 +163,15 @@ static enum mad_flow output(
 
 	head = NULL;
 
-	if ((signed) rate != ptr->fmt.rate || (signed) nchan != ptr->fmt.channels) {
+	if((signed) rate != ptr->fmt.rate || (signed) nchan != ptr->fmt.channels) {
 		ptr->fmt.rate = rate;
 		ptr->fmt.channels = nchan;
-		if (ptr->device != NULL)
+		if(ptr->device != NULL)
 			ao_close(ptr->device);
-		ptr->device = ao_open_live(ptr->driver_id,&ptr->fmt,NULL);
+		ptr->device = ao_open_live(ptr->driver_id, & ptr->fmt, NULL);
 
-		if (NULL == ptr->device) {
-			fprintf(stderr, "Unable to open device. Errno: %d\n",errno);
+		if(NULL == ptr->device) {
+			fprintf(stderr, "Unable to open device. %s.\n", strerror(errno));
 			return MAD_FLOW_BREAK;
 		}
 	}

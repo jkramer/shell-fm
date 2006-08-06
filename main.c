@@ -124,9 +124,6 @@ int main(int argc, char ** argv) {
 	if(!handshake(value(& rc, "username"), value(& rc, "password")))
 		exit(EXIT_FAILURE);
 
-	if(haskey(& rc, "default-radio"))
-		station(value(& rc, "default-radio"));
-
 	if(daemon) {
 		pid_t pid = fork();
 		if(pid == -1) {
@@ -139,6 +136,9 @@ int main(int argc, char ** argv) {
 		using_history();
 		read_history(rcpath("radio-history"));
 	}
+
+	if(haskey(& rc, "default-radio"))
+		station(value(& rc, "default-radio"));
 
 	while(!0) {
 		if(death) {
@@ -178,14 +178,16 @@ int main(int argc, char ** argv) {
 			}
 			
 			if(stationChanged) {
-				puts(meta("Receiving %s.", !0));
+				daemon || puts(meta("Receiving %s.", !0));
 				stationChanged = 0;
 			}
 
-			if(haskey(&rc, "title-format"))
-        printf("%s\n", meta(value(& rc, "title-format"), !0));
-      else
-        printf("%s\n", meta("Now playing \"%t\" by %a.", !0));
+			if(!daemon) {
+				if(haskey(&rc, "title-format"))
+					printf("%s\n", meta(value(& rc, "title-format"), !0));
+				else
+					printf("%s\n", meta("Now playing \"%t\" by %a.", !0));
+			}
 
       changed = 0;
 
@@ -209,21 +211,26 @@ int main(int argc, char ** argv) {
 
 		if(playfork && changeTime && haskey(& track, "trackduration") && !paused) {
 			int rem;
-			if (pausetime) {
+			if(pausetime) {
 				changeTime += time(NULL) - pausetime;
 				pausetime = 0;
 			}
 
-			rem = 
-				(changeTime + atoi(value(& track, "trackduration"))) - time(NULL);
-			printf("%c%02d:%02d\r", rem < 0 ? '-' : ' ', rem / 60, rem % 60);
-			fflush(stdout);
+
+			if(!daemon) {
+				rem = 
+					(changeTime + atoi(value(& track, "trackduration"))) - time(NULL);
+				printf("%c%02d:%02d\r", rem < 0 ? '-' : ' ', rem / 60, rem % 60);
+				fflush(stdout);
+			}
 		} else {
 			if(paused && playfork) {
 				if(!pausetime)
 					pausetime = time(NULL);
-				printf("Paused.\r");
-				fflush(stdout);
+				if(!daemon) {
+					printf("Paused.\r");
+					fflush(stdout);
+				}
 			}
 		}
 		
