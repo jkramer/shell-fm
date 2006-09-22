@@ -57,7 +57,7 @@ void playback(FILE * streamfd) {
 
 	if(!ao_initialized) {
 		ao_initialize();
-		ao_initialized = 1;
+		ao_initialized = !0;
 	}
 
 	memset(& data, 0, sizeof(struct stream));
@@ -67,7 +67,7 @@ void playback(FILE * streamfd) {
 	data.parent = getppid();
 
 	if(-1 == data.driver_id) {
-		fprintf(stderr, "Unable to find any usable output device!\n");
+		fputs("Unable to find any usable output device!\n", stderr);
 		return;
 	}
 
@@ -86,7 +86,7 @@ void playback(FILE * streamfd) {
 	mad_decoder_run(& dec, MAD_DECODER_MODE_SYNC);
 	mad_decoder_finish(& dec);
 
-	fprintf(stderr, "Reached end of stream.\n");
+	fputs("Reached end of stream.\n", stderr);
 }
 #else
 void playback(FILE * streamfd) {
@@ -112,7 +112,7 @@ void playback(FILE * streamfd) {
 	mad_decoder_run(& dec, MAD_DECODER_MODE_SYNC);
 	mad_decoder_finish(& dec);
 
-	fprintf(stderr, "Reached end of stream.\n");
+	fputs("Reached end of stream.\n", stderr);
 }
 #endif
 

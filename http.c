@@ -28,7 +28,14 @@ char ** fetch(char * const url, FILE ** pHandle) {
 	char ** resp = NULL, * host, * file, * port, * status = NULL, * line = NULL;
 	unsigned short nport = 80;
 	unsigned nline = 0, nstatus = 0, size = 0;
+	signed validHead = 0;
 	FILE * fd;
+	const char * headFormat =
+		"GET /%s HTTP/1.1\r\n"
+		"Host: %s\r\n"
+		"User-Agent: Shell.FM " VERSION "\r\n"
+		"\r\n";
+
 
 	if(pHandle)
 		* pHandle = NULL;
@@ -46,20 +53,20 @@ char ** fetch(char * const url, FILE ** pHandle) {
 
 	if(!(fd = ropen(host, nport)))
 		return NULL;
-	
-	fprintf(fd, "GET /%s HTTP/1.1\r\n", file ? file : "");
-	fprintf(fd, "Host: %s\r\n", host);
-	fprintf(fd, "User-Agent: Shell-FM v" VERSION "\r\n\r\n");
-	fflush(fd);
 
+	fprintf(fd, headFormat, file ? file : "", host);
+	fflush(fd);
 	
 	if(getln(& status, & size, fd) >= 12)
-		sscanf(status, "HTTP/%*f %u", & nstatus);
+		validHead = sscanf(status, "HTTP/%*f %u", & nstatus);
 
 	if(nstatus != 200 && nstatus != 301) {
 		fshutdown(fd);
 		if(size) {
-			fprintf(stderr, "HTTP Response: %s", status);
+			if(validHead != 2)
+				fputs("Invalid HTTP.\n", stderr);
+			else
+				fprintf(stderr, "HTTP Response: %s", status);
 			free(status);
 		}
 		return NULL;
@@ -115,7 +122,12 @@ unsigned encode(const char * orig, char ** encoded) {
 		if(isalnum(orig[i]))
 			(* encoded)[x++] = orig[i];
 		else {
-			sprintf((* encoded) + x, "%%%02x", orig[i]);
+			snprintf(
+					(* encoded) + x,
+					strlen(orig) * 3 - strlen(* encoded),
+					"%%%02x",
+					orig[i]
+			);
 			x += 3;
 		}
 		++i;

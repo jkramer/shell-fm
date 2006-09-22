@@ -38,7 +38,7 @@ time_t changeTime = 0, pausetime = 0;
 void cleanup(void);
 void deadchild(int);
 void songchanged(int);
-void pebcak(int);
+void forcequit(int);
 
 int main(int argc, char ** argv) {
 	int option, nerror = 0, daemon = 0, haveSocket = 0;
@@ -119,7 +119,7 @@ int main(int argc, char ** argv) {
 	
 	signal(SIGCHLD, deadchild);
 	signal(SIGUSR1, songchanged);
-	signal(SIGINT, pebcak);
+	signal(SIGINT, forcequit);
 
 	if(!handshake(value(& rc, "username"), value(& rc, "password")))
 		exit(EXIT_FAILURE);
@@ -228,7 +228,7 @@ int main(int argc, char ** argv) {
 				if(!pausetime)
 					pausetime = time(NULL);
 				if(!daemon) {
-					printf("Paused.\r");
+					fputs("Paused.\r", stdout);
 					fflush(stdout);
 				}
 			}
@@ -244,7 +244,11 @@ int main(int argc, char ** argv) {
 
 
 void cleanup(void) {
+	fputs("Exiting...\n", stdout);
+
 	canon(!0);
+	rmsckif();
+
 	write_history(rcpath("radio-history"));
 
 	empty(& data);
@@ -266,7 +270,9 @@ void songchanged(int sig) {
 	}
 }
 
-
-void pebcak(int sig) {
-	sig == SIGINT && fputs("Please use Q to quit.\n", stderr);
+void forcequit(int sig) {
+	if(sig == SIGINT) {
+		fputs("Try to press Q next time you want to quit.\n", stderr);
+		exit(-1);
+	}
 }

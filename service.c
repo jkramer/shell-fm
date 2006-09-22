@@ -62,7 +62,7 @@ int handshake(const char * username, const char * password) {
 	snprintf(url, sizeof(url), fmt, username, hexmd5);
 	response = fetch(url, NULL);
 	if(!response) {
-		fprintf(stderr, "No response.\n");
+		fputs("No response.\n", stderr);
 		return 0;
 	}
 	
@@ -76,7 +76,7 @@ int handshake(const char * username, const char * password) {
 
 	session = value(& data, "session");
 	if(!session || !strcmp(session, "FAILED")) {
-		printf("Authentication failed.\n");
+		fputs("Authentication failed.\n", stderr);
 		unset(& data, "session");
 		return 0;
 	}
@@ -104,7 +104,7 @@ int station(const char * stationURL) {
 		"&debug=0";
 	
 	if(!haskey(& data, "session")) {
-		fprintf(stderr, "Not authenticated, yet.\n");
+		fputs("Not authenticated, yet.\n", stderr);
 		return 0;
 	}
 

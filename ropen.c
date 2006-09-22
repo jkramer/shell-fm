@@ -24,17 +24,17 @@ FILE * ropen(const char * host, unsigned short port) {
 	FILE * fd;
 
 	if(!host || !port) {
-		printf("No host/port given.\n");
+		fputs("No host/port given.\n", stderr);
 		return NULL;
 	}
 	
 	if(!(entry = gethostbyname(host)) || !entry->h_addr) {
-		printf("%s.\n", hstrerror(h_errno));
+		fprintf(stderr, "%s.\n", hstrerror(h_errno));
 		return NULL;
 	}
 
 	if(-1 == (sck = socket(PF_INET, SOCK_STREAM, PF_UNSPEC))) {
-		printf("Couldn't create socket. %s.\n", strerror(errno));
+		fprintf(stderr, "Couldn't create socket. %s.\n", strerror(errno));
 		return NULL;
 	}
 

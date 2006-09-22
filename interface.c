@@ -53,17 +53,17 @@ void interface(int interactive) {
 		switch(key) {
 			case 'l':
 				if(playfork)
-					printf("%s.\n", control("love") ? "Loved" : "Sorry, failed");
+					puts(control("love") ? "Loved." : "Sorry, failed.");
 				break;
 
 			case 'B':
 				if(playfork)
-					printf("%s.\n", control("ban") ? "Banned" : "Sorry, failed");
+					puts(control("ban") ? "Banned." : "Sorry, failed.");
 				break;
 
 			case 'n':
 				if(playfork)
-					control("skip") || printf("Sorry, failed");
+					control("skip") || puts("Sorry, failed.");
 				break;
 
 			case 'Q':
@@ -93,7 +93,7 @@ void interface(int interactive) {
 				printf(meta("Really ban all tracks by artist %a? [yN]", !0));
 				fflush(stdout);
 				if(fetchkey(5) != 'y')
-					printf("\nAbort.\n");
+					puts("\nAbort.");
 				else if(autoban(value(& track, "artist"))) {
 					printf("\n%s banned.\n", meta("%a", !0));
 					control("ban");
