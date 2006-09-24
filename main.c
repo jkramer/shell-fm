@@ -79,8 +79,10 @@ int main(int argc, char ** argv) {
 	if(nerror)
 		exit(EXIT_FAILURE);
 	
+#ifndef __HAVE_LIBAO__ 
 	if(!haskey(& rc, "device"))
 		set(& rc, "device", "/dev/audio");
+#endif
 
 	puts("Shell.FM v" VERSION ", written 2006 by Jonas Kramer");
 	puts("Published under the terms of the GNU General Public License (GPL)\n");

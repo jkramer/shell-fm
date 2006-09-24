@@ -63,10 +63,14 @@ void playback(FILE * streamfd) {
 	}
 
 	memset(& data, 0, sizeof(struct stream));
-	
+
 	data.streamfd = streamfd;
-	data.driver_id = ao_default_driver_id();
 	data.parent = getppid();
+
+	if (haskey(& rc, "device"))
+		data.driver_id = ao_driver_id(value(& rc, "device"));
+	else
+		data.driver_id = ao_default_driver_id();
 
 	if(-1 == data.driver_id) {
 		fputs("Unable to find any usable output device!\n", stderr);
