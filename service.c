@@ -139,7 +139,7 @@ int station(const char * stationURL) {
 		else {
 			int i;
 			FILE * fd = NULL;
-			for (i = 0; i < FD_SETSIZE; i++)
+			for (i = 3; i < FD_SETSIZE; i++)
 				close(i);
 			signal(SIGINT, SIG_IGN);
 			fetch(value(& data, "stream_url"), & fd, NULL);
