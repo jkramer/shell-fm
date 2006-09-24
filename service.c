@@ -21,6 +21,7 @@
 #include "include/hash.h"
 #include "include/http.h"
 #include "include/play.h"
+#include "include/settings.h"
 
 extern int stationChanged;
 
@@ -41,7 +42,7 @@ pid_t playfork = 0; /* PID of the decoding & playing process, if running */
 */
 int handshake(const char * username, const char * password) {
 	unsigned char * md5;
-	char hexmd5[32] = { 0 }, url[512] = { 0 }, ** response;
+	char hexmd5[32 + 1] = { 0 }, url[512] = { 0 }, ** response;
 	unsigned ndigit, i = 0;
 	const char * session, * fmt =
 		"http://ws.audioscrobbler.com/radio/handshake.php"
@@ -57,10 +58,12 @@ int handshake(const char * username, const char * password) {
 	md5 = MD5((unsigned char *) password, strlen(password), NULL);
 	for(ndigit = 0; ndigit < 16; ++ndigit)
 		sprintf(2 * ndigit + hexmd5, "%02x", md5[ndigit]);
+
+	set(& rc, "password", hexmd5);
 	
 	/* put handshake URL together and fetch initial data from server */
 	snprintf(url, sizeof(url), fmt, username, hexmd5);
-	response = fetch(url, NULL);
+	response = fetch(url, NULL, NULL);
 	if(!response) {
 		fputs("No response.\n", stderr);
 		return 0;
@@ -115,7 +118,7 @@ int station(const char * stationURL) {
 	snprintf(url, sizeof(url), fmt, value(& data, "session"), encodedURL);
 	free(encodedURL);
 
-	response = fetch(url, NULL);
+	response = fetch(url, NULL, NULL);
 	while(response[i]) {
 		char status[64] = { 0 };
 		if(sscanf(response[i], "response=%63[^\r\n]", status) > 0)
@@ -136,7 +139,7 @@ int station(const char * stationURL) {
 		else {
 			FILE * fd = NULL;
 			signal(SIGINT, SIG_IGN);
-			fetch(value(& data, "stream_url"), & fd);
+			fetch(value(& data, "stream_url"), & fd, NULL);
 			playback(fd);
 			fclose(fd);
 			exit(EXIT_SUCCESS);
@@ -165,7 +168,7 @@ int update(struct hash * track) {
 	assert(track);
 	snprintf(url, sizeof(url), fmt, value(& data, "session"));
 	
-	if(!(response = fetch(url, NULL)))
+	if(!(response = fetch(url, NULL, NULL)))
 		return 0;
 
 	while(response[i]) {
@@ -199,7 +202,7 @@ int control(const char * cmd) {
 		"&debug=0";
 
 	snprintf(url, sizeof(url), fmt, value(& data, "session"), cmd);
-	if(!(response = fetch(url, NULL)))
+	if(!(response = fetch(url, NULL, NULL)))
 		return 0;
 
 	while(response[i]) {

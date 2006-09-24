@@ -17,6 +17,7 @@
 #include <sys/socket.h>
 
 #include "include/version.h"
+#include "include/hash.h"
 
 extern FILE * ropen(const char *, unsigned short);
 extern void fshutdown(FILE *);
@@ -24,8 +25,11 @@ extern unsigned getln(char **, unsigned *, FILE *);
 
 void freeln(char **, unsigned *);
 
-char ** fetch(char * const url, FILE ** pHandle) {
+unsigned encode(const char *, char **);
+
+char ** fetch(char * const url, FILE ** pHandle, const char * data) {
 	char ** resp = NULL, * host, * file, * port, * status = NULL, * line = NULL;
+	char urlcpy[1024] = { 0 };
 	unsigned short nport = 80;
 	unsigned nline = 0, nstatus = 0, size = 0;
 	signed validHead = 0;
@@ -33,16 +37,20 @@ char ** fetch(char * const url, FILE ** pHandle) {
 	const char * headFormat =
 		"%s /%s HTTP/1.1\r\n"
 		"Host: %s\r\n"
-		"User-Agent: Shell.FM " VERSION "\r\n"
-		"\r\n";
+		"User-Agent: Shell.FM " VERSION "\r\n";
 
 	if(pHandle)
 		* pHandle = NULL;
-
-	host = & url[strncmp(url, "http://", 7) ? 0 : 7];
+	
+	strcpy(urlcpy, url);
+	
+	host = & urlcpy[strncmp(urlcpy, "http://", 7) ? 0 : 7];
 	port = strchr(host, 0x3A);
 	file = strchr(port ? port : host, 0x2F);
-	* (file++) = (char) 0;
+	fflush(stderr);
+	* file = (char) 0;
+	++file;
+
 	if(port) {
 		char * ptr = NULL;
 		nport = strtol(port, & ptr, 10);
@@ -53,7 +61,12 @@ char ** fetch(char * const url, FILE ** pHandle) {
 	if(!(fd = ropen(host, nport)))
 		return NULL;
 
-	fprintf(fd, headFormat, "GET", file ? file : "", host);
+	fprintf(fd, headFormat, data ? "POST" : "GET", file ? file : "", host);
+
+	if(data)
+		fprintf(fd, "Content-Length: %d\r\n\r\n%s\r\n", strlen(data), data);
+
+	fputs("\r\n", fd);
 	fflush(fd);
 	
 	if(getln(& status, & size, fd) >= 12)
@@ -63,7 +76,7 @@ char ** fetch(char * const url, FILE ** pHandle) {
 		fshutdown(fd);
 		if(size) {
 			if(validHead != 2)
-				fputs("Invalid HTTP.\n", stderr);
+				fprintf(stderr, "Invalid HTTP: %s\n", status);
 			else
 				fprintf(stderr, "HTTP Response: %s", status);
 			free(status);
@@ -81,7 +94,7 @@ char ** fetch(char * const url, FILE ** pHandle) {
 			char newurl[512 + 1] = { 0 };
 			sscanf(line, "Location: %512[^\r\n]", newurl);
 			fshutdown(fd);
-			return fetch(newurl, pHandle);
+			return fetch(newurl, pHandle, NULL);
 		}
 	}
 
@@ -110,7 +123,7 @@ char ** fetch(char * const url, FILE ** pHandle) {
 	}
 	
 	fshutdown(fd);
-		return resp;
+	return resp;
 }
 
 unsigned encode(const char * orig, char ** encoded) {
