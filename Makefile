@@ -28,12 +28,12 @@ HEAD	:=\
 	include/version.h\
 	include/sckif.h\
 	include/split.h
-CFLAGS	:= -Wall -W -pedantic -ansi -Os -lcrypto -lmad -lreadline -lncurses -ggdb
+CFLAGS	:= -Wall -W -pedantic -ansi -Os -lcrypto -lmad -lreadline -lncurses
 OUTPUT	:= shell-fm
 
 .PHONY: all
 all	: $(CODE) $(HEAD)
-	$(CC) -o $(OUTPUT) $(CFLAGS) $(CODE) # && /usr/bin/strip $(OUTPUT)
+	$(CC) -o $(OUTPUT) $(CFLAGS) $(CODE) && /usr/bin/strip $(OUTPUT)
 
 ao	: $(CODE) $(HEAD)
 	$(CC) -o $(OUTPUT) -D__HAVE_LIBAO__ $(CFLAGS) $(CODE) `pkg-config ao --cflags --libs` && /usr/bin/strip $(OUTPUT)
