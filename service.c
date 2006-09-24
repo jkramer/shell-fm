@@ -137,7 +137,10 @@ int station(const char * stationURL) {
 		if(pid)
 			playfork = pid;
 		else {
+			int i;
 			FILE * fd = NULL;
+			for (i = 0; i < FD_SETSIZE; i++)
+				close(i);
 			signal(SIGINT, SIG_IGN);
 			fetch(value(& data, "stream_url"), & fd, NULL);
 			playback(fd);

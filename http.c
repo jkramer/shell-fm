@@ -29,7 +29,7 @@ unsigned encode(const char *, char **);
 
 char ** fetch(char * const url, FILE ** pHandle, const char * data) {
 	char ** resp = NULL, * host, * file, * port, * status = NULL, * line = NULL;
-	char urlcpy[1024] = { 0 };
+	char urlcpy[512 + 1] = { 0 };
 	unsigned short nport = 80;
 	unsigned nline = 0, nstatus = 0, size = 0;
 	signed validHead = 0;
@@ -42,8 +42,8 @@ char ** fetch(char * const url, FILE ** pHandle, const char * data) {
 	if(pHandle)
 		* pHandle = NULL;
 	
-	strcpy(urlcpy, url);
-	
+	strncpy(urlcpy, url, sizeof(urlcpy) - 1);
+
 	host = & urlcpy[strncmp(urlcpy, "http://", 7) ? 0 : 7];
 	port = strchr(host, 0x3A);
 	file = strchr(port ? port : host, 0x2F);
@@ -93,6 +93,7 @@ char ** fetch(char * const url, FILE ** pHandle, const char * data) {
 		if(nstatus == 301 && !strncasecmp(line, "Location: ", 10)) {
 			char newurl[512 + 1] = { 0 };
 			sscanf(line, "Location: %512[^\r\n]", newurl);
+			fprintf(stderr, "NEW: %s\n", newurl);
 			fshutdown(fd);
 			return fetch(newurl, pHandle, NULL);
 		}

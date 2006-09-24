@@ -65,7 +65,6 @@ int mksckif(const char * ip, unsigned short port) {
 
 void rmsckif(void) {
 	if(ssck > 0) {
-		shutdown(ssck, SHUT_RDWR);
 		close(ssck);
 		ssck = -1;
 	}
