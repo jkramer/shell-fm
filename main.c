@@ -46,7 +46,7 @@ int main(int argc, char ** argv) {
 	
 	settings(rcpath("shell-fm.rc"), !0);
 	
-	while(-1 != (option = getopt(argc, argv, ":di:p:")))
+	while(-1 != (option = getopt(argc, argv, ":di:p:D:")))
 		switch(option) {
 			case 'd':
 				daemon = !0;
@@ -66,6 +66,9 @@ int main(int argc, char ** argv) {
 				fprintf(stderr, "Missing argument for option -%c.\n", optopt);
 				++nerror;
 				break;
+			case 'D':
+				set(& rc, "device", optarg);
+				break;
 			case '?':
 			default:
 				fprintf(stderr, "Unknown option -%c.\n", optopt);
@@ -76,6 +79,9 @@ int main(int argc, char ** argv) {
 	if(nerror)
 		exit(EXIT_FAILURE);
 	
+	if(!haskey(& rc, "device"))
+		set(& rc, "device", "/dev/audio");
+
 	puts("Shell.FM v" VERSION ", written 2006 by Jonas Kramer");
 	puts("Published under the terms of the GNU General Public License (GPL)\n");
 

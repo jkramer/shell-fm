@@ -105,7 +105,7 @@ void sckif(void) {
 }
 
 void execcmd(const char * cmd) {
-	char arg[128] = { 0 };
+	char arg[1024] = { 0 };
 	register unsigned ncmd;
 	const char * known [] = {
 		"play",
@@ -126,7 +126,7 @@ void execcmd(const char * cmd) {
 			break;
 
 		case 0:
-			if(sscanf(cmd, "play %128[a-zA-Z0-9:/_ -]", arg) == 1)
+			if(sscanf(cmd, "play %128[a-zA-Z0-9:/_ -,]", arg) == 1)
 				station(arg);
 			break;
 

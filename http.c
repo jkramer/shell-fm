@@ -31,11 +31,10 @@ char ** fetch(char * const url, FILE ** pHandle) {
 	signed validHead = 0;
 	FILE * fd;
 	const char * headFormat =
-		"GET /%s HTTP/1.1\r\n"
+		"%s /%s HTTP/1.1\r\n"
 		"Host: %s\r\n"
 		"User-Agent: Shell.FM " VERSION "\r\n"
 		"\r\n";
-
 
 	if(pHandle)
 		* pHandle = NULL;
@@ -54,7 +53,7 @@ char ** fetch(char * const url, FILE ** pHandle) {
 	if(!(fd = ropen(host, nport)))
 		return NULL;
 
-	fprintf(fd, headFormat, file ? file : "", host);
+	fprintf(fd, headFormat, "GET", file ? file : "", host);
 	fflush(fd);
 	
 	if(getln(& status, & size, fd) >= 12)
@@ -117,7 +116,6 @@ char ** fetch(char * const url, FILE ** pHandle) {
 unsigned encode(const char * orig, char ** encoded) {
 	register unsigned i = 0, x = 0;
 	* encoded = calloc((strlen(orig) * 3) + 1, sizeof(char));
-	memset(* encoded, 0, (strlen(orig) * 3) + 1);
 	while(i < strlen(orig)) {
 		if(isalnum(orig[i]))
 			(* encoded)[x++] = orig[i];
@@ -132,6 +130,31 @@ unsigned encode(const char * orig, char ** encoded) {
 		}
 		++i;
 	}
+	return x;
+}
+
+unsigned decode(const char * orig, char ** decoded) {
+	register unsigned i = 0, x = 0;
+	const unsigned len = strlen(orig);
+	* decoded = calloc(len + 1, sizeof(char));
+	while(i < len) {
+		if(orig[i] != '%')
+			(* decoded)[x] = orig[i];
+		else {
+			unsigned hex;
+			if(sscanf(orig + i, "%%%02x", & hex) != 1)
+				(* decoded)[x] = orig[i];
+			else {
+				(* decoded)[x] = (char) hex;
+				i += 2;
+			}
+		}
+
+		++i;
+		++x;
+	}
+
+	* decoded = realloc(* decoded, (x + 1) * sizeof(char));
 	return x;
 }
 

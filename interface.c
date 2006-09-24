@@ -169,8 +169,11 @@ void radioprompt(const char * prompt) {
 		return;
 
 	if(strlen(url) > 1) {
-		add_history(url);
-		station(url);
+		char * decoded = NULL;
+		decode(url, & decoded);
+		add_history(decoded);
+		station(decoded);
+		free(decoded);
 	}
 
 	free(url);

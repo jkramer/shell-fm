@@ -29,6 +29,8 @@
 #include <linux/soundcard.h>
 #endif
 
+#include "include/settings.h"
+
 struct stream {
 	FILE * streamfd;
 #ifdef __HAVE_LIBAO__
@@ -97,11 +99,14 @@ void playback(FILE * streamfd) {
 	memset(& data, 0, sizeof(struct stream));
 	
 	data.streamfd = streamfd;
-	data.audiofd = open("/dev/audio", O_WRONLY);
+	data.audiofd = open(value(& rc, "device"), O_WRONLY);
 	data.parent = getppid();
 
 	if(-1 == data.audiofd) {
-		fprintf(stderr, "Couldn't open /dev/dsp! %s.\n", strerror(errno));
+		fprintf(
+				stderr, "Couldn't open %s! %s.\n",
+				value(& rc, "device"), strerror(errno)
+		);
 		return;
 	}
 
