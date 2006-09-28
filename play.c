@@ -51,79 +51,101 @@ signed scale(mad_fixed_t);
 
 void * findsync(register unsigned char *, unsigned);
 
+
+void playback(FILE * streamfd) {
+	if(!haskey(& rc, "extern")) {
+		struct stream data;
+		struct mad_decoder dec;
+
 #ifdef __HAVE_LIBAO__
-void playback(FILE * streamfd) {
-	static int ao_initialized = 0;
-	struct stream data;
-	struct mad_decoder dec;
+		static int ao_initialized = 0;
 
-	if(!ao_initialized) {
-		ao_initialize();
-		ao_initialized = !0;
-	}
-
-	memset(& data, 0, sizeof(struct stream));
-
-	data.streamfd = streamfd;
-	data.parent = getppid();
-
-	if (haskey(& rc, "device"))
-		data.driver_id = ao_driver_id(value(& rc, "device"));
-	else
-		data.driver_id = ao_default_driver_id();
-
-	if(-1 == data.driver_id) {
-		fputs("Unable to find any usable output device!\n", stderr);
-		return;
-	}
-
-	data.fmt.bits = 16;
-	data.fmt.rate = 44100;
-	data.fmt.channels = 2;
-	data.fmt.byte_format = AO_FMT_BIG;
-	data.device = ao_open_live(data.driver_id,&data.fmt,NULL);
-
-	if(NULL == data.device) {
-		fprintf(stderr, "Unable to open device. %s.\n", strerror(errno));
-		return;
-	}
-
-	mad_decoder_init(& dec, & data, input, NULL, NULL, output, NULL, NULL);
-	mad_decoder_run(& dec, MAD_DECODER_MODE_SYNC);
-	mad_decoder_finish(& dec);
-
-	fputs("Reached end of stream.\n", stderr);
-}
+		if(!ao_initialized) {
+			ao_initialize();
+			ao_initialized = !0;
+		}
 #else
-void playback(FILE * streamfd) {
-	struct stream data;
-	struct mad_decoder dec;
-	unsigned arg;
+		unsigned arg;
+#endif
 
-	memset(& data, 0, sizeof(struct stream));
-	
-	data.streamfd = streamfd;
-	data.audiofd = open(value(& rc, "device"), O_WRONLY);
-	data.parent = getppid();
+		memset(& data, 0, sizeof(struct stream));
+		
+		data.streamfd = streamfd;
+		data.parent = getppid();
 
-	if(-1 == data.audiofd) {
-		fprintf(
-				stderr, "Couldn't open %s! %s.\n",
-				value(& rc, "device"), strerror(errno)
-		);
-		return;
+#ifdef __HAVE_LIBAO__
+		data.driver_id = haskey(& rc, "device")
+			? ao_driver_id(value(& rc, "device"))
+			: ao_default_driver_id();
+
+		if(-1 == data.driver_id) {
+			fputs("Unable to find any usable output device!\n", stderr);
+			return;
+		}
+
+		data.fmt.bits = 16;
+		data.fmt.rate = 44100;
+		data.fmt.channels = 2;
+		data.fmt.byte_format = AO_FMT_NATIVE;
+		data.device = ao_open_live(data.driver_id,&data.fmt,NULL);
+
+		if(NULL == data.device) {
+			fprintf(stderr, "Unable to open device. %s.\n", strerror(errno));
+			return;
+		}
+#else
+		data.audiofd = open(value(& rc, "device"), O_WRONLY);
+
+		if(-1 == data.audiofd) {
+			fprintf(
+					stderr, "Couldn't open %s! %s.\n",
+					value(& rc, "device"), strerror(errno)
+			);
+			return;
+		}
+
+		arg = 16; /* 16 bits */
+		ioctl(data.audiofd, SOUND_PCM_WRITE_BITS, & arg);
+#endif
+
+		mad_decoder_init(& dec, & data, input, NULL, NULL, output, NULL, NULL);
+		mad_decoder_run(& dec, MAD_DECODER_MODE_SYNC);
+		mad_decoder_finish(& dec);
+	} else {
+		FILE * ext = popen(value(& rc, "extern"), "w");
+		unsigned char * buf;
+
+		if(!ext) {
+			fprintf(stderr, "Failed to execute external player (%s). %s.\n",
+					value(& rc, "extern"), strerror(errno));
+			return;
+		}
+
+		if(!(buf = calloc(BUFSIZE + 1, sizeof(unsigned char)))) {
+			fputs("Couldn't allocate enough memory for input buffer.\n", stderr);
+			fclose(ext);
+			return;
+		}
+
+		while(!feof(streamfd)) {
+			signed nbyte = fread(buf, sizeof(unsigned char), BUFSIZE, streamfd);
+			if(nbyte > 0) {
+				unsigned char * sync = findsync(buf, nbyte);
+				if(sync) {
+					unsigned len = nbyte - (sync - buf) - 4;
+					memmove(sync, sync + 4, len);
+					kill(getppid(), SIGUSR1);
+				}
+				fwrite(buf, sizeof(unsigned char), BUFSIZE, ext);
+			}
+		}
+
+		free(buf);
+		fclose(ext);
 	}
-
-	arg = 16; /* 16 bits */
-	ioctl(data.audiofd, SOUND_PCM_WRITE_BITS, & arg);
-
-	mad_decoder_init(& dec, & data, input, NULL, NULL, output, NULL, NULL);
-	mad_decoder_run(& dec, MAD_DECODER_MODE_SYNC);
-	mad_decoder_finish(& dec);
 
 	fputs("Reached end of stream.\n", stderr);
 }
-#endif
 
 static enum mad_flow input(void * data, struct mad_stream * stream) {
 	static unsigned nbyte = 0;
