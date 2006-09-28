@@ -24,6 +24,7 @@
 
 #include "include/sckif.h"
 #include "include/service.h"
+#include "include/interface.h"
 
 extern unsigned getln(char **, unsigned *, FILE *);
 extern int interactive;
@@ -88,7 +89,7 @@ void sckif(void) {
 					if(line && size > 0) {
 						(ptr = strchr(line, 13)) && (* ptr = 0);
 						(ptr = strchr(line, 10)) && (* ptr = 0);
-						execcmd(line);
+						execcmd(line, fd);
 					}
 
 					if(line)
@@ -103,7 +104,7 @@ void sckif(void) {
 	}
 }
 
-void execcmd(const char * cmd) {
+void execcmd(const char * cmd, FILE * fd) {
 	char arg[1024] = { 0 };
 	register unsigned ncmd;
 	const char * known [] = {
@@ -113,7 +114,8 @@ void execcmd(const char * cmd) {
 		"skip",
 		"rtp",
 		"nortp",
-		"quit"
+		"quit",
+		"info"
 	};
 
 	for(ncmd = 0; ncmd < (sizeof(known) / sizeof(char *)); ++ncmd)
@@ -139,6 +141,10 @@ void execcmd(const char * cmd) {
 
 		case 6:
 			exit(EXIT_SUCCESS);
+
+		case 7:
+			fprintf(fd, "%s\n", meta(cmd + 5, 0));
+			break;
 	}
 }
 
