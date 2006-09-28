@@ -32,7 +32,7 @@
 #include "include/split.h"
 
 extern pid_t playfork;
-extern unsigned discovery, record, paused;
+extern unsigned discovery, record, paused, changeTime;
 
 int fetchkey(unsigned);
 void canon(int);
@@ -235,7 +235,8 @@ const char * meta(const char * fmt, int colored) {
 				"sstation",
 				"ustation_url",
 				"Uartist_url",
-				"Ttrack_url"
+				"Ttrack_url",
+				"Rremain"
 			};
 
 			register unsigned i = sizeof(keys) / sizeof(char *);

@@ -221,15 +221,22 @@ int main(int argc, char ** argv) {
 
 		if(playfork && changeTime && haskey(& track, "trackduration") && !paused) {
 			int rem;
+			char remstr[32] = { 0 };
+
 			if(pausetime) {
 				changeTime += time(NULL) - pausetime;
 				pausetime = 0;
 			}
 
+			rem = 
+				(changeTime + atoi(value(& track, "trackduration"))) - time(NULL);
+
+			snprintf(remstr, 32, "%d", rem);
+
+			set(& track, "remain", remstr);
 
 			if(!daemon) {
-				rem = 
-					(changeTime + atoi(value(& track, "trackduration"))) - time(NULL);
+
 				printf("%c%02d:%02d\r", rem < 0 ? '-' : ' ', rem / 60, rem % 60);
 				fflush(stdout);
 			}
