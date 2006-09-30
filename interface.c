@@ -235,6 +235,7 @@ const char * meta(const char * fmt, int colored) {
 				"sstation",
 				"ustation_url",
 				"Uartist_url",
+				"Xalbum_url",
 				"Ttrack_url",
 				"Rremain"
 			};

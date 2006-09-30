@@ -64,7 +64,7 @@ char ** fetch(char * const url, FILE ** pHandle, const char * data) {
 	fprintf(fd, headFormat, data ? "POST" : "GET", file ? file : "", host);
 
 	if(data)
-		fprintf(fd, "Content-Length: %d\r\n\r\n%s\r\n", strlen(data), data);
+		fprintf(fd, "Content-Length: %ld\r\n\r\n%s\r\n", (long) strlen(data), data);
 
 	fputs("\r\n", fd);
 	fflush(fd);
