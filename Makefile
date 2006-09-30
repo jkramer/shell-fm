@@ -16,28 +16,54 @@ CODE	:=\
 	getln.c\
 	sckif.c\
 	split.c
-HEAD	:=\
-	include/hash.h\
-	include/http.h\
-	include/interface.h\
-	include/play.h\
-	include/ropen.h\
-	include/service.h\
-	include/settings.h\
-	include/autoban.h\
-	include/version.h\
-	include/sckif.h\
-	include/split.h
-CFLAGS	:= -Wall -W -pedantic -ansi -Os -lcrypto -lmad -lreadline -lncurses
+OBJS    = $(CODE:%.c=%.o)
 OUTPUT	:= shell-fm
 
-.PHONY: all
-all	: $(CODE) $(HEAD)
-	$(CC) -o $(OUTPUT) $(CFLAGS) $(CODE) && /usr/bin/strip $(OUTPUT)
+CFLAGS	= -Wall -W -pedantic -ansi -Os 
+LIBS    = -lcrypto -lmad -lreadline -lncurses
 
-ao	: $(CODE) $(HEAD)
-	$(CC) -o $(OUTPUT) -D__HAVE_LIBAO__ $(CFLAGS) $(CODE) `pkg-config ao --cflags --libs` && /usr/bin/strip $(OUTPUT)
+### detect libao
 
-install	: $(all)
+AO_CFLAGS = $(shell pkg-config --silence-errors ao --cflags)
+AO_LIBS   = $(shell pkg-config --silence-errors ao --libs)
+
+ifneq ($(AO_LIBS),)
+CFLAGS    += $(AO_CFLAGS) -D__HAVE_LIBAO__
+LIBS      += $(AO_LIBS)
+endif
+
+### building
+
+.PHONY: all clean distclean depend
+all: depend $(OUTPUT)
+	
+$(OUTPUT): $(OBJS) Makefile
+	$(CC) -o $@ $(LIBS) $(OBJS)
+	/usr/bin/strip $@
+
+$(OBJS): %.o: %.c .%.c.dep
+	$(CC) -o $@ $(CFLAGS) -c $<
+
+install: $(all)
 	mkdir -p $(BINPATH)
-	install -m 755 shell-fm $(BINPATH)
+	install -m 755 $(OUTPUT) $(BINPATH)
+
+### dependencies
+
+DEPS=$(CODE:%.c=.%.c.dep)
+EXISTING_DEPS=$(wildcard $(DEPS))
+
+depend: $(DEPS) Makefile
+
+$(DEPS): .%.c.dep: %.c
+	$(CC) -MM $< > $@
+
+include $(EXISTING_DEPS)
+
+### cleanup
+
+clean:
+	-rm -f *.o $(OUTPUT)
+
+distclean: clean
+	-rm -f *~ .*.c.dep
