@@ -189,7 +189,7 @@ int main(int argc, char ** argv) {
 			
 			if(stationChanged) {
 				daemon || puts(meta("Receiving %s.", !0));
-				stationChanged = 0;
+				paused = stationChanged = 0;
 			}
 
 			if(!daemon) {
