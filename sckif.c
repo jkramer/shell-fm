@@ -13,6 +13,7 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/types.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
 #include <stdlib.h>
 
@@ -35,6 +36,7 @@ static int ssck = -1;
 int waitread(int, unsigned, unsigned);
 
 int mksckif(const char * ip, unsigned short port) {
+	static const int one = 1;
 	struct sockaddr_in host;
 	struct hostent * hostent;
 
@@ -54,6 +56,9 @@ int mksckif(const char * ip, unsigned short port) {
 	host.sin_family = PF_INET;
 	host.sin_port = htons(port);
 	host.sin_addr.s_addr = * (unsigned *) hostent->h_addr;
+
+	if (-1 == setsockopt(ssck, SOL_SOCKET, SO_REUSEADDR, &one, sizeof one))
+		fprintf(stderr, "Failed to set SO_REUSEADDR socket option. %s\n", strerror(errno));
 
 	if(bind(ssck, (struct sockaddr *) & host, sizeof(struct sockaddr_in))) {
 		fprintf(stderr, "Failed to bind socket. %s.\n", strerror(errno));
