@@ -15,7 +15,8 @@ CODE	:=\
 	autoban.c\
 	getln.c\
 	sckif.c\
-	split.c
+	split.c\
+	bookmark.c
 OBJS    = $(CODE:%.c=%.o)
 OUTPUT	:= shell-fm
 

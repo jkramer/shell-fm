@@ -28,6 +28,8 @@ extern int stationChanged;
 struct hash data; /* Warning! MUST be bzero'd ASAP or we're all gonna die! */
 pid_t playfork = 0; /* PID of the decoding & playing process, if running */
 
+char * currentStation = NULL;
+
 
 /*
 	Function: handshake
@@ -148,6 +150,11 @@ int station(const char * stationURL) {
 			exit(EXIT_SUCCESS);
 		}
 	}
+
+	if(currentStation)
+		free(currentStation);
+
+	currentStation = strdup(stationURL);
 
 	return retval;
 }

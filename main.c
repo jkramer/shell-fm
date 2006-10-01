@@ -30,6 +30,7 @@
 
 extern struct hash data, track;
 extern pid_t playfork;
+extern char * currentStation;
 
 int changed = 0, discovery = 0, stationChanged = 0, record = !0, death = 0;
 unsigned paused = 0;
@@ -40,7 +41,7 @@ static void savehistory(void);
 static void deadchild(int);
 static void songchanged(int);
 static void forcequit(int);
-static void exit_with_help(const char *app_name, int error_code);
+static void exitWithHelp(const char *, int);
 
 int main(int argc, char ** argv) {
 	int option, nerror = 0, daemon = 0, haveSocket = 0;
@@ -72,7 +73,7 @@ int main(int argc, char ** argv) {
 				set(& rc, "device", optarg);
 				break;
 			case 'h':
-				exit_with_help (argv[0], 0);
+				exitWithHelp(argv[0], 0);
 				break;
 			case '?':
 			default:
@@ -83,9 +84,9 @@ int main(int argc, char ** argv) {
 
 	/* the next argument, if present is the lastfm:// url we want to play */
 	if(optind > 0 && optind < argc && argv[optind]) {
-		const char *station = argv[optind];
+		const char * station = argv[optind];
 
-		if (0 != strncmp (station, "lastfm://", 9)) {
+		if(0 != strncmp(station, "lastfm://", 9)) {
 			fprintf(stderr, "Not a valid lastfm url: %s\n\n", station);
 			++nerror;
 		} else {
@@ -94,7 +95,7 @@ int main(int argc, char ** argv) {
 	}
 	
 	if(nerror)
-		exit_with_help (argv[0], EXIT_FAILURE);
+		exitWithHelp(argv[0], EXIT_FAILURE);
 
 #ifndef __HAVE_LIBAO__ 
 	if(!haskey(& rc, "device"))
@@ -276,12 +277,10 @@ int main(int argc, char ** argv) {
 }
 
 
-static void 
-exit_with_help(const char *app_name, int error_code)
-{
-	FILE *out = error_code ? stderr : stdout;
+static void exitWithHelp(const char * argv0, int errorCode) {
+	FILE * out = errorCode ? stderr : stdout;
 
-	fprintf (out, 
+	fprintf(out,
 		"shell-fm - Copyright (C) 2006 by Jonas Kramer\n"
 		"\n"
 		"%s [options] [lastfm://url]\n"
@@ -291,9 +290,10 @@ exit_with_help(const char *app_name, int error_code)
 		"  -p        port to listen on.\n"
 		"  -D        device to play on.\n"
 		"  -h        this help.\n",
-		app_name);
+		argv0
+	);
 
-		exit(error_code);
+	exit(errorCode);
 }
 
 
@@ -305,6 +305,9 @@ static void cleanup(void) {
 
 	empty(& data);
 	empty(& rc);
+
+	if(currentStation)
+		free(currentStation);
 	
 	playfork && kill(playfork, SIGTERM);
 }

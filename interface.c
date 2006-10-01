@@ -30,9 +30,11 @@
 #include "include/settings.h"
 #include "include/http.h"
 #include "include/split.h"
+#include "include/bookmark.h"
 
 extern pid_t playfork;
 extern unsigned discovery, record, paused, changeTime;
+extern char * currentStation;
 
 int fetchkey(unsigned);
 void canon(int);
@@ -49,7 +51,7 @@ extern struct hash data;
 void interface(int interactive) {
 	if(interactive) {
 		int key;
-		char customkey[8] = { 0 };
+		char customkey[8] = { 0 }, * marked = NULL;
 		
 		canon(0);
 		fflush(stderr);
@@ -125,6 +127,18 @@ void interface(int interactive) {
 					station(meta("lastfm://artist/%a/similar", 0));
 				break;
 
+			case 'h':
+				printmarks();
+				break;
+
+			case 'H':
+				if(playfork && currentStation) {
+					puts("What number do you want to bookmark this stream as? [0-9]");
+					key = fetchkey(5);
+					setmark(currentStation, key - 0x30);
+				}
+				break;
+
 			case 'p':
 				if(playfork) {
 					if(paused)
@@ -166,6 +180,24 @@ void interface(int interactive) {
         puts("s = Similiar Artist");
         puts("T = Tag Track/Artist/Album");
         break;
+
+			case '0':
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9':
+				if((marked = getmark(key - 0x30))) {
+					station(marked);
+					free(marked);
+				} else {
+					puts("Bookmark not defined.");
+				}
+				break;
 
 			default:
 				snprintf(customkey, sizeof(customkey), "key0x%02X", key & 0xFF);
