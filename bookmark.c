@@ -46,6 +46,8 @@ void setmark(const char * streamURL, int n) {
 		int i;
 		for(i = 0; i < 10; ++i)
 			if(bookmarks[i]) {
+				char * ptr = strchr(bookmarks[i], 10);
+				(ptr) && (* ptr = 0);
 				fprintf(fd, "%d = %s\n", i, bookmarks[i]);
 				free(bookmarks[i]);
 			}
