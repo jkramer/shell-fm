@@ -145,7 +145,7 @@ void interface(int interactive) {
 
       case '?':
         puts("A = Autoban Artist");
-        puts("B = Ban Artist");
+        puts("B = Ban Track");
         puts("d = Discovery Mode");
         puts("f = Fan Station");
         puts("i = Current Track Information");
