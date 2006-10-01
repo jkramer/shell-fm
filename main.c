@@ -40,6 +40,7 @@ static void savehistory(void);
 static void deadchild(int);
 static void songchanged(int);
 static void forcequit(int);
+static void exit_with_help(const char *app_name, int error_code);
 
 int main(int argc, char ** argv) {
 	int option, nerror = 0, daemon = 0, haveSocket = 0;
@@ -47,7 +48,7 @@ int main(int argc, char ** argv) {
 	
 	settings(rcpath("shell-fm.rc"), !0);
 	
-	while(-1 != (option = getopt(argc, argv, ":di:p:D:")))
+	while(-1 != (option = getopt(argc, argv, ":dhi:p:D:")))
 		switch(option) {
 			case 'd':
 				daemon = !0;
@@ -64,22 +65,37 @@ int main(int argc, char ** argv) {
 				}
 				break;
 			case ':':
-				fprintf(stderr, "Missing argument for option -%c.\n", optopt);
+				fprintf(stderr, "Missing argument for option -%c.\n\n", optopt);
 				++nerror;
 				break;
 			case 'D':
 				set(& rc, "device", optarg);
 				break;
+			case 'h':
+				exit_with_help (argv[0], 0);
+				break;
 			case '?':
 			default:
-				fprintf(stderr, "Unknown option -%c.\n", optopt);
+				fprintf(stderr, "Unknown option -%c.\n\n", optopt);
 				++nerror;
 				break;
 		}
 
-	if(nerror)
-		exit(EXIT_FAILURE);
+	/* the next argument, if present is the lastfm:// url we want to play */
+	if(optind > 0 && optind < argc && argv[optind]) {
+		const char *station = argv[optind];
+
+		if (0 != strncmp (station, "lastfm://", 9)) {
+			fprintf(stderr, "Not a valid lastfm url: %s\n\n", station);
+			++nerror;
+		} else {
+			set(& rc, "default-radio", station);
+		}
+	}
 	
+	if(nerror)
+		exit_with_help (argv[0], EXIT_FAILURE);
+
 #ifndef __HAVE_LIBAO__ 
 	if(!haskey(& rc, "device"))
 		set(& rc, "device", "/dev/audio");
@@ -257,6 +273,27 @@ int main(int argc, char ** argv) {
 	}
 	
 	return 0;
+}
+
+
+static void 
+exit_with_help(const char *app_name, int error_code)
+{
+	FILE *out = error_code ? stderr : stdout;
+
+	fprintf (out, 
+		"shell-fm - Copyright (C) 2006 by Jonas Kramer\n"
+		"\n"
+		"%s [options] [lastfm://url]\n"
+		"\n"
+		"  -d        daemon mode.\n"
+		"  -i        address to listen on.\n"
+		"  -p        port to listen on.\n"
+		"  -D        device to play on.\n"
+		"  -h        this help.\n",
+		app_name);
+
+		exit(error_code);
 }
 
 
