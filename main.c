@@ -35,11 +35,11 @@ int changed = 0, discovery = 0, stationChanged = 0, record = !0, death = 0;
 unsigned paused = 0;
 time_t changeTime = 0, pausetime = 0;
 
-void cleanup(void);
-void savehistory(void);
-void deadchild(int);
-void songchanged(int);
-void forcequit(int);
+static void cleanup(void);
+static void savehistory(void);
+static void deadchild(int);
+static void songchanged(int);
+static void forcequit(int);
 
 int main(int argc, char ** argv) {
 	int option, nerror = 0, daemon = 0, haveSocket = 0;
@@ -260,7 +260,7 @@ int main(int argc, char ** argv) {
 }
 
 
-void cleanup(void) {
+static void cleanup(void) {
 	fputs("Exiting...\n", stdout);
 
 	canon(!0);
@@ -273,25 +273,25 @@ void cleanup(void) {
 }
 
 
-void savehistory(void) {
+static void savehistory(void) {
 	write_history(rcpath("radio-history"));
 }
 	
 
 
-void deadchild(int sig) {
+static void deadchild(int sig) {
 	sig == SIGCHLD && (death = !0);
 }
 
 
-void songchanged(int sig) {
+static void songchanged(int sig) {
 	if(sig == SIGUSR1) {
 		changed = !0;
 		changeTime = time(NULL);
 	}
 }
 
-void forcequit(int sig) {
+static void forcequit(int sig) {
 	if(sig == SIGINT) {
 		fputs("Try to press Q next time you want to quit.\n", stderr);
 		exit(-1);
