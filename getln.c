@@ -21,8 +21,10 @@ unsigned getln(char ** ptr, unsigned * size, FILE * fd) {
 	while(!feof(fd) && ch != (char) 10) {
 		ch = fgetc(fd);
 		
-		if(length + 2 > * size)
-			assert((* ptr = realloc(* ptr, (* size += 1024))) != NULL);
+		if(length + 2 > * size) {
+			* ptr = realloc(* ptr, (* size += 1024));
+			assert(* ptr);
+		}
 
 		(* ptr)[length++] = ch;
 		(* ptr)[length] = 0;

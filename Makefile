@@ -19,7 +19,7 @@ CODE	:=\
 OBJS    = $(CODE:%.c=%.o)
 OUTPUT	:= shell-fm
 
-CFLAGS	= -Wall -W -pedantic -ansi -Os 
+CFLAGS	= -Wall -W -pedantic -ansi
 LIBS    = -lcrypto -lmad -lreadline -lncurses
 
 ### detect libao
@@ -32,6 +32,14 @@ CFLAGS    += $(AO_CFLAGS) -D__HAVE_LIBAO__
 LIBS      += $(AO_LIBS)
 endif
 
+### debug version
+
+ifeq ($(DEBUG),)
+CFLAGS    += -DNDEBUG -Os
+else
+CFLAGS    += -g
+endif
+
 ### building
 
 .PHONY: all clean distclean depend
@@ -39,7 +47,9 @@ all: depend $(OUTPUT)
 	
 $(OUTPUT): $(OBJS) Makefile
 	$(CC) -o $@ $(LIBS) $(OBJS)
+ifeq ($(DEBUG),)
 	/usr/bin/strip $@
+endif
 
 $(OBJS): %.o: %.c .%.c.dep
 	$(CC) -o $@ $(CFLAGS) -c $<
