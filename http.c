@@ -27,7 +27,7 @@ void freeln(char **, unsigned *);
 
 unsigned encode(const char *, char **);
 
-char ** fetch(char * const url, FILE ** pHandle, const char * data) {
+char ** fetch(char * const url, FILE ** pHandle, const char * data, const char * addhead) {
 	char ** resp = NULL, * host, * file, * port, * status = NULL, * line = NULL;
 	char urlcpy[512 + 1] = { 0 };
 	unsigned short nport = 80;
@@ -63,6 +63,9 @@ char ** fetch(char * const url, FILE ** pHandle, const char * data) {
 
 	fprintf(fd, headFormat, data ? "POST" : "GET", file ? file : "", host);
 
+	if(addhead)
+		fprintf(fd, "%s\r\n", addhead);
+
 	if(data)
 		fprintf(fd, "Content-Length: %ld\r\n\r\n%s\r\n", (long) strlen(data), data);
 
@@ -95,7 +98,7 @@ char ** fetch(char * const url, FILE ** pHandle, const char * data) {
 			sscanf(line, "Location: %512[^\r\n]", newurl);
 			fprintf(stderr, "NEW: %s\n", newurl);
 			fshutdown(fd);
-			return fetch(newurl, pHandle, NULL);
+			return fetch(newurl, pHandle, data, addhead);
 		}
 	}
 

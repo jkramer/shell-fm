@@ -40,6 +40,7 @@ const char * meta(const char *, int);
 void radioprompt(const char *);
 void run(const char *);
 void tag(struct hash);
+void artistRadio();
 
 struct hash track;
 
@@ -140,11 +141,16 @@ void interface(int interactive) {
 				break;
 
 			case 'T':
-				if (playfork)
+				if(playfork)
 					tag(track);
 				break;
 
+			case 'a':
+				artistRadio();
+				break;
+
       case '?':
+				puts("a = Play Custom Artist Radion");
         puts("A = Autoban Artist");
         puts("B = Ban Track");
         puts("d = Discovery Mode");
@@ -158,7 +164,7 @@ void interface(int interactive) {
         puts("r = change radio station");
         puts("S = Stop");
         puts("s = Similiar Artist");
-        puts("T = Tag Track");
+        puts("T = Tag Track/Artist/Album");
         break;
 
 			default:
@@ -412,7 +418,7 @@ void tag(struct hash data) {
 
 		free(post);
 
-		if((resp = fetch(url, NULL, xml))) {
+		if((resp = fetch(url, NULL, xml, NULL))) {
 			for(x = 0; resp[x]; ++x)
 				free(resp[x]);
 			free(resp);
@@ -422,4 +428,38 @@ void tag(struct hash data) {
 	}
 
 	free(tagstring);
+}
+
+
+void artistRadio(void) {
+	char * artists;
+
+	fputs("Enter one or more artists, separated by commas.\n", stdout);
+
+	canon(!0);
+	artists = readline(">> ");
+	canon(0);
+
+	if(strlen(artists) > 0) {
+		char * post, * encoded = NULL, ** resp;
+		unsigned length = encode(artists, & encoded) + 11, x = 0;
+
+		free(artists);
+		post = calloc(length, sizeof(char));
+		snprintf(post, length, "artists=%s\r\n", encoded);
+		free(encoded);
+
+		resp = fetch("http://www.last.fm/listen/", NULL, post, "Content-Type: application/x-www-form-urlencoded");
+		free(post);
+
+		if(resp) {
+			while(resp[x]) {
+				if(!resp[x + 1])
+					station(resp[x]);
+				free(resp[x++]);
+			}
+
+			free(resp);
+		}
+	}
 }
