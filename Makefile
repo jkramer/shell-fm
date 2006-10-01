@@ -42,7 +42,7 @@ endif
 
 ### building
 
-.PHONY: all clean distclean depend
+.PHONY: all clean distclean depend 
 all: depend $(OUTPUT)
 	
 $(OUTPUT): $(OBJS) Makefile
@@ -57,6 +57,18 @@ $(OBJS): %.o: %.c .%.c.dep
 install: $(all)
 	mkdir -p $(BINPATH)
 	install -m 755 $(OUTPUT) $(BINPATH)
+
+### ctags and cscope
+
+.PHONY: tags cscope
+tags: cscope.files
+	ctags `cat cscope.files`
+
+cscope: cscope.files
+	cscope -b
+
+cscope.files: $(wildcard *.h *.c)
+	find . -name '*.h' -o -name '*.c' > cscope.files
 
 ### dependencies
 
@@ -77,3 +89,5 @@ clean:
 
 distclean: clean
 	-rm -f *~ .*.c.dep
+	-rm -f tags cscope.out cscope.files
+
