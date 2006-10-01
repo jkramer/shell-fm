@@ -28,6 +28,7 @@
 
 extern unsigned getln(char **, unsigned *, FILE *);
 extern int interactive;
+extern unsigned discovery;
 
 static int ssck = -1;
 
@@ -115,7 +116,8 @@ void execcmd(const char * cmd, FILE * fd) {
 		"rtp",
 		"nortp",
 		"quit",
-		"info"
+		"info",
+		"discovery"
 	};
 
 	for(ncmd = 0; ncmd < (sizeof(known) / sizeof(char *)); ++ncmd)
@@ -144,6 +146,13 @@ void execcmd(const char * cmd, FILE * fd) {
 
 		case 7:
 			fprintf(fd, "%s\n", meta(cmd + 5, 0));
+			break;
+
+		case 8:
+			if (setdiscover(discovery = !discovery))
+				fprintf(fd, "%s discovery mode.\n", discovery ? "Enabled" : "Disabled");
+			else
+				fprintf(fd, "Failed to %s discovery mode.\n", discovery ? "enable" : "disable");
 			break;
 	}
 }
