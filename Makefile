@@ -1,4 +1,4 @@
-# vim:ts=8
+# vim:ts=8 noexpandtab
 
 BINPATH = "/usr/local/bin"
 

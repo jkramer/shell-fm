@@ -1,5 +1,5 @@
 /*
-	vim:syntax=c tabstop=2 shiftwidth=2
+	vim:syntax=c tabstop=2 shiftwidth=2 noexpandtab
 	
 	Shell.FM - sckif.c
 	Copyright (C) 2006 by Jonas Kramer
