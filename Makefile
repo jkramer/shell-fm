@@ -78,7 +78,7 @@ EXISTING_DEPS=$(wildcard $(DEPS))
 depend: $(DEPS) Makefile
 
 $(DEPS): .%.c.dep: %.c
-	$(CC) -MM $< > $@
+	$(CC) -MM $(CFLAGS) $< > $@
 
 include $(EXISTING_DEPS)
 
