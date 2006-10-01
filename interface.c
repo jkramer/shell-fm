@@ -140,7 +140,8 @@ void interface(int interactive) {
 				break;
 
 			case 'T':
-				tag(track);
+				if (playfork)
+					tag(track);
 				break;
 
       case '?':
@@ -157,6 +158,7 @@ void interface(int interactive) {
         puts("r = change radio station");
         puts("S = Stop");
         puts("s = Similiar Artist");
+        puts("T = Tag Track");
         break;
 
 			default:
