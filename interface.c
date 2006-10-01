@@ -169,6 +169,8 @@ void interface(int interactive) {
         puts("B = Ban Track");
         puts("d = Discovery Mode");
         puts("f = Fan Station");
+				puts("h = List Bookmarks");
+				puts("H = Bookmark Current Radio");
         puts("i = Current Track Information");
         puts("l = Love Track");
         puts("n = Skip Track");
