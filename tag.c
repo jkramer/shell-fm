@@ -20,7 +20,7 @@ char * rltags = NULL;
 void tag(struct hash data) {
 	char key, * tagstring;
 
-	fputs("Tag artist, album or track (or abort)? [aAtq]: ", stdout);
+	fputs("Tag artist, album or track (or abort)? [aAtq]\n", stdout);
 	fflush(stdout);
 
 	while(!strchr("aAtq", (key = fetchkey(2))));
