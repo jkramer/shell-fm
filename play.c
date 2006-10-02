@@ -114,6 +114,7 @@ void playback(FILE * streamfd) {
 	} else {
 		FILE * ext = popen(value(& rc, "extern"), "w");
 		unsigned char * buf;
+		pid_t ppid = getppid();
 
 		if(!ext) {
 			fprintf(stderr, "Failed to execute external player (%s). %s.\n",
@@ -134,9 +135,15 @@ void playback(FILE * streamfd) {
 				if(sync) {
 					unsigned len = nbyte - (sync - buf) - 4;
 					memmove(sync, sync + 4, len);
-					kill(getppid(), SIGUSR1);
+					kill(ppid, SIGUSR1);
 				}
 				fwrite(buf, sizeof(unsigned char), BUFSIZE, ext);
+			}
+			if(kill(ppid, 0) == -1 && errno == ESRCH) {
+				free(buf);
+				fclose(ext);
+				fclose(streamfd);
+				exit(EXIT_FAILURE);
 			}
 		}
 
@@ -177,6 +184,15 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 	}
 
 	mad_stream_buffer(stream, (unsigned char *) buf, nbyte);
+
+	if(kill(ptr->parent, 0) == -1 && errno == ESRCH) {
+		fclose(ptr->streamfd);
+#ifndef __HAVE_LIBAO__
+		close(ptr->audiofd);
+#endif
+		exit(EXIT_FAILURE);
+	}
+
 	return MAD_FLOW_CONTINUE;
 }
 
