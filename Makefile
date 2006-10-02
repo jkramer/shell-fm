@@ -16,12 +16,13 @@ CODE	:=\
 	getln.c\
 	sckif.c\
 	split.c\
-	bookmark.c
+	bookmark.c\
+	tag.c
 OBJS    = $(CODE:%.c=%.o)
 OUTPUT	:= shell-fm
 
 CFLAGS	= -Wall -W -pedantic -ansi
-LIBS    = -lcrypto -lmad -lreadline -lncurses
+LIBS    = -lcrypto -lmad -lreadline -lcurses
 
 ### detect libao
 
