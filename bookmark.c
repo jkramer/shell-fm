@@ -17,31 +17,9 @@
 
 extern unsigned getln(char **, unsigned *, FILE *);
 
-char *strstrip(char *s)
-{
-	size_t size;
-	char *end;
-
-	size = strlen(s);
-
-	if (!size)
-		return s;
-
-	end = s + size - 1;
-	while (end != s && isspace(*end))
-		end--;
-	*(end + 1) = '\0';
-
-	while (*s && isspace(*s))
-		s++;
-
-	return s;
-}
-
 void setmark(const char * streamURL, int n) {
 	FILE * fd;
 	char * bookmarks[10] = { NULL, };
-	int index = 0;
 
 	if(!streamURL || n < 0 || n > 9)
 		return;
@@ -61,17 +39,6 @@ void setmark(const char * streamURL, int n) {
 		}
 
 		fclose(fd);
-	}
-
-	/* check for duplicates */
-	for (index=0; index < 10; index++) {
-		if (!bookmarks[index])
-			continue;
-		
-		if (!strcmp(strstrip(streamURL), strstrip(bookmarks[index]))) {
-			printf("Stream already saved as number %d\n", index);
-			return ;
-		}
 	}
 
 	bookmarks[n] = strdup(streamURL);
