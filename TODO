@@ -1,0 +1,14 @@
+TODO
+
+* vim-like command line
+
+* integrate LUA (for rc and command line)
+
+* better compatibility
+  (e.g. write own implementations of GNU only functions etc.)
+
+* INSTALLATION, README and (complete) AUTHORS files
+
+* complete documentation (man page and/or website)
+
+* ..?
