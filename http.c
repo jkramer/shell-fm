@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <ctype.h>
+#include <stdint.h>
 
 #include <sys/socket.h>
 
@@ -139,9 +140,9 @@ unsigned encode(const char * orig, char ** encoded) {
 		else {
 			snprintf(
 					(* encoded) + x,
-					strlen(orig) * 3 - strlen(* encoded),
+					strlen(orig) * 3 - strlen(* encoded) + 1,
 					"%%%02x",
-					orig[i]
+					(uint8_t) orig[i]
 			);
 			x += 3;
 		}
