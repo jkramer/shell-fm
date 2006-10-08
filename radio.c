@@ -58,6 +58,7 @@ void radioprompt(const char * prompt) {
 	char * url;
 	const char *url_error;
 	char * decoded = NULL;
+	unsigned urllen;
 
 	rl_basic_word_break_characters = "/";
 	rl_completer_word_break_characters = "/";
@@ -73,8 +74,12 @@ void radioprompt(const char * prompt) {
 	if(!url)
 		return;
 
-	if(strlen(url) <= 1)
+	urllen = strlen(url);
+	if(urllen <= 1)
 		goto bail;
+
+	while (isspace (url[urllen-1]))
+		url[--urllen] = 0;
 
 	url_error = validate_url (url);
 	if (url_error) {
