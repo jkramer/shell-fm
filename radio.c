@@ -152,6 +152,7 @@ typedef struct url_completion_state_s {
 	unsigned list_index;
 } url_completion_state_t;
 static url_completion_state_t state;
+static char *url_nomatch_generator(const char *text, int gen_state);
 static char *url_match_generator(const char *text, int gen_state);
 
 static char** gen_user_names(time_t *new_expie_time);
@@ -333,6 +334,7 @@ static char **url_completion(const char * text, int start, int end) {
 	char **url_words;
 	url_word_node_t *table;
 	unsigned word_idx;
+	char* (*match_generator)(const char*, int);
 	
 	// if we have nothing, fill in the lastfm://
 	if (start == 0) {
@@ -355,24 +357,38 @@ static char **url_completion(const char * text, int start, int end) {
 		word_idx ++;
 	}
 
-	if (!table)
-		return NULL;
+	match_generator = url_nomatch_generator;
+	if (table) {
+		// we found a place in the tree, use a real match generation function
+		match_generator = url_match_generator;
 
-	// we have the table in which we are completing, we need to find the nodes
-	// that make the most sense
-	state.node = table;
-	state.url_words = url_words;
-	state.url_word_count = word_idx;
+		// we have the table in which we are completing, we need to find the nodes
+		// that make the most sense
+		state.node = table;
+		state.url_words = url_words;
+		state.url_word_count = word_idx;
 
-	// we assume it's the last entry, this is updated in url_match_generator()
-	rl_completion_append_character = ' ';
+		// we assume it's the last entry, this is updated in url_match_generator()
+		rl_completion_append_character = ' ';
+	}
 
 	// generate completions that match text
+	rl_filename_completion_desired = 0;
 	ret = rl_completion_matches(text, url_match_generator);
 
 	free_lastfm_url_words (url_words);
 
+	rl_filename_completion_desired = 0;
+	rl_attempted_completion_over = 1;
 	return ret;
+}
+
+/**
+ * this function is called by readline to get each word that matches what is
+ * being completed, except this is a decoy that generates no matches
+ */
+static char *url_nomatch_generator(const char *text, int gen_state) {
+	return NULL;
 }
 
 /**
