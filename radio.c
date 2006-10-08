@@ -48,6 +48,7 @@ static const char * validate_url (const char *url);
  *
  * lastfm://user/BartTrojanowski/loved
  * lastfm://user/BartTrojanowski/personal
+ * lastfm://user/BartTrojanowski/neighbour
  * lastfm://user/BartTrojanowski/recommended/100
  * lastfm://usertags/BartTrojanowski/trance
  * lastfm://artist/QED/similarartists
@@ -203,6 +204,7 @@ static url_word_node_t url_word_nodes[] = {
 /*
  * lastfm://user/BartTrojanowski/loved
  * lastfm://user/BartTrojanowski/personal
+ * lastfm://user/BartTrojanowski/neighbour
  * lastfm://user/BartTrojanowski/recommended/100
  */
 static url_word_node_t url_user_node[] = {
@@ -220,6 +222,10 @@ static url_word_node_t url_user_name_node[] = {
 	},
 	{
 		.name = "personal",
+		.gen_word_list = NULL,
+	},
+	{
+		.name = "neighbour",
 		.gen_word_list = NULL,
 	},
 	{
