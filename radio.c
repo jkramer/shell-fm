@@ -298,7 +298,6 @@ static char **url_completion(const char * text, int start, int end) {
 	
 	// if we have nothing, fill in the lastfm://
 	if (start == 0) {
-exit(1);
 		ret = calloc (2, sizeof(char*));
 		ret[0] = strdup ("lastfm:/");
 		ret[1] = NULL;
