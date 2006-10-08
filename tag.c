@@ -1,3 +1,12 @@
+/*
+	vim:syntax=c tabstop=2 shiftwidth=2 noexpandtab
+
+	Shell.FM - interface.c
+	Copyright (C) 2006 by Jonas Kramer
+	Copyright (C) 2006 by Bart Trojanowski <bart@jukie.net>
+
+	Published under the terms of the GNU General Public License (GPLv2).
+*/
 
 #define _GNU_SOURCE
 

@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include <sys/time.h>
 #include <signal.h>
+#include <stdarg.h>
 
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -31,6 +32,7 @@
 #include "include/http.h"
 #include "include/split.h"
 #include "include/bookmark.h"
+#include "include/radio.h"
 
 extern pid_t playfork;
 extern unsigned discovery, record, paused, changeTime;
@@ -39,7 +41,6 @@ extern char * currentStation;
 int fetchkey(unsigned);
 void canon(int);
 const char * meta(const char *, int);
-void radioprompt(const char *);
 void run(const char *);
 void tag(struct hash);
 void artistRadio();
@@ -209,27 +210,6 @@ void interface(int interactive) {
 	}
 }
 
-void radioprompt(const char * prompt) {
-	char * url;
-	
-	canon(!0);
-	url = readline(prompt);
-	canon(0);
-
-	if(!url)
-		return;
-
-	if(strlen(url) > 1) {
-		char * decoded = NULL;
-		decode(url, & decoded);
-		add_history(decoded);
-		station(decoded);
-		free(decoded);
-	}
-
-	free(url);
-}
-
 int fetchkey(unsigned nsec) {
 	fd_set fdset;
 	struct timeval tv;
@@ -356,3 +336,4 @@ void artistRadio(void) {
 		}
 	}
 }
+

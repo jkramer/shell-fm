@@ -108,6 +108,8 @@ int main(int argc, char ** argv) {
 	if(!daemon)
 		puts("Press ? for help.\n");
 	
+interface(!daemon);
+
 	if(haskey(& rc, "bind")) {
 		unsigned short port =
 			haskey(& rc, "port") ? atoi(value(& rc, "port")) : 54311;

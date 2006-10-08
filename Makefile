@@ -9,6 +9,7 @@ CODE	:=\
 	interface.c\
 	main.c\
 	play.c\
+	radio.c\
 	ropen.c\
 	service.c\
 	settings.c\
@@ -21,7 +22,7 @@ CODE	:=\
 OBJS    = $(CODE:%.c=%.o)
 OUTPUT	:= shell-fm
 
-CFLAGS	= -Wall -W -pedantic -ansi
+CFLAGS	= -Wall -W -std=c99
 LIBS    = -lcrypto -lmad -lreadline -lcurses
 
 ### detect libao
@@ -90,6 +91,6 @@ clean:
 	-rm -f *.o $(OUTPUT)
 
 distclean: clean
-	-rm -f *~ .*.c.dep
 	-rm -f tags cscope.out cscope.files
+	-find . \( -name '*~' -o -name '.*.c.dep' \) -exec rm -f {} \;
 
