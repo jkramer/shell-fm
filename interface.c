@@ -313,7 +313,7 @@ void artistRadio(void) {
 	artists = readline(">> ");
 	canon(0);
 
-	if(strlen(artists) > 0) {
+	if(artists && strlen(artists) > 0) {
 		char * post, * encoded = NULL, ** resp;
 		unsigned length = encode(artists, & encoded) + 11, x = 0;
 
