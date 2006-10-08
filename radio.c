@@ -48,6 +48,7 @@ static const char * validate_url (const char *url);
  *
  * lastfm://user/BartTrojanowski/loved
  * lastfm://user/BartTrojanowski/personal
+ * lastfm://user/BartTrojanowski/recommended/100
  * lastfm://usertags/BartTrojanowski/trance
  * lastfm://artist/QED/similarartists
  * lastfm://artist/QED/fans
@@ -160,6 +161,7 @@ static char** gen_tags_names(time_t *new_expie_time);
 static url_word_node_t url_word_nodes[];
 static url_word_node_t url_user_node[];
 static url_word_node_t url_user_name_node[];
+static url_word_node_t url_user_name_recommended_node[];
 static url_word_node_t url_usertags_node[];
 static url_word_node_t url_usertags_name_node[];
 static url_word_node_t url_artist_node[];
@@ -201,6 +203,7 @@ static url_word_node_t url_word_nodes[] = {
 /*
  * lastfm://user/BartTrojanowski/loved
  * lastfm://user/BartTrojanowski/personal
+ * lastfm://user/BartTrojanowski/recommended/100
  */
 static url_word_node_t url_user_node[] = {
 	{
@@ -217,6 +220,30 @@ static url_word_node_t url_user_name_node[] = {
 	},
 	{
 		.name = "personal",
+		.gen_word_list = NULL,
+	},
+	{
+		.name = "recommended",
+		.gen_word_list = NULL,
+		.sub_nodes = url_user_name_recommended_node,
+	},
+	URL_WORD_NODE_END
+};
+static url_word_node_t url_user_name_recommended_node[] = {
+	{
+		.name = "25",
+		.gen_word_list = NULL,
+	},
+	{
+		.name = "50",
+		.gen_word_list = NULL,
+	},
+	{
+		.name = "75",
+		.gen_word_list = NULL,
+	},
+	{
+		.name = "100",
 		.gen_word_list = NULL,
 	},
 	URL_WORD_NODE_END
@@ -299,7 +326,7 @@ static char **url_completion(const char * text, int start, int end) {
 	char **ret;
 	char **url_words;
 	url_word_node_t *table;
-	unsigned word_idx, is_last;
+	unsigned word_idx;
 	
 	// if we have nothing, fill in the lastfm://
 	if (start == 0) {
@@ -325,21 +352,19 @@ static char **url_completion(const char * text, int start, int end) {
 	if (!table)
 		return NULL;
 
-
 	// we have the table in which we are completing, we need to find the nodes
 	// that make the most sense
-	is_last = !(table->sub_nodes);
 	state.node = table;
 	state.url_words = url_words;
 	state.url_word_count = word_idx;
+
+	// we assume it's the last entry, this is updated in url_match_generator()
+	rl_completion_append_character = ' ';
+
+	// generate completions that match text
 	ret = rl_completion_matches(text, url_match_generator);
 
 	free_lastfm_url_words (url_words);
-
-	if (is_last)
-		rl_completion_append_character = ' ';
-	else
-		rl_completion_append_character = '/';
 
 	return ret;
 }
@@ -377,8 +402,11 @@ static char *url_match_generator(const char *text, int gen_state) {
 			state.list_index = 0;
 
 			// if we match return it
-			if (!strncmp (name, text, tlen))
+			if (!strncmp (name, text, tlen)) {
+				if (state.node->sub_nodes)
+					rl_completion_append_character = '/';
 				return strdup (name);
+			}
 
 			continue;
 		}
@@ -408,8 +436,11 @@ static char *url_match_generator(const char *text, int gen_state) {
 			// advance to the next one regardless of outcome
 			state.list_index ++;
 
-			if (!strncmp (name, text, tlen))
+			if (!strncmp (name, text, tlen)) {
+				if (state.node->sub_nodes)
+					rl_completion_append_character = '/';
 				return strdup (name);
+			}
 		}
 
 		// advance to the next node
