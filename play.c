@@ -29,7 +29,7 @@
 #include <linux/soundcard.h>
 #endif
 
-#include "include/settings.h"
+#include "settings.h"
 
 struct stream {
 	FILE * streamfd;

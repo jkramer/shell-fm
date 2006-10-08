@@ -17,8 +17,8 @@
 
 #include <sys/socket.h>
 
-#include "include/version.h"
-#include "include/hash.h"
+#include "version.h"
+#include "hash.h"
 
 extern FILE * ropen(const char *, unsigned short);
 extern void fshutdown(FILE *);

@@ -16,10 +16,10 @@
 #include <readline/readline.h>
 #include <openssl/md5.h>
 
-#include "include/settings.h"
-#include "include/http.h"
-#include "include/split.h"
-#include "include/interface.h"
+#include "settings.h"
+#include "http.h"
+#include "split.h"
+#include "interface.h"
 
 static char ** getPopularTags(char, struct hash);
 static char * getExistingTags(char, struct hash);

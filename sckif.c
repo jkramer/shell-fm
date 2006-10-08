@@ -23,9 +23,9 @@
 
 #include <sys/select.h>
 
-#include "include/sckif.h"
-#include "include/service.h"
-#include "include/interface.h"
+#include "sckif.h"
+#include "service.h"
+#include "interface.h"
 
 extern unsigned getln(char **, unsigned *, FILE *);
 extern int interactive;

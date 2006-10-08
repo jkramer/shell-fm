@@ -24,15 +24,15 @@
 
 #include <openssl/md5.h>
 
-#include "include/service.h"
-#include "include/hash.h"
-#include "include/interface.h"
-#include "include/autoban.h"
-#include "include/settings.h"
-#include "include/http.h"
-#include "include/split.h"
-#include "include/bookmark.h"
-#include "include/radio.h"
+#include "service.h"
+#include "hash.h"
+#include "interface.h"
+#include "autoban.h"
+#include "settings.h"
+#include "http.h"
+#include "split.h"
+#include "bookmark.h"
+#include "radio.h"
 
 extern pid_t playfork;
 extern unsigned discovery, record, paused, changeTime;

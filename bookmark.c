@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#include "include/settings.h"
+#include "settings.h"
 
 extern unsigned getln(char **, unsigned *, FILE *);
 

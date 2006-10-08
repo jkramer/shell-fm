@@ -18,13 +18,13 @@
 #include <time.h>
 #include <readline/history.h>
 
-#include "include/hash.h"
-#include "include/service.h"
-#include "include/interface.h"
-#include "include/settings.h"
-#include "include/autoban.h"
-#include "include/version.h"
-#include "include/sckif.h"
+#include "hash.h"
+#include "service.h"
+#include "interface.h"
+#include "settings.h"
+#include "autoban.h"
+#include "version.h"
+#include "sckif.h"
 
 #define PATH_MAX 4096
 

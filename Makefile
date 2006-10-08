@@ -22,7 +22,7 @@ CODE	:=\
 OBJS    = $(CODE:%.c=%.o)
 OUTPUT	:= shell-fm
 
-CFLAGS	= -Wall -W -std=c99
+CFLAGS	= -Wall -W -std=c99 -Iinclude
 LIBS    = -lcrypto -lmad -lreadline -lcurses
 
 ### detect libao

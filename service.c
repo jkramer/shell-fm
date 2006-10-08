@@ -18,10 +18,10 @@
 
 #include <openssl/md5.h>
 
-#include "include/hash.h"
-#include "include/http.h"
-#include "include/play.h"
-#include "include/settings.h"
+#include "hash.h"
+#include "http.h"
+#include "play.h"
+#include "settings.h"
 
 extern int stationChanged;
 

@@ -12,7 +12,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "include/hash.h"
+#include "hash.h"
 
 
 void set(struct hash * hash, const char * key, const char * value) {

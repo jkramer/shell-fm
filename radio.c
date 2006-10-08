@@ -26,10 +26,10 @@
 
 #include <openssl/md5.h>
 
-#include "include/service.h"
-#include "include/interface.h"
-#include "include/http.h"
-#include "include/settings.h"
+#include "service.h"
+#include "interface.h"
+#include "http.h"
+#include "settings.h"
 
 #define LASTFM_URL_PREFIX "lastfm://"
 #define LASTFM_URL_MIN_LENGTH (strlen(LASTFM_URL_PREFIX)+2)
