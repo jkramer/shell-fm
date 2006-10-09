@@ -441,7 +441,7 @@ static char *url_match_generator(const char *text, int gen_state) {
 
 		// if first time we look at this list, did it expire?
 		if (!state.list_index && state.node->cached_list
-				&& state.node->cache_expires > time(NULL)) {
+				&& state.node->cache_expires < time(NULL)) {
 			free_node_cached_words (state.node);
 		}
 
