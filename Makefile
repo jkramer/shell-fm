@@ -27,12 +27,17 @@ LIBS    = -lcrypto -lmad -lreadline -lcurses
 
 ### detect libao
 
+# make NOAO=1 will skip AO detection
+ifeq ($(NOAO),)
+
 AO_CFLAGS = $(shell pkg-config --silence-errors ao --cflags)
 AO_LIBS   = $(shell pkg-config --silence-errors ao --libs)
 
 ifneq ($(AO_LIBS),)
 CFLAGS    += $(AO_CFLAGS) -D__HAVE_LIBAO__
 LIBS      += $(AO_LIBS)
+endif
+
 endif
 
 ### debug version
