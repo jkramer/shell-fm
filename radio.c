@@ -341,9 +341,12 @@ static char **url_completion(const char * text, int start, int __UNUSED__ end) {
 	
 	// if we have nothing, fill in the lastfm://
 	if (start == 0) {
+		// tell readline to append the /
+		rl_completion_append_character = '/';
+
+		// this will generate a lastfm:// on the command line
 		ret = calloc (2, sizeof(char*));
-		ret[0] = strdup ("lastfm://");
-		ret[1] = NULL;
+		ret[0] = strdup ("lastfm:/");
 		return ret;
 	}
 
@@ -521,8 +524,6 @@ static char** gen_user_names(time_t *new_expie_time) {
 		names[name_idx++] = resp[n];
 	}
 	free (resp);
-
-	names[name_idx++] = NULL;
 
 	// success
 	*new_expie_time = time(NULL) + CACHE_WORDS_SEC;
@@ -722,7 +723,6 @@ static char **get_lastfm_url_words(const char *url) {
 			*p = 0;
 			url_words[url_word_count++] = p+1;
 		}
-	url_words[url_word_count] = NULL;
 
 	return url_words;
 }
