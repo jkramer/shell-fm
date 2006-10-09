@@ -33,7 +33,7 @@
 #include "settings.h"
 
 #define LASTFM_URL_PREFIX "lastfm://"
-#define LASTFM_URL_MIN_LENGTH (strlen(LASTFM_URL_PREFIX)+2)
+#define LASTFM_URL_MIN_LENGTH 6 // shortest possible: 'user/a'
 
 static int matches_one_of (const char *word, ...) __attribute__((unused));
 
@@ -63,6 +63,12 @@ void radioprompt(const char * prompt) {
 	const char *url_error;
 	char * decoded = NULL;
 	unsigned urllen;
+	char * full_prompt = NULL;
+	char * full_url = NULL;
+
+	full_prompt = calloc (strlen(prompt) + strlen(LASTFM_URL_PREFIX) + 1, sizeof (char));
+	strcpy (full_prompt, prompt);
+	strcat (full_prompt, LASTFM_URL_PREFIX);
 
 	rl_basic_word_break_characters = "/";
 	rl_completer_word_break_characters = "/";
@@ -72,16 +78,17 @@ void radioprompt(const char * prompt) {
 	rl_attempted_completion_function = url_completion;
 
 	canon(!0);
-	url = readline(prompt);
+	url = readline(full_prompt);
 	canon(0);
 
 	if(!url)
-		return;
+		goto bail;
 
 	urllen = strlen(url);
 	if(urllen <= 1)
 		goto bail;
 
+	// tab completion will add an extra space at the end
 	while (isspace (url[urllen-1]))
 		url[--urllen] = 0;
 
@@ -93,13 +100,21 @@ void radioprompt(const char * prompt) {
 		goto bail;
 	}
 
-	decode(url, & decoded);
+	full_url = calloc (strlen(LASTFM_URL_PREFIX) + urllen + 1, sizeof (char));
+	strcpy (full_url, LASTFM_URL_PREFIX);
+	strcat (full_url, url);
+
+	printf ("URL: %s\n", full_url);
+
+	decode(full_url, & decoded);
 	add_history(decoded);
 	station(decoded);
 	free(decoded);
 
 bail:
 	free(url);
+	free(full_url);
+	free(full_prompt);
 }
 
 /**
@@ -111,8 +126,8 @@ static const char * validate_url (const char *url) {
 	if (url_len < LASTFM_URL_MIN_LENGTH)
 		return "url is too short";
 
-	if (strncmp (url, LASTFM_URL_PREFIX, strlen(LASTFM_URL_PREFIX)))
-		return "invalid url prefix (lastfm://)";
+	if (!strncmp (url, LASTFM_URL_PREFIX, strlen(LASTFM_URL_PREFIX)))
+		return "duplicate url prefix (lastfm://)";
 
 	return NULL;
 }
@@ -121,7 +136,7 @@ static const char * validate_url (const char *url) {
  * this function is called to initialize the readline buffer
  */
 static int init_url_completion(void) {
-	rl_insert_text("lastfm://");
+	rl_insert_text("");
 	return 0;
 }
 
@@ -331,24 +346,13 @@ static url_word_node_t url_play_node[] = {
 /**
  * this function is called for each <TAB> press by readline
  */
-static char **url_completion(const char * text, int start, int __UNUSED__ end) {
+static char **url_completion(const char * text, int __UNUSED__ start, int __UNUSED__ end) {
 
 	char **ret;
 	char **url_words;
 	url_word_node_t *table;
 	unsigned word_idx;
 	char* (*match_generator)(const char*, int);
-	
-	// if we have nothing, fill in the lastfm://
-	if (start == 0) {
-		// tell readline to append the /
-		rl_completion_append_character = '/';
-
-		// this will generate a lastfm:// on the command line
-		ret = calloc (2, sizeof(char*));
-		ret[0] = strdup ("lastfm:/");
-		return ret;
-	}
 
 	url_words = get_lastfm_url_words (rl_line_buffer);
 	if (!url_words)
@@ -707,17 +711,13 @@ static char **get_lastfm_url_words(const char *url) {
 	char **url_words, *p;
 	unsigned max_word_count, url_word_count;
 
-	if (strncmp (url, "lastfm://", 9))
-		return NULL;
-
 	for (c=url, max_word_count=2; *c; c++)
 		if (*c == '/') max_word_count++;
 
 	url_words = calloc (max_word_count, sizeof(char*));
 
-  /* clone the buffer, and split it into words on '/'
-	 * start after the "lastfm://" prefix */
-  url_words[0] = strdup (url+9);
+  /* clone the buffer, and split it into words on '/' */
+  url_words[0] = strdup (url);
 	for (url_word_count=1, p=url_words[0]; *p; p++)
 		if (*p=='/') {
 			*p = 0;
