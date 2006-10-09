@@ -1,0 +1,20 @@
+
+noinst_HEADERS = \
+autoban.h \
+compatibility.h \
+bookmark.h \
+hash.h \
+http.h \
+interface.h \
+Makefile.am \
+play.h \
+radio.h \
+ropen.h \
+sckif.h \
+service.h \
+settings.h \
+split.h \
+tag.h
+
+
+## vim: noet ts=8 sw=8

@@ -8,6 +8,8 @@
 
 #define _GNU_SOURCE
 
+#include <config.h>
+
 #include <stdio.h>
 #include <sys/socket.h>
 #include <netinet/in.h>

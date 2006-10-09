@@ -6,6 +6,8 @@
 	Published under the terms of the GNU General Public License (GPL).
 */
 
+#include <config.h>
+
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>

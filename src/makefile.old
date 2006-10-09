@@ -53,7 +53,7 @@ endif
 .PHONY: all clean distclean depend 
 all: depend $(OUTPUT)
 	
-$(OUTPUT): $(OBJS) Makefile
+$(OUTPUT): $(OBJS)
 	$(CC) -o $@ $(LIBS) $(OBJS)
 ifeq ($(DEBUG),)
 	/usr/bin/strip $@
@@ -83,7 +83,7 @@ cscope.files: $(wildcard *.h *.c)
 DEPS=$(CODE:%.c=.%.c.dep)
 EXISTING_DEPS=$(wildcard $(DEPS))
 
-depend: $(DEPS) Makefile
+depend: $(DEPS)
 
 $(DEPS): .%.c.dep: %.c
 	$(CC) -MM $(CFLAGS) $< > $@

@@ -8,6 +8,8 @@
 
 #define _GNU_SOURCE
 
+#include <config.h>
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -17,7 +19,6 @@
 
 #include <sys/socket.h>
 
-#include "version.h"
 #include "hash.h"
 
 extern FILE * ropen(const char *, unsigned short);

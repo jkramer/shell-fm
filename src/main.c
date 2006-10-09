@@ -8,6 +8,8 @@
 
 #define _GNU_SOURCE
 
+#include <config.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,7 +25,6 @@
 #include "interface.h"
 #include "settings.h"
 #include "autoban.h"
-#include "version.h"
 #include "sckif.h"
 
 #define PATH_MAX 4096
