@@ -26,6 +26,7 @@
 
 #include <openssl/md5.h>
 
+#include "compatibility.h"
 #include "service.h"
 #include "interface.h"
 #include "http.h"
@@ -54,6 +55,7 @@ static const char * validate_url (const char *url);
  * lastfm://artist/QED/similarartists
  * lastfm://artist/QED/fans
  * lastfm://globaltags/goa
+ * lastfm://globaltags/classical,miles davis,whatever
  * lastfm://play/tracks/########[,#####, ...]
  */
 void radioprompt(const char * prompt) {
@@ -301,6 +303,7 @@ static url_word_node_t url_artist_name_node[] = {
 
 /*
  * lastfm://globaltags/goa
+ * lastfm://globaltags/classical,miles davis,whatever
  */
 static url_word_node_t url_globaltags_node[] = {
 	{
@@ -328,7 +331,7 @@ static url_word_node_t url_play_node[] = {
 /**
  * this function is called for each <TAB> press by readline
  */
-static char **url_completion(const char * text, int start, int end) {
+static char **url_completion(const char * text, int start, int __UNUSED__ end) {
 
 	char **ret;
 	char **url_words;
@@ -387,7 +390,7 @@ static char **url_completion(const char * text, int start, int end) {
  * this function is called by readline to get each word that matches what is
  * being completed, except this is a decoy that generates no matches
  */
-static char *url_nomatch_generator(const char *text, int gen_state) {
+static char *url_nomatch_generator(const char __UNUSED__ *text, int __UNUSED__ gen_state) {
 	return NULL;
 }
 
