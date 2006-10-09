@@ -41,6 +41,20 @@ static int init_url_completion (void);
 static char** url_completion (const char *text, int start, int end);
 static const char * validate_url (const char *url);
 
+struct rl_params {
+	const char *rl_basic_word_break_characters;
+	const char *rl_completer_word_break_characters;
+	int rl_filename_completion_desired;
+	int rl_attempted_completion_over;
+	char rl_completion_append_character;
+	int (*rl_startup_hook)(void);
+	char** (*rl_attempted_completion_function)(const char *, int, int);
+};
+
+static void save_rl_params(struct rl_params *);
+static void restore_rl_params(const struct rl_params *);
+
+
 /**
  * this function is called to change the station
  * the user is prompted for the new radio station
@@ -63,6 +77,9 @@ void radioprompt(const char * prompt) {
 	const char *url_error;
 	char * decoded = NULL;
 	unsigned urllen;
+	struct rl_params save_rlp;
+
+	save_rl_params(&save_rlp);
 
 	rl_basic_word_break_characters = "/";
 	rl_completer_word_break_characters = "/";
@@ -101,6 +118,7 @@ void radioprompt(const char * prompt) {
 
 bail:
 	free(url);
+	restore_rl_params(&save_rlp);
 }
 
 /**
@@ -761,3 +779,26 @@ static int matches_one_of (const char *word, ...) {
 	return matched;
 }
 
+/* ------------------------------------------------------------------------ */
+
+static void save_rl_params(struct rl_params * rlp) {
+	rlp->rl_basic_word_break_characters = rl_basic_word_break_characters; 
+	rlp->rl_basic_word_break_characters = rl_basic_word_break_characters;
+	rlp->rl_basic_word_break_characters = rl_basic_word_break_characters;
+	rlp->rl_filename_completion_desired = rl_filename_completion_desired;
+	rlp->rl_attempted_completion_over = rl_attempted_completion_over;
+	rlp->rl_startup_hook = rl_startup_hook;
+	rlp->rl_attempted_completion_function = rl_attempted_completion_function;
+}
+
+/* ------------------------------------------------------------------------ */
+
+static void restore_rl_params(const struct rl_params * rlp) {
+	rl_basic_word_break_characters = rlp->rl_basic_word_break_characters; 
+	rl_basic_word_break_characters = rlp->rl_basic_word_break_characters; 
+	rl_basic_word_break_characters = rlp->rl_basic_word_break_characters;
+	rl_filename_completion_desired = rlp->rl_filename_completion_desired;
+	rl_attempted_completion_over = rlp->rl_attempted_completion_over;
+	rl_startup_hook = rlp->rl_startup_hook;
+	rl_attempted_completion_function = rlp->rl_attempted_completion_function;
+}
