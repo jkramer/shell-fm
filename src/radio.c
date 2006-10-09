@@ -63,12 +63,6 @@ void radioprompt(const char * prompt) {
 	const char *url_error;
 	char * decoded = NULL;
 	unsigned urllen;
-	char * full_prompt = NULL;
-	char * full_url = NULL;
-
-	full_prompt = calloc (strlen(prompt) + strlen(LASTFM_URL_PREFIX) + 1, sizeof (char));
-	strcpy (full_prompt, prompt);
-	strcat (full_prompt, LASTFM_URL_PREFIX);
 
 	rl_basic_word_break_characters = "/";
 	rl_completer_word_break_characters = "/";
@@ -78,7 +72,7 @@ void radioprompt(const char * prompt) {
 	rl_attempted_completion_function = url_completion;
 
 	canon(!0);
-	url = readline(full_prompt);
+	url = readline(prompt);
 	canon(0);
 
 	if(!url)
@@ -100,19 +94,13 @@ void radioprompt(const char * prompt) {
 		goto bail;
 	}
 
-	full_url = calloc (strlen(LASTFM_URL_PREFIX) + urllen + 1, sizeof (char));
-	strcpy (full_url, LASTFM_URL_PREFIX);
-	strcat (full_url, url);
-
-	decode(full_url, & decoded);
+	decode(url, & decoded);
 	add_history(url);
 	station(decoded);
 	free(decoded);
 
 bail:
 	free(url);
-	free(full_url);
-	free(full_prompt);
 }
 
 /**
@@ -121,11 +109,8 @@ bail:
 static const char * validate_url (const char *url) {
 	unsigned url_len = strlen (url);
 
-	if (url_len < LASTFM_URL_MIN_LENGTH)
-		return "url is too short";
-
-	if (!strncmp (url, LASTFM_URL_PREFIX, strlen(LASTFM_URL_PREFIX)))
-		return "duplicate url prefix (lastfm://)";
+	if(url_len < LASTFM_URL_MIN_LENGTH)
+		return "URL is too short.";
 
 	return NULL;
 }
