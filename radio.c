@@ -104,10 +104,8 @@ void radioprompt(const char * prompt) {
 	strcpy (full_url, LASTFM_URL_PREFIX);
 	strcat (full_url, url);
 
-	printf ("URL: %s\n", full_url);
-
 	decode(full_url, & decoded);
-	add_history(decoded);
+	add_history(url);
 	station(decoded);
 	free(decoded);
 
