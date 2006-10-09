@@ -1,14 +1,27 @@
 TODO
 
 * vim-like command line
+  * execute command like :station, :next, etc
+	* map commands to keyboard shortcuts like :map L love
 
 * integrate LUA (for rc and command line)
+  * should be able to get the above for free
+	* need tab completion
 
 * better compatibility
-  (e.g. write own implementations of GNU only functions etc.)
+  * configure script to detect the system capabilities & quirks
+  * write own implementations of GNU only functions etc.
 
 * INSTALLATION, README and (complete) AUTHORS files
 
 * complete documentation (man page and/or website)
+
+* tab completion
+  * missing support for multi tag lastfm://globaltags/one,two,three
+	* radio station completion needs neighbours as well as friends (configurable)
+
+* library of commonly used functions
+  * take some of the common patters from lastfm code and put them into a support .a lib
+	* this library should also include redefinitions of GNU only functions (see above)
 
 * ..?
