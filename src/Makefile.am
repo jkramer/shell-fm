@@ -20,7 +20,8 @@ sckif.c \
 service.c \
 settings.c \
 split.c \
-tag.c
+tag.c \
+utility.c
 
 
 ## vim: noet ts=8 sw=8

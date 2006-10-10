@@ -14,7 +14,8 @@ sckif.h \
 service.h \
 settings.h \
 split.h \
-tag.h
+tag.h \
+utility.h
 
 
 ## vim: noet ts=8 sw=8

@@ -22,6 +22,7 @@
 #include "http.h"
 #include "split.h"
 #include "interface.h"
+#include "utility.h"
 
 static char ** getPopularTags(char, struct hash);
 static char * getExistingTags(char, struct hash);
@@ -35,6 +36,7 @@ static char ** popular_tags = NULL;
 void tag(struct hash data) {
 	char key, * tagstring;
 	unsigned tslen;
+	struct rl_params save_rlp;
 
 	fputs("Tag artist, album or track (or abort)? [aAtq]\n", stdout);
 	fflush(stdout);
@@ -44,6 +46,7 @@ void tag(struct hash data) {
 	if(key == 'q')
 		return;
 
+	save_rl_params(&save_rlp);
 	if ((popular_tags = getPopularTags(key, data))) {
 		rl_basic_word_break_characters = ",";
 		rl_completer_word_break_characters = ",";
@@ -67,8 +70,8 @@ void tag(struct hash data) {
 		free(popular_tags);
 		popular_tags = NULL;
 	}
-	rl_startup_hook = NULL;
 	canon(0);
+	restore_rl_params(&save_rlp);
 
 	if(tagstring && (tslen = strlen(tagstring))) {
 		unsigned nsplt = 0, postlength = 0, x = 0, xmllength;
