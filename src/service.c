@@ -122,16 +122,18 @@ int station(const char * stationURL) {
 	snprintf(url, sizeof(url), fmt, value(& data, "session"), encodedURL);
 	free(encodedURL);
 
-	response = fetch(url, NULL, NULL, NULL);
-	while(response[i]) {
-		char status[64] = { 0 };
-		if(sscanf(response[i], "response=%63[^\r\n]", status) > 0)
-			if(!strncmp(status, "FAILED", 6))
-				retval = 0;
-		free(response[i++]);
-	}
-	free(response);
-	
+	if(response = fetch(url, NULL, NULL, NULL)) {
+		while(response[i]) {
+			char status[64] = { 0 };
+			if(sscanf(response[i], "response=%63[^\r\n]", status) > 0)
+				if(!strncmp(status, "FAILED", 6))
+					retval = 0;
+			free(response[i++]);
+		}
+		free(response);
+	} else
+		retval = 0;
+
 	retval
 		? (stationChanged = !0)
 		: printf("Sorry, couldn't set station to %s.\n", stationURL);
