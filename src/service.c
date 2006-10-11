@@ -122,7 +122,7 @@ int station(const char * stationURL) {
 	snprintf(url, sizeof(url), fmt, value(& data, "session"), encodedURL);
 	free(encodedURL);
 
-	if(response = fetch(url, NULL, NULL, NULL)) {
+	if((response = fetch(url, NULL, NULL, NULL))) {
 		while(response[i]) {
 			char status[64] = { 0 };
 			if(sscanf(response[i], "response=%63[^\r\n]", status) > 0)
