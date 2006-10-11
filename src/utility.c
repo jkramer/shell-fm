@@ -6,8 +6,9 @@
 	Published under the terms of the GNU General Public License (GPL).
 */
 
-#include <stdio.h>
+#include <config.h>
 
+#include <stdio.h>
 #include <readline/readline.h>
 #include "utility.h"
 
