@@ -22,7 +22,7 @@
 #include "http.h"
 #include "split.h"
 #include "interface.h"
-#include "utility.h"
+#include "rl_completion.h"
 
 static char ** getPopularTags(char, struct hash);
 static char * getExistingTags(char, struct hash);
@@ -36,7 +36,7 @@ static char ** popular_tags = NULL;
 void tag(struct hash data) {
 	char key, * tagstring;
 	unsigned tslen;
-	struct rl_params save_rlp;
+	rl_params_t save_rlp;
 
 	fputs("Tag artist, album or track (or abort)? [aAtq]\n", stdout);
 	fflush(stdout);

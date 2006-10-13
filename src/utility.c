@@ -9,30 +9,29 @@
 #include <config.h>
 
 #include <stdio.h>
-#include <readline/readline.h>
+#include <stdarg.h>
+#include <string.h>
 #include "utility.h"
 
 
 /* ------------------------------------------------------------------------ */
 
-void save_rl_params(struct rl_params * rlp) {
-	rlp->rl_basic_word_break_characters = rl_basic_word_break_characters; 
-	rlp->rl_basic_word_break_characters = rl_basic_word_break_characters;
-	rlp->rl_basic_word_break_characters = rl_basic_word_break_characters;
-	rlp->rl_filename_completion_desired = rl_filename_completion_desired;
-	rlp->rl_attempted_completion_over = rl_attempted_completion_over;
-	rlp->rl_startup_hook = rl_startup_hook;
-	rlp->rl_attempted_completion_function = rl_attempted_completion_function;
+int matches_one_of (const char *word, ...) {
+	va_list ap;
+	const char *s;
+	int matched = 0;
+
+	va_start(ap, word);
+
+	while ((s = va_arg(ap, char *))) {
+		if (!strcmp(word, s)) {
+			matched = 1;
+			break;
+		}
+	}
+
+	va_end(ap);
+
+	return matched;
 }
 
-/* ------------------------------------------------------------------------ */
-
-void restore_rl_params(const struct rl_params * rlp) {
-	rl_basic_word_break_characters = rlp->rl_basic_word_break_characters; 
-	rl_basic_word_break_characters = rlp->rl_basic_word_break_characters; 
-	rl_basic_word_break_characters = rlp->rl_basic_word_break_characters;
-	rl_filename_completion_desired = rlp->rl_filename_completion_desired;
-	rl_attempted_completion_over = rlp->rl_attempted_completion_over;
-	rl_startup_hook = rlp->rl_startup_hook;
-	rl_attempted_completion_function = rlp->rl_attempted_completion_function;
-}

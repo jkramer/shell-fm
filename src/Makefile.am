@@ -15,6 +15,7 @@ interface.c \
 main.c \
 play.c \
 radio.c \
+rl_completion.c \
 ropen.c \
 sckif.c \
 service.c \

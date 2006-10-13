@@ -33,13 +33,11 @@
 #include "interface.h"
 #include "http.h"
 #include "settings.h"
-#include "utility.h"
+#include "rl_completion.h"
 #include "strarray.h"
 
 #define LASTFM_URL_PREFIX "lastfm://"
 #define LASTFM_URL_MIN_LENGTH 6 // shortest possible: 'user/a'
-
-static int matches_one_of (const char *word, ...) __attribute__((unused));
 
 static int init_url_completion (void);
 static char** url_completion (const char *text, int start, int end);
@@ -134,51 +132,25 @@ static int init_url_completion(void) {
 
 /* ------------------------------------------------------------------------ */
 
-typedef struct url_word_node_s {
-	const char *name;
-	char** (*gen_word_list)(time_t *new_expie_time);
-	char** cached_list;
-	time_t cache_expires;
-	struct url_word_node_s *sub_nodes;
-} url_word_node_t;
-#define URL_WORD_NODE_END { .name = NULL, .gen_word_list = NULL, }
-#define CACHE_WORDS_SEC 60
-
-// node utility functions
-static url_word_node_t* find_word_in_table(const char *word, url_word_node_t *table);
-static void free_node_cached_words (url_word_node_t *node);
-
-// generate words that match currently completed word
-typedef struct url_completion_state_s { 
-	strarray_t url_sa;
-	unsigned word_idx;
-	url_word_node_t *node;
-	unsigned word_len;
-	unsigned list_index;
-} url_completion_state_t;
-static url_completion_state_t state;
-static char *url_nomatch_generator(const char *text, int gen_state);
-static char *url_match_generator(const char *text, int gen_state);
-
 static char** gen_user_names(time_t *new_expie_time);
 static char** gen_user_tag_names(time_t *new_expie_time);
 static char** gen_artist_names(time_t *new_expie_time);
 static char** gen_tags_names(time_t *new_expie_time);
 
-static url_word_node_t url_word_nodes[];
-static url_word_node_t url_user_node[];
-static url_word_node_t url_user_name_node[];
-static url_word_node_t url_user_name_recommended_node[];
-static url_word_node_t url_usertags_node[];
-static url_word_node_t url_usertags_name_node[];
-static url_word_node_t url_artist_node[];
-static url_word_node_t url_artist_name_node[];
-static url_word_node_t url_globaltags_node[];
-static url_word_node_t url_play_node[];
+static cmpl_node_t url_word_nodes[];
+static cmpl_node_t url_user_node[];
+static cmpl_node_t url_user_name_node[];
+static cmpl_node_t url_user_name_recommended_node[];
+static cmpl_node_t url_usertags_node[];
+static cmpl_node_t url_usertags_name_node[];
+static cmpl_node_t url_artist_node[];
+static cmpl_node_t url_artist_name_node[];
+static cmpl_node_t url_globaltags_node[];
+static cmpl_node_t url_play_node[];
 
 /* ------------------------------------------------------------------------ */
 
-static url_word_node_t url_word_nodes[] = {
+static cmpl_node_t url_word_nodes[] = {
 	{
 		.name = "user",
 		.gen_word_list = NULL,
@@ -213,7 +185,7 @@ static url_word_node_t url_word_nodes[] = {
  * lastfm://user/BartTrojanowski/neighbour
  * lastfm://user/BartTrojanowski/recommended/100
  */
-static url_word_node_t url_user_node[] = {
+static cmpl_node_t url_user_node[] = {
 	{
 		.name = NULL,
 		.gen_word_list = gen_user_names,
@@ -221,7 +193,7 @@ static url_word_node_t url_user_node[] = {
 	},
 	URL_WORD_NODE_END
 };
-static url_word_node_t url_user_name_node[] = {
+static cmpl_node_t url_user_name_node[] = {
 	{
 		.name = "loved",
 		.gen_word_list = NULL,
@@ -241,7 +213,7 @@ static url_word_node_t url_user_name_node[] = {
 	},
 	URL_WORD_NODE_END
 };
-static url_word_node_t url_user_name_recommended_node[] = {
+static cmpl_node_t url_user_name_recommended_node[] = {
 	{
 		.name = "25",
 		.gen_word_list = NULL,
@@ -264,7 +236,7 @@ static url_word_node_t url_user_name_recommended_node[] = {
 /*
  * lastfm://usertags/BartTrojanowski/trance
  */
-static url_word_node_t url_usertags_node[] = {
+static cmpl_node_t url_usertags_node[] = {
 	{
 		.name = NULL,
 		.gen_word_list = gen_user_names,
@@ -272,7 +244,7 @@ static url_word_node_t url_usertags_node[] = {
 	},
 	URL_WORD_NODE_END
 };
-static url_word_node_t url_usertags_name_node[] = {
+static cmpl_node_t url_usertags_name_node[] = {
 	{
 		.name = NULL,
 		.gen_word_list = gen_user_tag_names,
@@ -284,7 +256,7 @@ static url_word_node_t url_usertags_name_node[] = {
  * lastfm://artist/QED/similarartists
  * lastfm://artist/QED/fans
  */
-static url_word_node_t url_artist_node[] = {
+static cmpl_node_t url_artist_node[] = {
 	{
 		.name = NULL,
 		.gen_word_list = gen_artist_names,
@@ -292,7 +264,7 @@ static url_word_node_t url_artist_node[] = {
 	},
 	URL_WORD_NODE_END
 };
-static url_word_node_t url_artist_name_node[] = {
+static cmpl_node_t url_artist_name_node[] = {
 	{
 		.name = "similarartists",
 		.gen_word_list = NULL,
@@ -308,7 +280,7 @@ static url_word_node_t url_artist_name_node[] = {
  * lastfm://globaltags/goa
  * lastfm://globaltags/classical,miles davis,whatever
  */
-static url_word_node_t url_globaltags_node[] = {
+static cmpl_node_t url_globaltags_node[] = {
 	{
 		.name = NULL,
 		.gen_word_list = gen_tags_names,
@@ -320,7 +292,7 @@ static url_word_node_t url_globaltags_node[] = {
 /*
  * lastfm://play/tracks/########[,#####, ...]
  */
-static url_word_node_t url_play_node[] = {
+static cmpl_node_t url_play_node[] = {
 	{
 		.name = "tracks",
 		.gen_word_list = NULL,
@@ -334,147 +306,9 @@ static url_word_node_t url_play_node[] = {
 /**
  * this function is called for each <TAB> press by readline
  */
-static char **url_completion(const char * text, int __UNUSED__ start, int __UNUSED__ end) {
-
-	char **ret;
-	url_word_node_t *table;
-	char **words;
-	int cnt, word_idx;
-	char* (*match_generator)(const char*, int) = url_nomatch_generator;
-
-	strarray_init (&state.url_sa);
-
-	cnt = strarray_append_split (&state.url_sa, rl_line_buffer, '/');
-	if (cnt<=0)
-		goto start_completion;
-
-	// start at the first level
-	table = url_word_nodes;
-	word_idx = 0;
-	words = state.url_sa.strings;
-
-	for (word_idx=0; (word_idx+1)<state.url_sa.count; word_idx++) {
-			table = find_word_in_table (words[word_idx], table);
-			if (!table)
-				break;
-	}
-
-	if (table) {
-		// we found a place in the tree, use a real match generation function
-		match_generator = url_match_generator;
-
-		// we have the table in which we are completing, we need to find the nodes
-		// that make the most sense
-		state.node = table;
-		state.word_idx = word_idx;
-
-		// we assume it's the last entry, this is updated in url_match_generator()
-		rl_completion_append_character = ' ';
-	}
-
-start_completion:
-	// generate completions that match text
-	rl_filename_completion_desired = 0;
-	ret = rl_completion_matches(text, url_match_generator);
-
-	strarray_cleanup (&state.url_sa);
-
-	rl_filename_completion_desired = 0;
-	rl_attempted_completion_over = 1;
-	return ret;
+static char **url_completion(const char * text, int start, int end) {
+	return cmpl_complete (text, start, end, url_word_nodes);
 }
-
-/**
- * this function is called by readline to get each word that matches what is
- * being completed, except this is a decoy that generates no matches
- */
-static char *url_nomatch_generator(const char __UNUSED__ *text, int __UNUSED__ gen_state) {
-	return NULL;
-}
-
-/**
- * this function is called by readline to get each word that matches what is
- * being completed
- */
-static char *url_match_generator(const char *text, int gen_state) {
-	const char *name;
-	char **list;
-	unsigned tlen;
-
-	// we should have a node that we are following
-	if (!state.node)
-		return NULL;
-
-	// this is the first call for this completion
-	if (!gen_state) {
-		state.word_len = strlen(text);
-		state.list_index = 0;
-	}
-
-	tlen = state.word_len;
-
-	// a valid node has a static name or a way to generate a list
-	while (state.node->name 
-			|| state.node->gen_word_list) {
-
-		// do we have a static name?
-		name = state.node->name;
-		if (name) {
-			// advance to the next one regardless of outcome
-			state.node++;
-			state.list_index = 0;
-
-			// if we match return it
-			if (!strncmp (name, text, tlen)) {
-				if (state.node->sub_nodes)
-					rl_completion_append_character = '/';
-				return strdup (name);
-			}
-
-			continue;
-		}
-
-		// if first time we look at this list, did it expire?
-		if (!state.list_index && state.node->cached_list
-				&& state.node->cache_expires < time(NULL)) {
-			free_node_cached_words (state.node);
-		}
-
-		// do we need to create a cached list?
-		list = state.node->cached_list;
-		if (!list) {
-			time_t expire;
-
-			// get new list
-			list = state.node->cached_list = state.node->gen_word_list (&expire);
-			if (!list)
-				return NULL;
-
-			// on success, set the expire time
-			state.node->cache_expires = expire;
-		}
-
-		// walk the list we have starting at the last index
-		while ( (name = list[state.list_index]) ) {
-			// advance to the next one regardless of outcome
-			state.list_index ++;
-
-			if (!strncmp (name, text, tlen)) {
-				if (state.node->sub_nodes)
-					rl_completion_append_character = '/';
-				return strdup (name);
-			}
-		}
-
-		// advance to the next node
-		state.node++;
-		state.list_index = 0;
-	}
-
-	// no more matches
-	return NULL;
-}
-
 
 /* ------------------------------------------------------------------------ */
 
@@ -535,7 +369,7 @@ static char** gen_user_tag_names(time_t *new_expie_time) {
 
 	url = calloc (512, sizeof(char));
 
-	user = state.url_sa.strings[state.word_idx-1];
+	user = cmpl_state.url_sa.strings[cmpl_state.word_idx-1];
 
 	ulen = snprintf (url, 512,
 			"http://ws.audioscrobbler.com/1.0/user/%s/tags.txt",
@@ -692,54 +526,4 @@ static char** gen_tags_names(time_t *new_expie_time) {
 	return resp;
 }
 
-
-
-
-/* ------------------------------------------------------------------------ */
-
-static url_word_node_t* find_word_in_table(const char *word, url_word_node_t *table) {
-	url_word_node_t *node;
-
-	for (node = table; node->name || node->gen_word_list; node++) {
-
-		if (node->name && !strcmp(word,node->name))
-			return node->sub_nodes;
-
-		if (node->gen_word_list)
-			return node->sub_nodes;
-	}
-
-	return NULL;
-}
-
-static void free_node_cached_words (url_word_node_t *node) {
-	int i;
-	if (!node->cached_list)
-		return;
-	for (i=0; node->cached_list[i]; i++)
-		free (node->cached_list[i]);
-	free (node->cached_list);
-	node->cached_list = NULL;
-}
-
-/* ------------------------------------------------------------------------ */
-
-static int matches_one_of (const char *word, ...) {
-	va_list ap;
-	const char *s;
-	int matched = 0;
-
-	va_start(ap, word);
-
-	while ((s = va_arg(ap, char *))) {
-		if (!strcmp(word, s)) {
-			matched = 1;
-			break;
-		}
-	}
-
-	va_end(ap);
-
-	return matched;
-}
 
