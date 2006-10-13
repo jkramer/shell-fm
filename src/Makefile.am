@@ -20,6 +20,7 @@ sckif.c \
 service.c \
 settings.c \
 split.c \
+strarray.c \
 tag.c \
 utility.c
 

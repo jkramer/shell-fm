@@ -34,6 +34,7 @@
 #include "http.h"
 #include "settings.h"
 #include "utility.h"
+#include "strarray.h"
 
 #define LASTFM_URL_PREFIX "lastfm://"
 #define LASTFM_URL_MIN_LENGTH 6 // shortest possible: 'user/a'
@@ -143,18 +144,14 @@ typedef struct url_word_node_s {
 #define URL_WORD_NODE_END { .name = NULL, .gen_word_list = NULL, }
 #define CACHE_WORDS_SEC 60
 
-// split the readline buffer into words
-static char **get_lastfm_url_words(const char *url);
-static void free_lastfm_url_words(char **url_words);
-
 // node utility functions
 static url_word_node_t* find_word_in_table(const char *word, url_word_node_t *table);
 static void free_node_cached_words (url_word_node_t *node);
 
 // generate words that match currently completed word
 typedef struct url_completion_state_s { 
-	char **url_words;
-	unsigned url_word_count;
+	strarray_t url_sa;
+	unsigned word_idx;
 	url_word_node_t *node;
 	unsigned word_len;
 	unsigned list_index;
@@ -340,25 +337,28 @@ static url_word_node_t url_play_node[] = {
 static char **url_completion(const char * text, int __UNUSED__ start, int __UNUSED__ end) {
 
 	char **ret;
-	char **url_words;
 	url_word_node_t *table;
-	unsigned word_idx;
-	char* (*match_generator)(const char*, int);
+	char **words;
+	int cnt, word_idx;
+	char* (*match_generator)(const char*, int) = url_nomatch_generator;
 
-	url_words = get_lastfm_url_words (rl_line_buffer);
-	if (!url_words)
-		return NULL;
+	strarray_init (&state.url_sa);
+
+	cnt = strarray_append_split (&state.url_sa, rl_line_buffer, '/');
+	if (cnt<=0)
+		goto start_completion;
 
 	// start at the first level
 	table = url_word_nodes;
 	word_idx = 0;
+	words = state.url_sa.strings;
 
-	while ( (url_words[word_idx+1])
-			&& (table = find_word_in_table (url_words[word_idx], table)) ) {
-		word_idx ++;
+	for (word_idx=0; (word_idx+1)<state.url_sa.count; word_idx++) {
+			table = find_word_in_table (words[word_idx], table);
+			if (!table)
+				break;
 	}
 
-	match_generator = url_nomatch_generator;
 	if (table) {
 		// we found a place in the tree, use a real match generation function
 		match_generator = url_match_generator;
@@ -366,18 +366,18 @@ static char **url_completion(const char * text, int __UNUSED__ start, int __UNUS
 		// we have the table in which we are completing, we need to find the nodes
 		// that make the most sense
 		state.node = table;
-		state.url_words = url_words;
-		state.url_word_count = word_idx;
+		state.word_idx = word_idx;
 
 		// we assume it's the last entry, this is updated in url_match_generator()
 		rl_completion_append_character = ' ';
 	}
 
+start_completion:
 	// generate completions that match text
 	rl_filename_completion_desired = 0;
 	ret = rl_completion_matches(text, url_match_generator);
 
-	free_lastfm_url_words (url_words);
+	strarray_cleanup (&state.url_sa);
 
 	rl_filename_completion_desired = 0;
 	rl_attempted_completion_over = 1;
@@ -535,7 +535,7 @@ static char** gen_user_tag_names(time_t *new_expie_time) {
 
 	url = calloc (512, sizeof(char));
 
-	user = state.url_words[state.url_word_count-1];
+	user = state.url_sa.strings[state.word_idx-1];
 
 	ulen = snprintf (url, 512,
 			"http://ws.audioscrobbler.com/1.0/user/%s/tags.txt",
@@ -696,32 +696,6 @@ static char** gen_tags_names(time_t *new_expie_time) {
 
 
 /* ------------------------------------------------------------------------ */
-
-static char **get_lastfm_url_words(const char *url) {
-	const char *c;
-	char **url_words, *p;
-	unsigned max_word_count, url_word_count;
-
-	for (c=url, max_word_count=2; *c; c++)
-		if (*c == '/') max_word_count++;
-
-	url_words = calloc (max_word_count, sizeof(char*));
-
-  /* clone the buffer, and split it into words on '/' */
-  url_words[0] = strdup (url);
-	for (url_word_count=1, p=url_words[0]; *p; p++)
-		if (*p=='/') {
-			*p = 0;
-			url_words[url_word_count++] = p+1;
-		}
-
-	return url_words;
-}
-
-static void free_lastfm_url_words(char **url_words) {
-	free (url_words[0]);
-	free (url_words);
-}
 
 static url_word_node_t* find_word_in_table(const char *word, url_word_node_t *table) {
 	url_word_node_t *node;
