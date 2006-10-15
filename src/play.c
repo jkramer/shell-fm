@@ -136,10 +136,15 @@ void playback(FILE * streamfd) {
 				unsigned char * sync = findsync(buf, nbyte);
 				if(sync) {
 					unsigned len = nbyte - (sync - buf) - 4;
-					memmove(sync, sync + 4, len);
+					fwrite(buf, sizeof(unsigned char), nbyte - (sync - buf), ext);
+					if(haskey(& rc, "extern-restart")) {
+						fclose(ext);
+						ext = popen(value(& rc, "extern"), "w");
+					}
+					fwrite(sync, sizeof(unsigned char), len, ext);
 					kill(ppid, SIGUSR1);
-				}
-				fwrite(buf, sizeof(unsigned char), BUFSIZE, ext);
+				} else
+					fwrite(buf, sizeof(unsigned char), nbyte, ext);
 			}
 			if(kill(ppid, 0) == -1 && errno == ESRCH) {
 				free(buf);
