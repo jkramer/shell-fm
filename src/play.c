@@ -116,6 +116,7 @@ void playback(FILE * streamfd) {
 	} else {
 		FILE * ext = popen(value(& rc, "extern"), "w");
 		unsigned char * buf;
+		int first_time = 1;
 		pid_t ppid = getppid();
 
 		if(!ext) {
@@ -136,12 +137,15 @@ void playback(FILE * streamfd) {
 				unsigned char * sync = findsync(buf, nbyte);
 				if(sync) {
 					unsigned len = nbyte - (sync - buf) - 4;
-					fwrite(buf, sizeof(unsigned char), nbyte - (sync - buf), ext);
+					if (!first_time)
+						fwrite(buf, sizeof(unsigned char), sync - buf, ext);
+					else
+						first_time = 0;
 					if(haskey(& rc, "extern-restart")) {
 						fclose(ext);
 						ext = popen(value(& rc, "extern"), "w");
 					}
-					fwrite(sync, sizeof(unsigned char), len, ext);
+					fwrite(sync + 4, sizeof(unsigned char), len, ext);
 					kill(ppid, SIGUSR1);
 				} else
 					fwrite(buf, sizeof(unsigned char), nbyte, ext);
@@ -310,3 +314,4 @@ void * findsync(register unsigned char * ptr, unsigned size) {
 	}
 	return NULL;
 }
+
