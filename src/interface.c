@@ -82,9 +82,9 @@ void interface(int interactive) {
 
 			case 'i':
 				if(playfork) {
+					puts(meta("Track:\t\t\"%t\" (%T) by %a", !0));
+					puts(meta("Album:\t\t%A (%X)", !0));
 					puts(meta("Station:\t%s (%u)", !0));
-					puts(meta("Track:\t\t\"%t\" by %a", !0));
-					puts(meta("Album:\t\t%A", !0));
 				}
 				break;
 
