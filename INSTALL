@@ -1,0 +1,5 @@
+
+./reconfig
+./configure --prefix=/use/local
+make
+make install-strip

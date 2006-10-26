@@ -1,0 +1,23 @@
+Jonas Kramer (shell-monkey)
+ * everything else that's not listed below :)
+
+Bart Trojanowski (bartman)
+ * radio station URI completion
+ * several bugfixes
+ * command line help
+ * Makefile fixes / improvements
+
+Jacek Nitkiewicz (jacek)
+ * several bugfixes and improvements
+ * configure / Makefile stuff
+
+Helmut Maierthaler (b1u3)
+ * pause and stop keys
+
+Nguyen Thai Ngoc Duy (pclouds)
+ * libao support
+
+
+Please mail me (jonas.kramer@gmx.net) if your name is missing here.
+If you want to praise or blame a developer for something particular,
+search the SVN log.
