@@ -32,7 +32,6 @@ pid_t playfork = 0; /* PID of the decoding & playing process, if running */
 
 char * currentStation = NULL;
 
-
 /*
 	Function: handshake
 	
@@ -47,6 +46,7 @@ char * currentStation = NULL;
 int handshake(const char * username, const char * password) {
 	unsigned char * md5;
 	char hexmd5[32 + 1] = { 0 }, url[512] = { 0 }, ** response;
+	char * encuser = NULL;
 	unsigned ndigit, i = 0;
 	const char * session, * fmt =
 		"http://ws.audioscrobbler.com/radio/handshake.php"
@@ -65,8 +65,13 @@ int handshake(const char * username, const char * password) {
 
 	set(& rc, "password", hexmd5);
 	
+	/* escape username for URL */
+	encode(username, & encuser);
+
 	/* put handshake URL together and fetch initial data from server */
-	snprintf(url, sizeof(url), fmt, username, hexmd5);
+	snprintf(url, sizeof(url), fmt, encuser, hexmd5);
+	free(encuser);
+
 	response = fetch(url, NULL, NULL, NULL);
 	if(!response) {
 		fputs("No response.\n", stderr);
