@@ -162,12 +162,7 @@ void interface(int interactive) {
 					tag(track);
 				break;
 
-			case 'a':
-				artistRadio();
-				break;
-
       case '?':
-				puts("a = Play Custom Artist Radion");
         puts("A = Autoban Artist");
         puts("B = Ban Track");
         puts("d = Discovery Mode");
@@ -305,37 +300,3 @@ void run(const char * cmd) {
 		}
 	}
 }
-
-void artistRadio(void) {
-	char * artists;
-
-	fputs("Enter one or more artists, separated by commas.\n", stdout);
-
-	canon(!0);
-	artists = readline(">> ");
-	canon(0);
-
-	if(artists && strlen(artists) > 0) {
-		char * post, * encoded = NULL, ** resp;
-		unsigned length = encode(artists, & encoded) + 11, x = 0;
-
-		free(artists);
-		post = calloc(length, sizeof(char));
-		snprintf(post, length, "artists=%s\r\n", encoded);
-		free(encoded);
-
-		resp = fetch("http://www.last.fm/listen/", NULL, post, "Content-Type: application/x-www-form-urlencoded");
-		free(post);
-
-		if(resp) {
-			while(resp[x]) {
-				if(!resp[x + 1])
-					station(resp[x]);
-				free(resp[x++]);
-			}
-
-			free(resp);
-		}
-	}
-}
-
