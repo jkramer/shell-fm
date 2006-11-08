@@ -149,7 +149,6 @@ unsigned encode(const char * orig, char ** encoded) {
 		}
 		++i;
 	}
-	printf("url: <%s>\n", * encoded);
 	return x;
 }
 

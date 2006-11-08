@@ -33,6 +33,8 @@ static int rlstartup(void);
 static char * current_tags = NULL;
 static char ** popular_tags = NULL;
 
+void stripslashes(char *);
+
 void tag(struct hash data) {
 	char key, * tagstring;
 	unsigned tslen;
@@ -223,6 +225,7 @@ static char ** getPopularTags(char key, struct hash track) {
 	}
 
 	encode(value(& track, "artist"), & artist);
+	stripslashes(artist);
 
 	length = snprintf(
 			url, 512, "http://ws.audioscrobbler.com/1.0/%s/%s/",
@@ -232,6 +235,7 @@ static char ** getPopularTags(char key, struct hash track) {
 
 	if(key == 't') {
 		encode(value(& track, "track"), & arg);
+		stripslashes(arg);
 		length += snprintf(url + length, 512 - length, "%s/", arg);
 		free(arg);
 	}
@@ -296,6 +300,8 @@ static char * getExistingTags(char key, struct hash track) {
 	}
 
 	encode(value(& track, "artist"), & artist);
+	stripslashes(artist);
+
 	encode(value(& rc, "username"), & user);
 
 	length = snprintf(
@@ -307,9 +313,11 @@ static char * getExistingTags(char key, struct hash track) {
 
 	if(key == 'A') {
 		encode(value(& track, "album"), & arg);
+		stripslashes(arg);
 		length += snprintf(url + length, 512 - length, "&album=%s", arg);
 	} else if(key == 't') {
 		encode(value(& track, "track"), & arg);
+		stripslashes(arg);
 		length += snprintf(url + length, 512 - length, "&track=%s", arg);
 	}
 
@@ -376,4 +384,14 @@ static int rlstartup(void) {
 	if(current_tags)
 		rl_insert_text(current_tags);
 	return 0;
+}
+
+void stripslashes(char * string) {
+	unsigned x = 0;
+	while(x < strlen(string)) {
+		if(string[x] == 0x2F)
+			strncpy(string + x, string + x + 1, strlen(string + x + 1));
+		else
+			++x;
+	}
 }
