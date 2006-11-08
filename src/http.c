@@ -138,7 +138,7 @@ unsigned encode(const char * orig, char ** encoded) {
 	while(i < strlen(orig)) {
 		if(isalnum(orig[i]))
 			(* encoded)[x++] = orig[i];
-		else if(orig[i] != 0x2F) {
+		else {
 			snprintf(
 					(* encoded) + x,
 					strlen(orig) * 3 - strlen(* encoded) + 1,
@@ -149,6 +149,7 @@ unsigned encode(const char * orig, char ** encoded) {
 		}
 		++i;
 	}
+	printf("url: <%s>\n", * encoded);
 	return x;
 }
 
@@ -165,7 +166,7 @@ unsigned decode(const char * orig, char ** decoded) {
 				(* decoded)[x] = orig[i];
 			else {
 				(* decoded)[x] = (char) hex;
-				i += 2;
+				i += 3;
 			}
 		}
 
