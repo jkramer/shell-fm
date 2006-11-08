@@ -136,18 +136,18 @@ unsigned encode(const char * orig, char ** encoded) {
 	register unsigned i = 0, x = 0;
 	* encoded = calloc((strlen(orig) * 3) + 1, sizeof(char));
 	while(i < strlen(orig)) {
-		if(isalnum(orig[i])) {
+		if(isalnum(orig[i]))
 			(* encoded)[x++] = orig[i];
-			++i;
-		} else if(orig[i] != 0x2F) {
+		else if(orig[i] != 0x2F) {
 			snprintf(
 					(* encoded) + x,
 					strlen(orig) * 3 - strlen(* encoded) + 1,
 					"%%%02x",
 					(uint8_t) orig[i]
 			);
-			x += 4;
+			x += 3;
 		}
+		++i;
 	}
 	return x;
 }
