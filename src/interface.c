@@ -58,12 +58,12 @@ void interface(int interactive) {
 		
 		canon(0);
 		fflush(stderr);
-		if((key = fetchkey(1)) == -1)
+		if((key = fetchkey(1000000)) == -1)
 			return;
 
 		if(key == 27) {
 			char ch;
-			while((ch = fetchkey(1)) != -1 && !strchr("ABCEFGHMPQRSZojmk~", ch));
+			while((ch = fetchkey(100000)) != -1 && !strchr("ABCDEFGHMPQRSZojmk~", ch));
 			return;
 		}
 
@@ -109,7 +109,7 @@ void interface(int interactive) {
 			case 'A':
 				printf(meta("Really ban all tracks by artist %a? [yN]", !0));
 				fflush(stdout);
-				if(fetchkey(5) != 'y')
+				if(fetchkey(5000000) != 'y')
 					puts("\nAbort.");
 				else if(autoban(value(& track, "artist"))) {
 					printf("\n%s banned.\n", meta("%a", !0));
@@ -143,7 +143,7 @@ void interface(int interactive) {
 			case 'H':
 				if(playfork && currentStation) {
 					puts("What number do you want to bookmark this stream as? [0-9]");
-					key = fetchkey(5);
+					key = fetchkey(5000000);
 					setmark(currentStation, key - 0x30);
 				}
 				break;
@@ -220,11 +220,11 @@ int fetchkey(unsigned nsec) {
 	FD_ZERO(& fdset);
 	FD_SET(fileno(stdin), & fdset);
 
-	tv.tv_usec = 0;
-	tv.tv_sec = nsec;
+	tv.tv_usec = nsec % 1000000;
+	tv.tv_sec = nsec / 1000000;
 
 	if(select(fileno(stdin) + 1, & fdset, NULL, NULL, & tv) > 0) {
-		char ch;
+		char ch = -1;
 		if(read(fileno(stdin), & ch, sizeof(char)) == sizeof(char))
 			return ch;
 	}
