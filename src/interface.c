@@ -61,6 +61,12 @@ void interface(int interactive) {
 		if((key = fetchkey(1)) == -1)
 			return;
 
+		if(key == 27) {
+			char ch;
+			while((ch = fetchkey(1)) != -1 && !strchr("ABCEFGHMPQRSZojmk~", ch));
+			return;
+		}
+
 		switch(key) {
 			case 'l':
 				if(playfork)
@@ -217,8 +223,11 @@ int fetchkey(unsigned nsec) {
 	tv.tv_usec = 0;
 	tv.tv_sec = nsec;
 
-	if(select(fileno(stdin) + 1, & fdset, NULL, NULL, & tv) > 0)
-		return fgetc(stdin);
+	if(select(fileno(stdin) + 1, & fdset, NULL, NULL, & tv) > 0) {
+		char ch;
+		if(read(fileno(stdin), & ch, sizeof(char)) == sizeof(char))
+			return ch;
+	}
 
 	return -1;
 }
