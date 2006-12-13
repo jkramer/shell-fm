@@ -191,8 +191,12 @@ int main(int argc, char ** argv) {
 			unsigned retries = 0;
 
 			if(last) {
-				while(retries < 10 && !strcmp(last, meta("%a %t", 0)))
-					update(& track) || ++retries;
+				while(retries < 10 && !strcmp(last, meta("%a %t", 0))) {
+					if(!update(& track)) {
+						++retries;
+						interface(!daemon);
+					}
+				}
 				free(last);
 			}
 
