@@ -192,12 +192,14 @@ int main(int argc, char ** argv) {
 
 			if(last) {
 				while(retries < 10 && !strcmp(last, meta("%a %t", 0))) {
-					if(!update(& track)) {
-						++retries;
-						interface(!daemon);
-					}
+					update(& track);
+					++retries;
+					interface(!daemon);
 				}
 				free(last);
+
+				if(retries == 10)
+					fputs("Couldn't update track data.\n", stderr);
 			}
 
 			if(banned(meta("%a", 0))) {
