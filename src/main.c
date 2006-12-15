@@ -191,15 +191,15 @@ int main(int argc, char ** argv) {
 			unsigned retries = 0;
 
 			if(last) {
-				while(retries < 10 && !strcmp(last, meta("%a %t", 0))) {
+				while(retries < 3 && !strcmp(last, meta("%a %t", 0))) {
 					update(& track);
 					++retries;
 					interface(!daemon);
 				}
 				free(last);
 
-				if(retries == 10)
-					fputs("Couldn't update track data.\n", stderr);
+				if(retries == 3)
+					fputs("Couldn't update track data. Use 't' to retry\n", stderr);
 			}
 
 			if(banned(meta("%a", 0))) {

@@ -167,6 +167,10 @@ void interface(int interactive) {
 				if(playfork)
 					tag(track);
 				break;
+			case 't':
+				if(playfork)
+					update(& track);
+				break;
 
       case '?':
         puts("A = Autoban Artist");
@@ -185,6 +189,7 @@ void interface(int interactive) {
         puts("S = Stop");
         puts("s = Similiar Artist");
         puts("T = Tag Track/Artist/Album");
+        puts("t = Update track data");
         break;
 
 			case '0':
