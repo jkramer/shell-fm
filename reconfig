@@ -21,6 +21,7 @@ clean)
 	exit 1
 esac
 
+cd "`dirname "$0"`"
 echo "removing old files"
 find . \( -name Makefile -o -name Makefile.in \) -exec rm -f {} \;
 find . -depth -type d -name .deps -exec rm -rf {} \;
