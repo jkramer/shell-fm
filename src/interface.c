@@ -51,6 +51,14 @@ struct hash track;
 
 extern struct hash data;
 
+// Print what is now played (Author: Ondrej Novy)
+void shownp() {
+	if(haskey(&rc, "title-format"))
+		printf("%s\n", meta(value(& rc, "title-format"), !0));
+	else
+		printf("%s\n", meta("Now playing \"%t\" by %a.", !0));
+}
+
 void interface(int interactive) {
 	if(interactive) {
 		int key;
@@ -80,7 +88,8 @@ void interface(int interactive) {
 
 			case 'n':
 				if(playfork)
-					control("skip") || puts("Sorry, failed.");
+					if (!control("skip"))
+						puts("Sorry, failed.");
 				break;
 
 			case 'Q':
@@ -168,10 +177,17 @@ void interface(int interactive) {
 					tag(track);
 				break;
 			case 't':
-				if(playfork)
+				if(playfork) {
+					// Retry update and check if it's changed (Author: Ondrej Novy)
+					char * last = strdup(meta("%a %t", 0));
 					update(& track);
+					if (last && strcmp(last, meta("%a %t", 0))) {
+						shownp();
+					}
+					if (last)
+						free(last);
+				}
 				break;
-
       case '?':
         puts("A = Autoban Artist");
         puts("B = Ban Track");
@@ -282,12 +298,22 @@ const char * meta(const char * fmt, int colored) {
 						char colorkey[64] = { 0 };
 						snprintf(colorkey, sizeof(colorkey), "%c-color", keys[i][0]);
 						color = value(& rc, colorkey);
-						if(color)
-							length += snprintf(string + length, remn, "\x1B[%sm", color);
+						if(color) {
+							// Strip leading spaces from end of color (Author: Ondrej Novy)
+							char *color_st = strdup(color);
+							size_t len = strlen(color_st) - 1;
+							while (isspace(color_st[len]) && len > 0) {
+								color_st[len] = 0;
+								len--;
+							}
+							length += snprintf(string + length, remn, "\x1B[%sm", color_st);
+							free(color_st);
+						}
 					}
 					length = strlen(strncat(string, val ? val : "(unknown)", remn));
-					if(color)
+					if(color) {
 						length = strlen(strncat(string, "\x1B[0;37m", remn));
+					}
 					break;
 				}
 			++x;

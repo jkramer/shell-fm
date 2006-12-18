@@ -187,6 +187,7 @@ int main(int argc, char ** argv) {
 		}
 		
 		if(changed) {
+			// Try to fetch track metadata
 			char * last = strdup(meta("%a %t", 0));
 			unsigned retries = 0;
 
@@ -212,16 +213,13 @@ int main(int argc, char ** argv) {
 			}
 			
 			if(stationChanged) {
-				daemon || puts(meta("Receiving %s.", !0));
+				if(!daemon)
+					puts(meta("Receiving %s.", !0));
 				paused = stationChanged = 0;
 			}
 
-			if(!daemon) {
-				if(haskey(&rc, "title-format"))
-					printf("%s\n", meta(value(& rc, "title-format"), !0));
-				else
-					printf("%s\n", meta("Now playing \"%t\" by %a.", !0));
-			}
+			if(!daemon)
+				shownp();
 
       changed = 0;
 
@@ -234,7 +232,8 @@ int main(int argc, char ** argv) {
 				unlink(file);
 				if(-1 != (np = open(file, O_WRONLY | O_CREAT, 0600))) {
 					const char * output = meta(fmt, 0);
-					output && write(np, output, strlen(output));
+					if(output)
+						write(np, output, strlen(output));
 					close(np);
 				}
 			}
@@ -316,7 +315,8 @@ static void cleanup(void) {
 	if(currentStation)
 		free(currentStation);
 	
-	playfork && kill(playfork, SIGTERM);
+	if(playfork)
+		kill(playfork, SIGTERM);
 }
 
 

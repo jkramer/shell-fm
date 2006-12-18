@@ -10,5 +10,6 @@ extern void interface(int);
 extern void run(const char *);
 extern void canon(int);
 extern int fetchkey(unsigned);
+extern void shownp();
 
 #endif

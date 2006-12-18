@@ -36,6 +36,7 @@ char ** split(char * string, const char * del, unsigned * pnsplt) {
 		}
 	}
 
-	pnsplt && (* pnsplt = nsplt);
+	if(pnsplt)
+		* pnsplt = nsplt;
 	return splt;
 }
