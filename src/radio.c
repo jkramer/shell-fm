@@ -59,6 +59,7 @@ static const char * validate_url (const char *url);
  * lastfm://artist/QED/fans
  * lastfm://globaltags/goa
  * lastfm://globaltags/classical,miles davis,whatever
+ * lastfm://multipleartists/QED,Chicane
  * lastfm://play/tracks/########[,#####, ...]
  */
 void radioprompt(const char * prompt) {
@@ -146,6 +147,7 @@ static cmpl_node_t url_usertags_name_node[];
 static cmpl_node_t url_artist_node[];
 static cmpl_node_t url_artist_name_node[];
 static cmpl_node_t url_globaltags_node[];
+static cmpl_node_t url_multipleartists_node[];
 static cmpl_node_t url_play_node[];
 
 /* ------------------------------------------------------------------------ */
@@ -170,6 +172,11 @@ static cmpl_node_t url_word_nodes[] = {
 		.name = "globaltags",
 		.gen_word_list = NULL,
 		.sub_nodes = url_globaltags_node,
+	},
+	{
+		.name = "multipleartists",
+		.gen_word_list = NULL,
+		.sub_nodes = url_multipleartists_node,
 	},
 	{
 		.name = "play",
@@ -285,6 +292,19 @@ static cmpl_node_t url_globaltags_node[] = {
 		.name = NULL,
 		.gen_word_list = gen_tags_names,
 		.sub_nodes = NULL, /* url_globaltags_name_node, */
+	},
+	URL_WORD_NODE_END
+};
+
+/*
+ * lastfm://globaltags/QED
+ * lastfm://globaltags/QED,Chicane
+ */
+static cmpl_node_t url_multipleartists_node[] = {
+	{
+		.name = NULL,
+		.gen_word_list = gen_artist_names,
+		.sub_nodes = NULL, /* url_multipleartists_node, */
 	},
 	URL_WORD_NODE_END
 };
