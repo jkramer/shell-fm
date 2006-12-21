@@ -45,7 +45,7 @@ struct stream {
 	pid_t parent;
 };
 
-#define BUFSIZE 40960
+#define BUFSIZE 8192
 
 static enum mad_flow input(void *, struct mad_stream *);
 static enum mad_flow output(void *, const struct mad_header *, struct mad_pcm *);
@@ -167,6 +167,7 @@ void playback(FILE * streamfd) {
 
 static enum mad_flow input(void * data, struct mad_stream * stream) {
 	static unsigned nbyte = 0;
+	static int preload = 0;
 	static unsigned char buf[BUFSIZE + 1] = { 0 };
 
 	struct stream * ptr = (struct stream *) data;
@@ -181,7 +182,14 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 		memmove(buf, stream->next_frame, remnbyte);
 	}
 
-	nbyte = read(fileno(ptr->streamfd), buf + remnbyte, BUFSIZE - remnbyte);
+	if(preload)
+		nbyte = read(fileno(ptr->streamfd), buf + remnbyte, BUFSIZE - remnbyte);
+	else {
+		while(nbyte < BUFSIZE)
+			nbyte += read(fileno(ptr->streamfd), buf + nbyte, BUFSIZE - nbyte);
+		preload = !0;
+	}
+	
 	if(!nbyte)
 		return MAD_FLOW_STOP;
 
