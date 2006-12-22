@@ -312,7 +312,7 @@ const char * meta(const char * fmt, int colored) {
 					}
 					length = strlen(strncat(string, val ? val : "(unknown)", remn));
 					if(color) {
-						length = strlen(strncat(string, "\x1B[0;37m", remn));
+						length = strlen(strncat(string, "\x1B[0;0m", remn));
 					}
 					break;
 				}
