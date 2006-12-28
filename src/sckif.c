@@ -26,6 +26,7 @@
 #include <sys/select.h>
 
 #include "sckif.h"
+#include "http.h"
 #include "service.h"
 #include "interface.h"
 
@@ -136,8 +137,12 @@ void execcmd(const char * cmd, FILE * fd) {
 			break;
 
 		case 0:
-			if(sscanf(cmd, "play %128[a-zA-Z0-9:/_ -,-]", arg) == 1)
-				station(arg);
+			if(sscanf(cmd, "play %128[a-zA-Z0-9:/_ %,-]", arg) == 1) {
+				char *station_str;
+				decode(arg, & station_str);
+				station(station_str);
+				free(station_str);
+			}
 			break;
 
 		case 1:

@@ -165,7 +165,7 @@ unsigned decode(const char * orig, char ** decoded) {
 				(* decoded)[x] = orig[i];
 			else {
 				(* decoded)[x] = (char) hex;
-				i += 3;
+				i += 2;
 			}
 		}
 
