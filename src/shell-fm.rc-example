@@ -15,7 +15,7 @@ password = yourpassword
 # will store information about the currently played track
 # whenever it changes.
 
-np-file = /tmp/now-playing
+#np-file = /tmp/now-playing
 
 
 # This is the format string, that Shell.FM will write to the
@@ -23,20 +23,20 @@ np-file = /tmp/now-playing
 # a string like "np: artist - title". Have a look at the
 # project page for a complete list of valid variables.
 
-np-file-format = np: %a - %t
+#np-file-format = np: %a - %t
 
 
 # Here you can specify an external command that is run by
 # Shell.FM whenever the track changes. The arguments may
 # contain the same variables as the "np-file-format" option.
 
-np-cmd = echo "%a - %t" >> /tmp/shell-fm-history
+#np-cmd = echo "%a - %t" >> /tmp/shell-fm-history
 
 
 # If you want Shell.FM to automatically start playing a
 # stream on startup, you may specify the URL here.
 
-default-radio = lastfm://user/yourname/personal
+#default-radio = lastfm://user/yourname/personal
 
 
 # If you have any external programs you want to bind to
@@ -50,7 +50,7 @@ default-radio = lastfm://user/yourname/personal
 # to get the lyrics of the currently played song whenever
 # I press "o".
 
-key0x6F = /usr/local/bin/zyrc "%a" "%t"
+#key0x6F = /usr/local/bin/zyrc "%a" "%t"
 
 
 # This set of options will make Shell.FM print meta-data
@@ -95,4 +95,4 @@ bind = localhost
 # By default, shell-fm binds to socket (see above)
 # to port 54311. With this option, you can specify
 # an other port, if you don't like the default.
-port = 1234
+#port = 1234
