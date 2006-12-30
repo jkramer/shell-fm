@@ -47,4 +47,4 @@ fi
 [ -z "$IP" ] && IP="127.0.0.1"
 [ -z "$PORT" ] && PORT="54311"
  
-echo "play $RADIO" | $CMD $IP $PORT >/dev/null 2>&1
+echo "play $RADIO" | "$CMD" "$IP" "$PORT" >/dev/null 2>&1
