@@ -6,7 +6,8 @@ extract ()
 	KEY="$1"
 	VALUE="$(
 		sed -e "s/^$KEY\s*=\s*//" <<<"`
-			grep -oE "$KEY[ ]*=[ ]*[^ ]+" $HOME/.shell-fm/shell-fm.rc
+			grep -oE "^$KEY[ ]*=[ ]*[^ ]+" $HOME/.shell-fm/shell-fm.rc \
+			|  head -n 1
 		`"
 	)"
 	echo "$VALUE"
