@@ -18,6 +18,7 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <stdlib.h>
+#include <signal.h>
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -33,6 +34,7 @@
 extern unsigned getln(char **, unsigned *, FILE *);
 extern int interactive;
 extern unsigned discovery;
+extern pid_t playfork;
 
 static int ssck = -1;
 
@@ -81,13 +83,13 @@ void rmsckif(void) {
 }
 
 void sckif(void) {
-	if(ssck != -1 && waitread(ssck, 0, 500)) {
+	if(ssck != -1 && waitread(ssck, 0, 0)) {
 		struct sockaddr_in client;
 		socklen_t scksize = sizeof(struct sockaddr_in);
 
 		int csck = accept(ssck, & client, & scksize);
 		if(-1 != csck) {
-			if(waitread(csck, 0, 500)) {
+			if(waitread(csck, 0, 100000)) {
 				FILE * fd = fdopen(csck, "r+");
 
 				if(fd) {
@@ -125,7 +127,8 @@ void execcmd(const char * cmd, FILE * fd) {
 		"nortp",
 		"quit",
 		"info",
-		"discovery"
+		"discovery",
+		"stop"
 	};
 
 	for(ncmd = 0; ncmd < (sizeof(known) / sizeof(char *)); ++ncmd)
@@ -134,6 +137,7 @@ void execcmd(const char * cmd, FILE * fd) {
 
 	switch(ncmd) {
 		case (sizeof(known) / sizeof(char *)):
+			fprintf(fd, "Unknown command!\n");
 			break;
 
 		case 0:
@@ -166,7 +170,12 @@ void execcmd(const char * cmd, FILE * fd) {
 			else
 				fprintf(fd, "Failed to %s discovery mode.\n", discovery ? "enable" : "disable");
 			break;
+		case 9:
+			if(playfork)
+				kill(playfork, SIGKILL);
+			break;
 	}
+	fflush(fd);
 }
 
 int waitread(int fd, unsigned sec, unsigned usec) {
