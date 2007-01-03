@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.50)
-AC_INIT([shell-fm], [0.2], [bugs@example.com])
+AC_INIT([shell-fm], [0.2], [jonas.kramer@gmx.net])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([src/settings.c])
 AM_CONFIG_HEADER(config.h)
@@ -63,7 +63,7 @@ AC_FUNC_SELECT_ARGTYPES
 AC_TYPE_SIGNAL
 AC_CHECK_FUNCS([atexit gethostbyname getpass memmove memset select socket strchr strdup strerror strncasecmp strndup strrchr strstr strtol])
 
-AC_CONFIG_FILES([Makefile src/Makefile src/include/Makefile m4/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile src/include/Makefile])
 AC_OUTPUT
 
 SHELL_FM_SUMMARY
