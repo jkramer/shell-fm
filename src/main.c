@@ -103,7 +103,7 @@ int main(int argc, char ** argv) {
 		set(& rc, "device", "/dev/audio");
 #endif
 
-	puts("Shell.FM v" VERSION ", written 2006 by Jonas Kramer");
+	puts("Shell.FM v" VERSION ", (C) 2007 by Jonas Kramer");
 	puts("Published under the terms of the GNU General Public License (GPL)\n");
 
 	if(!daemon)
@@ -287,7 +287,7 @@ static void exitWithHelp(const char * argv0, int errorCode) {
 	FILE * out = errorCode ? stderr : stdout;
 
 	fprintf(out,
-		"shell-fm - Copyright (C) 2006 by Jonas Kramer\n"
+		"shell-fm - Copyright (C) 2007 by Jonas Kramer\n"
 		"\n"
 		"%s [options] [lastfm://url]\n"
 		"\n"
