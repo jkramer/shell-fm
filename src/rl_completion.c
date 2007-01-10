@@ -50,7 +50,8 @@ char** cmpl_complete (const char *text, int __UNUSED__ start, int __UNUSED__ end
 
 	char **ret;
 	char **words;
-	int cnt, word_idx;
+	int cnt;
+	unsigned word_idx;
 	char* (*match_generator)(const char*, int) = _nomatch_generator;
 
 	strarray_init (&cmpl_state.url_sa);

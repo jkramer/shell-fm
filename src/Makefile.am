@@ -1,3 +1,4 @@
+AM_CFLAGS=-Wall -W -std=c99
 
 SUBDIRS		= include
 

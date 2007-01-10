@@ -138,53 +138,7 @@ static char** gen_user_tag_names(time_t *new_expie_time);
 static char** gen_artist_names(time_t *new_expie_time);
 static char** gen_tags_names(time_t *new_expie_time);
 
-static cmpl_node_t url_word_nodes[];
-static cmpl_node_t url_user_node[];
-static cmpl_node_t url_user_name_node[];
-static cmpl_node_t url_user_name_recommended_node[];
-static cmpl_node_t url_usertags_node[];
-static cmpl_node_t url_usertags_name_node[];
-static cmpl_node_t url_artist_node[];
-static cmpl_node_t url_artist_name_node[];
-static cmpl_node_t url_globaltags_node[];
-static cmpl_node_t url_multipleartists_node[];
-static cmpl_node_t url_play_node[];
-
 /* ------------------------------------------------------------------------ */
-
-static cmpl_node_t url_word_nodes[] = {
-	{
-		.name = "user",
-		.gen_word_list = NULL,
-		.sub_nodes = url_user_node,
-	},
-	{
-		.name = "usertags",
-		.gen_word_list = NULL,
-		.sub_nodes = url_usertags_node,
-	},
-	{
-		.name = "artist",
-		.gen_word_list = NULL,
-		.sub_nodes = url_artist_node,
-	},
-	{
-		.name = "globaltags",
-		.gen_word_list = NULL,
-		.sub_nodes = url_globaltags_node,
-	},
-	{
-		.name = "multipleartists",
-		.gen_word_list = NULL,
-		.sub_nodes = url_multipleartists_node,
-	},
-	{
-		.name = "play",
-		.gen_word_list = NULL,
-		.sub_nodes = url_play_node,
-	},
-	URL_WORD_NODE_END
-};
 
 /*
  * lastfm://user/BartTrojanowski/loved
@@ -192,11 +146,22 @@ static cmpl_node_t url_word_nodes[] = {
  * lastfm://user/BartTrojanowski/neighbour
  * lastfm://user/BartTrojanowski/recommended/100
  */
-static cmpl_node_t url_user_node[] = {
+static cmpl_node_t url_user_name_recommended_node[] = {
 	{
-		.name = NULL,
-		.gen_word_list = gen_user_names,
-		.sub_nodes = url_user_name_node,
+		.name = "25",
+		.gen_word_list = NULL,
+	},
+	{
+		.name = "50",
+		.gen_word_list = NULL,
+	},
+	{
+		.name = "75",
+		.gen_word_list = NULL,
+	},
+	{
+		.name = "100",
+		.gen_word_list = NULL,
 	},
 	URL_WORD_NODE_END
 };
@@ -220,22 +185,11 @@ static cmpl_node_t url_user_name_node[] = {
 	},
 	URL_WORD_NODE_END
 };
-static cmpl_node_t url_user_name_recommended_node[] = {
+static cmpl_node_t url_user_node[] = {
 	{
-		.name = "25",
-		.gen_word_list = NULL,
-	},
-	{
-		.name = "50",
-		.gen_word_list = NULL,
-	},
-	{
-		.name = "75",
-		.gen_word_list = NULL,
-	},
-	{
-		.name = "100",
-		.gen_word_list = NULL,
+		.name = NULL,
+		.gen_word_list = gen_user_names,
+		.sub_nodes = url_user_name_node,
 	},
 	URL_WORD_NODE_END
 };
@@ -243,6 +197,13 @@ static cmpl_node_t url_user_name_recommended_node[] = {
 /*
  * lastfm://usertags/BartTrojanowski/trance
  */
+static cmpl_node_t url_usertags_name_node[] = {
+	{
+		.name = NULL,
+		.gen_word_list = gen_user_tag_names,
+	},
+	URL_WORD_NODE_END
+};
 static cmpl_node_t url_usertags_node[] = {
 	{
 		.name = NULL,
@@ -251,26 +212,11 @@ static cmpl_node_t url_usertags_node[] = {
 	},
 	URL_WORD_NODE_END
 };
-static cmpl_node_t url_usertags_name_node[] = {
-	{
-		.name = NULL,
-		.gen_word_list = gen_user_tag_names,
-	},
-	URL_WORD_NODE_END
-};
 
 /*
  * lastfm://artist/QED/similarartists
  * lastfm://artist/QED/fans
  */
-static cmpl_node_t url_artist_node[] = {
-	{
-		.name = NULL,
-		.gen_word_list = gen_artist_names,
-		.sub_nodes = url_artist_name_node,
-	},
-	URL_WORD_NODE_END
-};
 static cmpl_node_t url_artist_name_node[] = {
 	{
 		.name = "similarartists",
@@ -279,6 +225,14 @@ static cmpl_node_t url_artist_name_node[] = {
 	{
 		.name = "fans",
 		.gen_word_list = NULL,
+	},
+	URL_WORD_NODE_END
+};
+static cmpl_node_t url_artist_node[] = {
+	{
+		.name = NULL,
+		.gen_word_list = gen_artist_names,
+		.sub_nodes = url_artist_name_node,
 	},
 	URL_WORD_NODE_END
 };
@@ -317,6 +271,40 @@ static cmpl_node_t url_play_node[] = {
 		.name = "tracks",
 		.gen_word_list = NULL,
 		.sub_nodes = NULL, /* url_play_tracks_node */
+	},
+	URL_WORD_NODE_END
+};
+
+static cmpl_node_t url_word_nodes[] = {
+	{
+		.name = "user",
+		.gen_word_list = NULL,
+		.sub_nodes = url_user_node,
+	},
+	{
+		.name = "usertags",
+		.gen_word_list = NULL,
+		.sub_nodes = url_usertags_node,
+	},
+	{
+		.name = "artist",
+		.gen_word_list = NULL,
+		.sub_nodes = url_artist_node,
+	},
+	{
+		.name = "globaltags",
+		.gen_word_list = NULL,
+		.sub_nodes = url_globaltags_node,
+	},
+	{
+		.name = "multipleartists",
+		.gen_word_list = NULL,
+		.sub_nodes = url_multipleartists_node,
+	},
+	{
+		.name = "play",
+		.gen_word_list = NULL,
+		.sub_nodes = url_play_node,
 	},
 	URL_WORD_NODE_END
 };

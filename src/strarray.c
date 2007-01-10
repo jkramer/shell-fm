@@ -30,7 +30,7 @@ void strarray_init (strarray_t *sa) {
 }
 
 void strarray_cleanup (strarray_t *sa) {
-	int i;
+	unsigned i;
 	for (i=0; i<sa->count; i++)
 		free (sa->strings[i]);
 	free (sa->strings);
@@ -60,7 +60,8 @@ int strarray_append_ndup (strarray_t *sa, const char *str, unsigned len) {
 }
 
 int strarray_append_array_dup (strarray_t *sa, const strarray_t *sa2) {
-	int i, ret = sa->count;
+	unsigned i;
+	int ret = sa->count;
 	for (i=0; i < sa2->count; i++) {
 		ret = strarray_append_dup (sa, sa2->strings[i]);
 		if (ret < 0)
