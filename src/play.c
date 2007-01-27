@@ -32,6 +32,7 @@
 #endif
 
 #include "settings.h"
+#include "pipe.h"
 
 struct stream {
 	FILE * streamfd;
@@ -52,6 +53,10 @@ static enum mad_flow output(void *, const struct mad_header *, struct mad_pcm *)
 signed scale(mad_fixed_t);
 
 void * findsync(register unsigned char *, unsigned);
+
+int disturbed = 0;
+
+void disturb(int);
 
 
 void playback(FILE * streamfd) {
@@ -114,10 +119,12 @@ void playback(FILE * streamfd) {
 		mad_decoder_run(& dec, MAD_DECODER_MODE_SYNC);
 		mad_decoder_finish(& dec);
 	} else {
-		FILE * ext = popen(value(& rc, "extern"), "w");
+		pid_t ppid = getppid(), cpid = 0;
+		FILE * ext = openpipe(value(& rc, "extern"), & cpid);
 		unsigned char * buf;
-		int first_time = 1;
-		pid_t ppid = getppid();
+		int first = !0;
+
+		signal(SIGUSR1, disturb);
 
 		if(!ext) {
 			fprintf(stderr, "Failed to execute external player (%s). %s.\n",
@@ -133,23 +140,38 @@ void playback(FILE * streamfd) {
 
 		while(!feof(streamfd)) {
 			signed nbyte = fread(buf, sizeof(unsigned char), BUFSIZE, streamfd);
+
 			if(nbyte > 0) {
 				unsigned char * sync = findsync(buf, nbyte);
+
 				if(sync) {
 					unsigned len = nbyte - (sync - buf) - 4;
-					if (!first_time)
+
+					if(!first) {
 						fwrite(buf, sizeof(unsigned char), sync - buf, ext);
-					else
-						first_time = 0;
-					if(haskey(& rc, "extern-restart")) {
-						fclose(ext);
-						ext = popen(value(& rc, "extern"), "w");
-					}
+
+						if(haskey(& rc, "extern-signals"))
+							kill(cpid, disturbed ? SIGUSR1 : SIGUSR2);
+
+						if(haskey(& rc, "extern-restart")) {
+							fclose(ext);
+							kill(cpid, SIGTERM);
+							while(-1 == wait(NULL));
+							fputs("Child terminated.\n", stderr);
+							ext = openpipe(value(& rc, "extern"), & cpid);
+						}
+					} else
+						first = 0;
+
 					fwrite(sync + 4, sizeof(unsigned char), len, ext);
+
 					kill(ppid, SIGUSR1);
+
+					disturbed = 0;
 				} else
 					fwrite(buf, sizeof(unsigned char), nbyte, ext);
 			}
+
 			if(kill(ppid, 0) == -1 && errno == ESRCH) {
 				free(buf);
 				fclose(ext);
@@ -323,3 +345,7 @@ void * findsync(register unsigned char * ptr, unsigned size) {
 	return NULL;
 }
 
+void disturb(int signo __attribute__((unused))) {
+	disturbed = !0;
+	fputs("Playback disturbed (track was skipped or banned).\n", stderr);
+}

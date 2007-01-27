@@ -227,9 +227,14 @@ int control(const char * cmd) {
 	while(response[i]) {
 		if(!strncmp(response[i], "response=OK", 11))
 			retval = !0;
+
 		free(response[i++]);
 	}
+
 	free(response);
+
+	if((!strncmp("skip", cmd, 4) || !strncmp("ban", cmd, 3)) && retval && playfork)
+		kill(playfork, SIGUSR1);
 
 	return retval;
 }
