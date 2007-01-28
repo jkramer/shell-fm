@@ -187,10 +187,10 @@ int main(int argc, char ** argv) {
 		}
 		
 		if(changed) {
+			int show_np = 0;
 			// Try to fetch track metadata
 			char * last = strdup(meta("%a %t", 0));
 			unsigned retries = 0;
-
 			if(last) {
 				while(retries < 3 && !strcmp(last, meta("%a %t", 0))) {
 					update(& track);
@@ -199,8 +199,14 @@ int main(int argc, char ** argv) {
 				}
 				free(last);
 
-				if(retries == 3)
-					fputs("Couldn't update track data. Use 't' to retry\n", stderr);
+				if(!daemon) {
+					if(retries == 3) {
+						memset(& track, 0, sizeof(struct hash));
+						fputs("Couldn't update track data. Use 't' to retry\n", stderr);
+					} else {
+						show_np = 1;
+					}
+				}
 			}
 
 			if(banned(meta("%a", 0))) {
@@ -218,10 +224,10 @@ int main(int argc, char ** argv) {
 				paused = stationChanged = 0;
 			}
 
-			if(!daemon)
+			if (show_np)
 				shownp();
 
-      changed = 0;
+    			changed = 0;
 
 			if(haskey(& rc, "np-file") && haskey(& rc, "np-file-format")) {
 				signed np;
