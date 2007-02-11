@@ -16,13 +16,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <readline/readline.h>
-#include <openssl/md5.h>
 
 #include "settings.h"
 #include "http.h"
 #include "split.h"
 #include "interface.h"
 #include "rl_completion.h"
+#include "md5.h"
 
 static char ** getPopularTags(char, struct hash);
 static char * getExistingTags(char, struct hash);
@@ -77,7 +77,7 @@ void tag(struct hash data) {
 
 	if(tagstring && (tslen = strlen(tagstring))) {
 		unsigned nsplt = 0, postlength = 0, x = 0, xmllength;
-		unsigned char * md5;
+		const unsigned char * md5;
 		const char * token = NULL;
 		char
 			* post = NULL, * xml = NULL, * challenge = "Shell.FM",
@@ -167,7 +167,7 @@ void tag(struct hash data) {
 
 		/* generate password/challenge hash */
 		snprintf(tmp, sizeof(tmp), "%s%s", value(& rc, "password"), challenge);
-		md5 = MD5((unsigned char *) tmp, sizeof(tmp) - 1, NULL);
+		md5 = MD5((unsigned char *) tmp, sizeof(tmp) - 1);
 		for(x = 0; x < 16; ++x)
 			sprintf(2 * x + md5hex, "%02x", md5[x]);
 

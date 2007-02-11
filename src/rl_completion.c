@@ -26,11 +26,10 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#include <openssl/md5.h>
-
 #include "compatibility.h"
 #include "rl_completion.h"
 #include "strarray.h"
+#include "md5.h"
 
 /* ------------------------------------------------------------------------ */
 // keep track of the current completion state

@@ -23,11 +23,6 @@ SHELL_FM_DEBUG
 
 # Checks for libraries.
 
-# FIXME: Replace `main' with a function in `-lcrypto':
-AC_CHECK_LIB([crypto], [main],, [
-	AC_MSG_ERROR([libcrypto required but not found])
-])
-
 # FIXME: Replace `main' with a function in `-lcurses':
 AC_CHECK_LIB([curses], [main],, [
 	AC_MSG_ERROR([libcurses required but not found])

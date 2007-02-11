@@ -25,7 +25,8 @@ split.c \
 strarray.c \
 tag.c \
 utility.c \
-pipe.c
+pipe.c \
+md5.c
 
 
 ## vim: noet ts=8 sw=8

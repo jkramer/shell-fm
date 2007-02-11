@@ -26,8 +26,6 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#include <openssl/md5.h>
-
 #include "compatibility.h"
 #include "service.h"
 #include "interface.h"
@@ -35,6 +33,7 @@
 #include "settings.h"
 #include "rl_completion.h"
 #include "strarray.h"
+#include "md5.h"
 
 #define LASTFM_URL_PREFIX "lastfm://"
 #define LASTFM_URL_MIN_LENGTH 6 // shortest possible: 'user/a'

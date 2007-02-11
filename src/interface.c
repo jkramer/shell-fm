@@ -24,8 +24,6 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#include <openssl/md5.h>
-
 #include "service.h"
 #include "hash.h"
 #include "interface.h"
@@ -35,6 +33,7 @@
 #include "split.h"
 #include "bookmark.h"
 #include "radio.h"
+#include "md5.h"
 
 extern pid_t playfork;
 extern unsigned discovery, record, paused, changeTime;

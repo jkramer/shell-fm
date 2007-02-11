@@ -18,12 +18,11 @@
 #include <sys/types.h>
 #include <signal.h>
 
-#include <openssl/md5.h>
-
 #include "hash.h"
 #include "http.h"
 #include "play.h"
 #include "settings.h"
+#include "md5.h"
 
 extern int stationChanged;
 
@@ -44,7 +43,7 @@ char * currentStation = NULL;
 	return value: non-zero on success, zero on error
 */
 int handshake(const char * username, const char * password) {
-	unsigned char * md5;
+	const unsigned char * md5;
 	char hexmd5[32 + 1] = { 0 }, url[512] = { 0 }, ** response;
 	char * encuser = NULL;
 	unsigned ndigit, i = 0;
@@ -59,7 +58,7 @@ int handshake(const char * username, const char * password) {
 	memset(& data, 0, sizeof(struct hash));
 	
 	/* let openSSL create the hash, then convert to ASCII */
-	md5 = MD5((unsigned char *) password, strlen(password), NULL);
+	md5 = MD5((const unsigned char *) password, strlen(password));
 	for(ndigit = 0; ndigit < 16; ++ndigit)
 		sprintf(2 * ndigit + hexmd5, "%02x", md5[ndigit]);
 

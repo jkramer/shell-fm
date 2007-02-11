@@ -24,6 +24,8 @@
 #include <unistd.h>
 #include <signal.h>
 
+#include <sys/wait.h>
+
 #include <sys/ioctl.h>
 #ifdef __HAVE_LIBAO__
 #include <ao/ao.h>
