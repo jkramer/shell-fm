@@ -209,7 +209,8 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 	if(preload)
 		nbyte = read(fileno(ptr->streamfd), buf + remnbyte, BUFSIZE - remnbyte);
 	else {
-		while(nbyte < BUFSIZE)
+		unsigned n = 20;
+		while(nbyte < BUFSIZE && --n)
 			nbyte += read(fileno(ptr->streamfd), buf + nbyte, BUFSIZE - nbyte);
 		preload = !0;
 	}
