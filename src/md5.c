@@ -1,4 +1,3 @@
-    	
 
 /* $Cambridge: exim/exim-src/src/auths/md5.c,v 1.3 2006/02/07 11:19:01 ph10 Exp $ */
 
