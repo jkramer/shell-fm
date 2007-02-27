@@ -10,6 +10,9 @@
 username = yourname
 password = yourpassword
 
+# Url of your http proxy.
+
+# proxy = proxy.example.com
 
 # This is the (absolute!) path to a file in which Shell.FM
 # will store information about the currently played track

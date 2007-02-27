@@ -49,8 +49,15 @@ int main(int argc, char ** argv) {
 	opterr = 0;
 	
 	settings(rcpath("shell-fm.rc"), !0);
-	
-	while(-1 != (option = getopt(argc, argv, ":dhi:p:D:")))
+
+	{
+		char * proxy = getenv("http_proxy");
+
+		if(proxy)
+			set(& rc, "proxy", proxy);
+	}
+
+	while(-1 != (option = getopt(argc, argv, ":dhi:p:D:y:")))
 		switch(option) {
 			case 'd':
 				daemon = !0;
@@ -72,6 +79,9 @@ int main(int argc, char ** argv) {
 				break;
 			case 'D':
 				set(& rc, "device", optarg);
+				break;
+			case 'y':
+				set(& rc, "proxy", optarg);
 				break;
 			case 'h':
 				exitWithHelp(argv[0], 0);
@@ -301,6 +311,7 @@ static void exitWithHelp(const char * argv0, int errorCode) {
 		"  -i        address to listen on.\n"
 		"  -p        port to listen on.\n"
 		"  -D        device to play on.\n"
+		"  -y        proxy url to connect through.\n"
 		"  -h        this help.\n",
 		argv0
 	);

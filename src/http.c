@@ -20,6 +20,7 @@
 #include <sys/socket.h>
 
 #include "hash.h"
+#include "settings.h"
 
 extern FILE * ropen(const char *, unsigned short);
 extern void fshutdown(FILE *);
@@ -31,15 +32,24 @@ unsigned encode(const char *, char **);
 
 char ** fetch(char * const url, FILE ** pHandle, const char * data, const char * addhead) {
 	char ** resp = NULL, * host, * file, * port, * status = NULL, * line = NULL;
+	char * connhost;
 	char urlcpy[512 + 1] = { 0 };
 	unsigned short nport = 80;
 	unsigned nline = 0, nstatus = 0, size = 0;
 	signed validHead = 0;
 	FILE * fd;
+
 	const char * headFormat =
 		"%s /%s HTTP/1.1\r\n"
 		"Host: %s\r\n"
 		"User-Agent: Shell.FM " VERSION "\r\n";
+
+	const char * proxiedheadFormat =
+		"%s http://%s/%s HTTP/1.1\r\n"
+		"Host: %s\r\n"
+		"User-Agent: Shell.FM " VERSION "\r\n";
+
+	int use_proxy = haskey(& rc, "proxy");
 
 	if(pHandle)
 		* pHandle = NULL;
@@ -47,23 +57,37 @@ char ** fetch(char * const url, FILE ** pHandle, const char * data, const char *
 	strncpy(urlcpy, url, sizeof(urlcpy) - 1);
 
 	host = & urlcpy[strncmp(urlcpy, "http://", 7) ? 0 : 7];
-	port = strchr(host, 0x3A);
-	file = strchr(port ? port : host, 0x2F);
+	connhost = host;
+
+	if(use_proxy) {
+		char proxcpy[512 + 1]; /* = { 0 }; */
+		memset(proxcpy, (char) 0, sizeof(proxcpy));
+		strncpy(proxcpy, value(& rc, "proxy"), sizeof(proxcpy) - 1);
+		connhost = & proxcpy[strncmp(proxcpy, "http://", 7) ? 0 : 7];
+	}
+
+	port = strchr(connhost, 0x3A);
+	file = strchr(host, 0x2F);
 	fflush(stderr);
 	* file = (char) 0;
 	++file;
 
 	if(port) {
 		char * ptr = NULL;
+		* port = (char) 0;
+		++port;
 		nport = strtol(port, & ptr, 10);
 		(ptr == port) && (nport = 80);
-		* port = (char) 0;
 	}
 
-	if(!(fd = ropen(host, nport)))
+	if(!(fd = ropen(connhost, nport)))
 		return NULL;
 
-	fprintf(fd, headFormat, data ? "POST" : "GET", file ? file : "", host);
+	if(use_proxy)
+		fprintf(fd, proxiedheadFormat, data ? "POST" : "GET", host,
+				file ? file : "", host);
+	else
+		fprintf(fd, headFormat, data ? "POST" : "GET", file ? file : "", host);
 
 	if(addhead)
 		fprintf(fd, "%s\r\n", addhead);
