@@ -113,7 +113,7 @@ int main(int argc, char ** argv) {
 		set(& rc, "device", "/dev/audio");
 #endif
 
-	puts("Shell.FM v" VERSION ", (C) 2007 by Jonas Kramer");
+	puts("Shell.FM v" PACKAGE_VERSION ", (C) 2007 by Jonas Kramer");
 	puts("Published under the terms of the GNU General Public License (GPL)\n");
 
 	if(!daemon)

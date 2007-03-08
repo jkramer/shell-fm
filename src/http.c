@@ -42,12 +42,12 @@ char ** fetch(char * const url, FILE ** pHandle, const char * data, const char *
 	const char * headFormat =
 		"%s /%s HTTP/1.1\r\n"
 		"Host: %s\r\n"
-		"User-Agent: Shell.FM " VERSION "\r\n";
+		"User-Agent: Shell.FM " PACKAGE_VERSION "\r\n";
 
 	const char * proxiedheadFormat =
 		"%s http://%s/%s HTTP/1.1\r\n"
 		"Host: %s\r\n"
-		"User-Agent: Shell.FM " VERSION "\r\n";
+		"User-Agent: Shell.FM " PACKAGE_VERSION "\r\n";
 
 	int use_proxy = haskey(& rc, "proxy");
 
