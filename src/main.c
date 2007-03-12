@@ -275,7 +275,6 @@ int main(int argc, char ** argv) {
 			set(& track, "remain", remstr);
 
 			if(!daemon) {
-
 				printf("%c%02d:%02d\r", rem < 0 ? '-' : ' ', rem / 60, rem % 60);
 				fflush(stdout);
 			}

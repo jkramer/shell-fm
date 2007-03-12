@@ -83,7 +83,7 @@ void rmsckif(void) {
 }
 
 void sckif(void) {
-	if(ssck != -1 && waitread(ssck, 0, 0)) {
+	if(ssck != -1 && waitread(ssck, daemon ? 2 : 0, 0)) {
 		struct sockaddr_in client;
 		socklen_t scksize = sizeof(struct sockaddr_in);
 

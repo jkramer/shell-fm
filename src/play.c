@@ -353,5 +353,4 @@ void * findsync(register unsigned char * ptr, unsigned size) {
 
 void disturb(int signo __attribute__((unused))) {
 	disturbed = !0;
-	fputs("Playback disturbed (track was skipped or banned).\n", stderr);
 }
