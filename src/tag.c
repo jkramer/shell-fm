@@ -40,6 +40,9 @@ void tag(struct hash data) {
 	unsigned tslen;
 	rl_params_t save_rlp;
 
+	if(!data.content)
+		return;
+
 	fputs("Tag artist, album or track (or abort)? [aAtq]\n", stdout);
 	fflush(stdout);
 
@@ -48,23 +51,26 @@ void tag(struct hash data) {
 	if(key == 'q')
 		return;
 
-	save_rl_params(&save_rlp);
-	if ((popular_tags = getPopularTags(key, data))) {
+	save_rl_params(& save_rlp);
+
+	if((popular_tags = getPopularTags(key, data))) {
 		rl_basic_word_break_characters = ",";
 		rl_completer_word_break_characters = ",";
 		rl_completion_append_character = ',';
-
 		rl_attempted_completion_function = rlcompletion;
 	}
 
 	if((current_tags = getExistingTags(key, data)))
 		rl_startup_hook = rlstartup;
+
 	canon(!0);
 	tagstring = readline("Your tags, comma separated:\n>> ");
+
 	if(current_tags) {
 		free(current_tags);
 		current_tags = NULL;
 	}
+
 	if(popular_tags) {
 		unsigned x;
 		for(x = 0; popular_tags[x]; ++x)
@@ -72,6 +78,7 @@ void tag(struct hash data) {
 		free(popular_tags);
 		popular_tags = NULL;
 	}
+
 	canon(0);
 	restore_rl_params(&save_rlp);
 

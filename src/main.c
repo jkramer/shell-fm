@@ -291,7 +291,7 @@ int main(int argc, char ** argv) {
 		
 		interface(!daemon);
 		if(haveSocket)
-			sckif();
+			sckif(daemon ? 2 : 0);
 	}
 	
 	return 0;

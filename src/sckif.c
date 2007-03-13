@@ -32,7 +32,6 @@
 #include "interface.h"
 
 extern unsigned getln(char **, unsigned *, FILE *);
-extern int interactive;
 extern unsigned discovery;
 extern pid_t playfork;
 
@@ -82,8 +81,8 @@ void rmsckif(void) {
 	}
 }
 
-void sckif(void) {
-	if(ssck != -1 && waitread(ssck, daemon ? 2 : 0, 0)) {
+void sckif(int timeout) {
+	if(ssck != -1 && waitread(ssck, timeout, 0)) {
 		struct sockaddr_in client;
 		socklen_t scksize = sizeof(struct sockaddr_in);
 
