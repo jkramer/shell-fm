@@ -1,4 +1,6 @@
 #!/usr/bin/zsh
+# zcontrol, shell-fm remote control script. Copyright (C) 2006 by Jonas Kramer.
+# Published under the terms of the GNU General Public License (GPL).
 
 setopt extendedglob
 export BIND="127.0.0.1" PORT="54311"
