@@ -1,5 +1,8 @@
 #!/bin/bash
 # vim:syntax=sh tabstop=4
+#
+# Published under the terms of the GNU General Public License (GPL).
+#
 
 extract ()
 {
