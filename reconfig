@@ -33,7 +33,7 @@ rm -f INSTALL COPYING
 rm -rf autom4te.cache 
 find . -type f -name "*.o" -exec rm {} \;
 rm -f src/shell-fm
-rm -f shell-fm-*.tar.gz
+rm -f shell-fm-*.tar.gz shell-fm-*.tar.bz2
 
 $clean_only && exit
 

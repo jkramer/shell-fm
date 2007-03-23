@@ -7,7 +7,9 @@ hash.h \
 http.h \
 interface.h \
 Makefile.am \
+md5.h \
 play.h \
+pipe.h \
 radio.h \
 rl_completion.h \
 ropen.h \
