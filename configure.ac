@@ -58,7 +58,7 @@ AC_FUNC_SELECT_ARGTYPES
 AC_TYPE_SIGNAL
 AC_CHECK_FUNCS([atexit gethostbyname getpass memmove memset select socket strchr strdup strerror strncasecmp strndup strrchr strstr strtol])
 
-AC_CONFIG_FILES([Makefile src/Makefile src/include/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile src/include/Makefile scripts/Makefile])
 AC_OUTPUT
 
 SHELL_FM_SUMMARY
