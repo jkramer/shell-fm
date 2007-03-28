@@ -22,6 +22,9 @@ unsigned getln(char ** ptr, unsigned * size, FILE * fd) {
 	
 	while(!feof(fd) && ch != (char) 10) {
 		ch = fgetc(fd);
+
+		if(ch == (char) -1)
+			ch = 0;
 		
 		if(length + 2 > * size) {
 			* ptr = realloc(* ptr, (* size += 1024));
