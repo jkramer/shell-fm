@@ -23,6 +23,7 @@
 #include "play.h"
 #include "settings.h"
 #include "md5.h"
+#include "history.h"
 
 extern int stationChanged;
 
@@ -121,7 +122,7 @@ int station(const char * stationURL) {
 
 	if(!stationURL)
 		return 0;
-	
+
 	encode(stationURL, & encodedURL);
 	snprintf(url, sizeof(url), fmt, value(& data, "session"), encodedURL);
 	free(encodedURL);
@@ -138,9 +139,12 @@ int station(const char * stationURL) {
 	} else
 		retval = 0;
 
-	retval
-		? (stationChanged = !0)
-		: printf("Sorry, couldn't set station to %s.\n", stationURL);
+	if(retval) {
+		stationChanged = !0;
+		histapp(stationURL);
+	} else {
+		printf("Sorry, couldn't set station to %s.\n", stationURL);
+	}
 
 	if(!playfork) {
 		pid_t pid = fork();

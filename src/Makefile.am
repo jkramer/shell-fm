@@ -26,7 +26,8 @@ strarray.c \
 tag.c \
 utility.c \
 pipe.c \
-md5.c
+md5.c \
+history.c
 
 
 ## vim: noet ts=8 sw=8

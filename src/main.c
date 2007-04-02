@@ -169,11 +169,15 @@ int main(int argc, char ** argv) {
 		} else if(pid) {
 			exit(EXIT_SUCCESS);
 		}
-	} else {
+	}
+	/*
+	else {
 		using_history();
-		if (!read_history(rcpath("radio-history")))
+		int retval = read_history(rcpath("radio-history"));
+		if(!retval || retval == 2);
 			atexit(savehistory);
 	}
+	*/
 
 	if(haskey(& rc, "default-radio"))
 		station(value(& rc, "default-radio"));

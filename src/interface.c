@@ -52,7 +52,7 @@ extern struct hash data;
 
 // Print what is now played (Author: Ondrej Novy)
 void shownp() {
-	if(haskey(&rc, "title-format"))
+	if(haskey(& rc, "title-format"))
 		printf("%s\n", meta(value(& rc, "title-format"), !0));
 	else
 		printf("%s\n", meta("Now playing \"%t\" by %a.", !0));

@@ -39,7 +39,7 @@
 #define LASTFM_URL_MIN_LENGTH 6 // shortest possible: 'user/a'
 
 static int init_url_completion (void);
-static char** url_completion (const char *text, int start, int end);
+static char ** url_completion (const char *text, int start, int end);
 static const char * validate_url (const char *url);
 
 
@@ -63,12 +63,15 @@ static const char * validate_url (const char *url);
  */
 void radioprompt(const char * prompt) {
 	char * url;
-	const char *url_error;
+	const char * url_error;
 	char * decoded = NULL;
 	unsigned urllen;
 	struct rl_params save_rlp;
 
-	save_rl_params(&save_rlp);
+	save_rl_params(& save_rlp);
+
+	clear_history();
+	read_history(rcpath("radio-history"));
 
 	rl_basic_word_break_characters = "/";
 	rl_completer_word_break_characters = "/";
