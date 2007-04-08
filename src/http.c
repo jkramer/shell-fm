@@ -116,7 +116,7 @@ char ** fetch(char * const url, FILE ** pHandle, const char * data, const char *
 	freeln(& status, & size);
 	
 	while(!0) {
-		if(!getln(& line, & size, fd) < 3)
+		if(getln(& line, & size, fd) < 3)
 			break;
 
 		if(nstatus == 301 && !strncasecmp(line, "Location: ", 10)) {

@@ -195,8 +195,11 @@ int update(struct hash * track) {
 
 	while(response[i]) {
 		char key[64] = { 0 }, value[256] = { 0 };
-		if(sscanf(response[i], "%63[^=]=%255[^\r\n]", key, value) > 0)
+		if(sscanf(response[i], "%63[^=]=%255[^\r\n]", key, value) > 0) {
+			/* debug */
+			/* printf("%s => %s\n", key, value); */
 			set(track, key, value);
+		}
 		free(response[i++]);
 	}
 	free(response);
