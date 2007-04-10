@@ -108,6 +108,7 @@ static char *_nomatch_generator(const char __UNUSED__ *text, int __UNUSED__ gen_
  */
 static char *_match_generator(const char *text, int gen_state) {
 	const char *name;
+	struct cmpl_node_s *sub_nodes;
 	char **list;
 	unsigned tlen;
 
@@ -129,6 +130,7 @@ static char *_match_generator(const char *text, int gen_state) {
 
 		// do we have a static name?
 		name = cmpl_state.node->name;
+		sub_nodes = cmpl_state.node->sub_nodes;
 		if (name) {
 			// advance to the next one regardless of outcome
 			cmpl_state.node++;
@@ -136,7 +138,7 @@ static char *_match_generator(const char *text, int gen_state) {
 
 			// if we match return it
 			if (!strncmp (name, text, tlen)) {
-				if (cmpl_state.node->sub_nodes)
+				if (sub_nodes)
 					rl_completion_append_character = '/';
 				return strdup (name);
 			}
