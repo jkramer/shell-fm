@@ -145,7 +145,7 @@ static char** gen_tags_names(time_t *new_expie_time);
 /*
  * lastfm://user/BartTrojanowski/loved
  * lastfm://user/BartTrojanowski/personal
- * lastfm://user/BartTrojanowski/neighbour
+ * lastfm://user/BartTrojanowski/neighbours
  * lastfm://user/BartTrojanowski/recommended/100
  */
 static cmpl_node_t url_user_name_recommended_node[] = {
@@ -177,7 +177,7 @@ static cmpl_node_t url_user_name_node[] = {
 		.gen_word_list = NULL,
 	},
 	{
-		.name = "neighbour",
+		.name = "neighbours",
 		.gen_word_list = NULL,
 	},
 	{
