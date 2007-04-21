@@ -92,6 +92,7 @@ void interface(int interactive) {
 				break;
 
 			case 'Q':
+				unlink(rcpath("session"));
 				exit(EXIT_SUCCESS);
 
 			case 'i':

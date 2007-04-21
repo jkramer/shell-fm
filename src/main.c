@@ -161,6 +161,14 @@ int main(int argc, char ** argv) {
 	if(!handshake(value(& rc, "username"), value(& rc, "password")))
 		exit(EXIT_FAILURE);
 
+	if(haskey(& data, "session")) {
+		FILE * fd = fopen(rcpath("session"), "w");
+		if(fd) {
+			fprintf(fd, "%s\n", value(& data, "session"));
+			fclose(fd);
+		}
+	}
+
 	if(daemon) {
 		pid_t pid = fork();
 		if(pid == -1) {
