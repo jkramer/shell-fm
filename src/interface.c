@@ -339,13 +339,12 @@ void run(const char * cmd) {
 	}
 }
 
-void pause_music(void)
-{
-	if (playfork) {
-		if (paused)
+void pause_music(void) {
+	if(playfork) {
+		if(paused)
 			kill(playfork, SIGCONT);
 		else
 			kill(playfork, SIGSTOP);
+		paused = !paused;
 	}
-	paused = !paused;
 }
