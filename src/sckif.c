@@ -127,7 +127,8 @@ void execcmd(const char * cmd, FILE * fd) {
 		"quit",
 		"info",
 		"discovery",
-		"stop"
+		"stop",
+		"pause"
 	};
 
 	for(ncmd = 0; ncmd < (sizeof(known) / sizeof(char *)); ++ncmd)
@@ -172,6 +173,9 @@ void execcmd(const char * cmd, FILE * fd) {
 		case 9:
 			if(playfork)
 				kill(playfork, SIGKILL);
+			break;
+		case 10:
+			pause_music();
 			break;
 	}
 	fflush(fd);

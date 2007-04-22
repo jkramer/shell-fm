@@ -45,6 +45,7 @@ const char * meta(const char *, int);
 void run(const char *);
 void tag(struct hash);
 void artistRadio();
+void pause_music();
 
 struct hash track;
 
@@ -159,13 +160,7 @@ void interface(int interactive) {
 				break;
 
 			case 'p':
-				if(playfork) {
-					if(paused)
-						kill(playfork, SIGCONT);
-					else
-						kill(playfork, SIGSTOP);
-					paused = !paused;
-				}
+				pause_music();
 				break;
 
 			case 'S':
@@ -340,4 +335,15 @@ void run(const char * cmd) {
 			_exit(pclose(fd));
 		}
 	}
+}
+
+void pause_music(void)
+{
+	if (playfork) {
+		if (paused)
+			kill(playfork, SIGCONT);
+		else
+			kill(playfork, SIGSTOP);
+	}
+	paused = !paused;
 }

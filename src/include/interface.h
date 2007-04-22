@@ -11,5 +11,6 @@ extern void run(const char *);
 extern void canon(int);
 extern int fetchkey(unsigned);
 extern void shownp();
+extern void pause_music();
 
 #endif
