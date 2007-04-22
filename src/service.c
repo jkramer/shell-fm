@@ -24,8 +24,9 @@
 #include "settings.h"
 #include "md5.h"
 #include "history.h"
+#include "service.h"
 
-extern int stationChanged;
+extern int stationChanged, discovery;
 
 struct hash data; /* Warning! MUST be bzero'd ASAP or we're all gonna die! */
 pid_t playfork = 0; /* PID of the decoding & playing process, if running */
@@ -141,7 +142,10 @@ int station(const char * stationURL) {
 
 	if(retval) {
 		stationChanged = !0;
-		histapp(stationURL);
+		if(strncmp("lastfm://settings/discovery/", stationURL, 28)) {
+			histapp(stationURL);
+			setdiscover(discovery);
+		}
 	} else {
 		printf("Sorry, couldn't set station to %s.\n", stationURL);
 	}

@@ -110,11 +110,13 @@ void interface(int interactive) {
 				break;
 
 			case 'd':
-				discovery = !discovery;
-				if(setdiscover(discovery))
-					printf("%s discovery mode.\n", discovery ? "Enabled" : "Disabled");
-				else
-					printf("Failed to %s discovery mode.", discovery ? "enable" : "disable");
+				if(playfork && haskey(& track, "discovery")) {
+					discovery = !atoi(value(& track, "discovery"));
+					if(setdiscover(discovery)) {
+						printf("Discovery mode %s.\n", discovery ? "enabled" : "disabled");
+					} else
+						printf("Failed to %s discovery mode.", discovery ? "enable" : "disable");
+				}
 				break;
 
 			case 'A':
