@@ -5,6 +5,7 @@ compatibility.h \
 bookmark.h \
 hash.h \
 http.h \
+history.h \
 interface.h \
 Makefile.am \
 md5.h \
