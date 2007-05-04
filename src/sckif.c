@@ -30,10 +30,13 @@
 #include "http.h"
 #include "service.h"
 #include "interface.h"
+#include "hash.h"
 
 extern unsigned getln(char **, unsigned *, FILE *);
 extern unsigned discovery;
 extern pid_t playfork;
+
+extern struct hash rc;
 
 static int ssck = -1;
 
@@ -142,10 +145,10 @@ void execcmd(const char * cmd, FILE * fd) {
 
 		case 0:
 			if(sscanf(cmd, "play %128[a-zA-Z0-9:/_ %,-]", arg) == 1) {
-				char *station_str;
-				decode(arg, & station_str);
-				station(station_str);
-				free(station_str);
+				char * url;
+				decode(arg, & url);
+				station(url);
+				free(url);
 			}
 			break;
 
@@ -161,7 +164,10 @@ void execcmd(const char * cmd, FILE * fd) {
 			exit(EXIT_SUCCESS);
 
 		case 7:
-			fprintf(fd, "%s\n", meta(cmd + 5, 0));
+			snprintf(arg, sizeof(arg), "%s", meta(cmd + 5, 0));
+			if(!strlen(arg) && haskey(& rc, "np-file-format"))
+				snprintf(arg, sizeof(arg), "%s", meta(value(& rc, "np-file-format"), 0));
+			fprintf(fd, "%s\n", arg);
 			break;
 
 		case 8:
