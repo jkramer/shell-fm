@@ -38,7 +38,6 @@ unsigned paused = 0;
 time_t changeTime = 0, pausetime = 0;
 
 static void cleanup(void);
-static void savehistory(void);
 static void deadchild(int);
 static void songchanged(int);
 static void forcequit(int);
@@ -178,14 +177,6 @@ int main(int argc, char ** argv) {
 			exit(EXIT_SUCCESS);
 		}
 	}
-	/*
-	else {
-		using_history();
-		int retval = read_history(rcpath("radio-history"));
-		if(!retval || retval == 2);
-			atexit(savehistory);
-	}
-	*/
 
 	if(haskey(& rc, "default-radio"))
 		station(value(& rc, "default-radio"));
@@ -346,13 +337,6 @@ static void cleanup(void) {
 	if(playfork)
 		kill(playfork, SIGTERM);
 }
-
-
-static void savehistory(void) {
-	write_history(rcpath("radio-history"));
-}
-	
-
 
 static void deadchild(int sig) {
 	sig == SIGCHLD && (death = !0);

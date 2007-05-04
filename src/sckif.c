@@ -118,7 +118,7 @@ void sckif(int timeout) {
 }
 
 void execcmd(const char * cmd, FILE * fd) {
-	char arg[1024] = { 0 };
+	char arg[1024];
 	register unsigned ncmd;
 	const char * known [] = {
 		"play",
@@ -133,6 +133,8 @@ void execcmd(const char * cmd, FILE * fd) {
 		"stop",
 		"pause"
 	};
+
+	memset(arg, sizeof(arg), 0);
 
 	for(ncmd = 0; ncmd < (sizeof(known) / sizeof(char *)); ++ncmd)
 		if(!strncmp(known[ncmd], cmd, strlen(known[ncmd])))
