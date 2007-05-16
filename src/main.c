@@ -32,6 +32,7 @@
 extern struct hash data, track;
 extern pid_t playfork;
 extern char * currentStation;
+extern float avglag;
 
 int changed = 0, discovery = 0, stationChanged = 0, record = !0, death = 0;
 unsigned paused = 0;
@@ -278,7 +279,7 @@ int main(int argc, char ** argv) {
 			set(& track, "remain", remstr);
 
 			if(!daemon) {
-				printf("%c%02d:%02d\r", rem < 0 ? '-' : ' ', rem / 60, rem % 60);
+				printf("[%.2f] %c%02d:%02d\r", avglag, rem < 0 ? '-' : ' ', rem / 60, rem % 60);
 				fflush(stdout);
 			}
 		} else {

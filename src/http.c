@@ -16,6 +16,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <stdint.h>
+#include <time.h>
 
 #include <sys/socket.h>
 
@@ -26,9 +27,12 @@ extern FILE * ropen(const char *, unsigned short);
 extern void fshutdown(FILE *);
 extern unsigned getln(char **, unsigned *, FILE *);
 
+float avglag = 0.0;
+
 void freeln(char **, unsigned *);
 
 unsigned encode(const char *, char **);
+void lag(time_t);
 
 char ** fetch(char * const url, FILE ** pHandle, const char * data, const char * addhead) {
 	char ** resp = NULL, * host, * file, * port, * status = NULL, * line = NULL;
@@ -38,6 +42,8 @@ char ** fetch(char * const url, FILE ** pHandle, const char * data, const char *
 	unsigned nline = 0, nstatus = 0, size = 0;
 	signed validHead = 0;
 	FILE * fd;
+
+	time_t reqtime;
 
 	const char * headFormat =
 		"%s /%s HTTP/1.1\r\n"
@@ -83,6 +89,8 @@ char ** fetch(char * const url, FILE ** pHandle, const char * data, const char *
 	if(!(fd = ropen(connhost, nport)))
 		return NULL;
 
+	reqtime = time(NULL);
+
 	if(use_proxy)
 		fprintf(fd, proxiedheadFormat, data ? "POST" : "GET", host,
 				file ? file : "", host);
@@ -110,6 +118,9 @@ char ** fetch(char * const url, FILE ** pHandle, const char * data, const char *
 				fprintf(stderr, "HTTP Response: %s", status);
 			free(status);
 		}
+
+
+		lag(reqtime);
 		return NULL;
 	}
 
@@ -124,6 +135,8 @@ char ** fetch(char * const url, FILE ** pHandle, const char * data, const char *
 			sscanf(line, "Location: %512[^\r\n]", newurl);
 			fprintf(stderr, "NEW: %s\n", newurl);
 			fshutdown(fd);
+
+			lag(reqtime);
 			return fetch(newurl, pHandle, data, addhead);
 		}
 	}
@@ -132,6 +145,8 @@ char ** fetch(char * const url, FILE ** pHandle, const char * data, const char *
 
 	if(pHandle) {
 		* pHandle = fd;
+
+		lag(reqtime);
 		return NULL;
 	}
 	
@@ -153,6 +168,8 @@ char ** fetch(char * const url, FILE ** pHandle, const char * data, const char *
 	}
 	
 	fshutdown(fd);
+
+	lag(reqtime);
 	return resp;
 }
 
@@ -207,4 +224,13 @@ void freeln(char ** line, unsigned * size) {
 		* line = NULL;
 		* size = 0;
 	}
+}
+
+void lag(time_t reqtime) {
+	static unsigned nreq = 0, secwait = 0;
+
+	secwait += time(NULL) - reqtime;
+	++nreq;
+
+	avglag = (double) secwait / (double) nreq;
 }
