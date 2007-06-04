@@ -131,6 +131,7 @@ int station(const char * stationURL) {
 	if((response = fetch(url, NULL, NULL, NULL))) {
 		while(response[i]) {
 			char status[64] = { 0 };
+			printf("%s\n", response[i]);
 			if(sscanf(response[i], "response=%63[^\r\n]", status) > 0)
 				if(!strncmp(status, "FAILED", 6))
 					retval = 0;

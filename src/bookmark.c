@@ -89,7 +89,7 @@ char * getmark(int n) {
 
 void printmarks(void) {
 	FILE * fd = fopen(rcpath("bookmarks"), "r");
-	char ch;
+	int ch;
 
 	if(!fd) {
 		puts("No bookmarks.");
