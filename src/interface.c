@@ -146,7 +146,7 @@ void interface(int interactive) {
 				
 			case 's':
 				if(playfork)
-					station(meta("lastfm://artist/%a/similar", 0));
+					station(meta("lastfm://artist/%a/similarartists", 0));
 				break;
 
 			case 'h':
