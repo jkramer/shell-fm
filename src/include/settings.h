@@ -1,0 +1,17 @@
+/*
+	vim:syntax=c tabstop=2 shiftwidth=2 noexpandtab
+*/
+
+#ifndef SHELLFM_SETTINGS
+#define SHELLFM_SETTINGS
+
+#define PACKAGE_VERSION "0.2"
+
+#include "hash.h"
+
+extern int settings(const char *, int);
+extern const char * rcpath(const char *);
+
+extern struct hash rc;
+
+#endif
