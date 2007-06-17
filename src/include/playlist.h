@@ -15,7 +15,7 @@ struct playlist {
 	struct tracknode * track;
 	char * title;
 	unsigned left;
-	int continuous, discovery;
+	int continuous;
 };
 
 extern int expand(struct playlist *);

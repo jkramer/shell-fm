@@ -266,8 +266,10 @@ int play(struct playlist * list) {
 		return 0;
 	}
 
-	if(playfork)
+	if(playfork) {
 		kill(playfork, SIGKILL);
+		return 0;
+	}
 
 	playfork = fork();
 

@@ -101,12 +101,13 @@ void interface(int interactive) {
 				break;
 
 			case 'd':
-				if(playfork && haskey(& track, "discovery")) {
-					discovery = !atoi(value(& track, "discovery"));
-					if(setdiscover(discovery)) {
-						printf("Discovery mode %s.\n", discovery ? "enabled" : "disabled");
-					} else
-						printf("Failed to %s discovery mode.", discovery ? "enable" : "disable");
+				discovery = !discovery;
+				printf("Discovery mode %s.\n", discovery ? "enabled" : "disabled");
+				if(playfork) {
+					printf(
+						"%d track(s) left to play/skip until change comes into affect.\n",
+						playlist.left
+					);
 				}
 				break;
 

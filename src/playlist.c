@@ -22,6 +22,7 @@
 #include "playlist.h"
 
 extern struct hash data;
+extern int discovery;
 
 void freenode(struct tracknode **);
 
@@ -34,7 +35,7 @@ int expand(struct playlist * list) {
 	assert(list != NULL);
 
 	memset(url, 0, sizeof(url));
-	snprintf(url, sizeof(url), fmt, value(& data, "session"), list->discovery);
+	snprintf(url, sizeof(url), fmt, value(& data, "session"), discovery);
 
 	if((response = fetch(url, NULL, NULL, NULL))) {
 		int retval;

@@ -228,6 +228,14 @@ int main(int argc, char ** argv) {
 			while((pid = waitpid(-1, & status, WNOHANG)) > 0)
 				(pid == playfork && playfork) && (playfork = 0);
 		
+			if(stop) {
+				freelist(& playlist);
+				stationChanged = 0;
+				empty(& track);
+				stop = 0;
+				continue;
+			}
+
 
 			/*
 				The station function already ran the play function, so don't call it
@@ -237,12 +245,7 @@ int main(int argc, char ** argv) {
 			*/
 			if(!stationChanged) {
 				shift(& playlist);
-				if(stop) {
-					freelist(& playlist);
-					empty(& track);
-					stop = 0;
-					continue;
-				} else if(!play(& playlist))
+				if(!play(& playlist))
 					continue;
 			}
 
