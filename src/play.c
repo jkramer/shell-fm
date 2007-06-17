@@ -151,8 +151,6 @@ void playback(FILE * streamfd) {
 		free(buf);
 		fclose(ext);
 	}
-
-	fputs("Reached end of stream.\n", stderr);
 }
 
 static enum mad_flow input(void * data, struct mad_stream * stream) {
