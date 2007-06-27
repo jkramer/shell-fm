@@ -33,6 +33,7 @@
 #include "bookmark.h"
 #include "radio.h"
 #include "md5.h"
+#include "submit.h"
 
 extern pid_t playfork;
 extern int discovery, record, changeTime, stop;
@@ -69,18 +70,24 @@ void interface(int interactive) {
 
 		switch(key) {
 			case 'l':
-				if(playfork)
+				if(playfork) {
+					ratelast("L");
 					puts(control("love") ? "Loved." : "Sorry, failed.");
+				}
 				break;
 
 			case 'B':
-				if(playfork)
+				if(playfork) {
+					ratelast("B");
 					puts(control("ban") ? "Banned." : "Sorry, failed.");
+				}
 				break;
 
 			case 'n':
-				if(playfork)
+				if(playfork) {
+					ratelast("S");
 					kill(playfork, SIGKILL);
+				}
 				break;
 
 			case 'Q':
@@ -315,4 +322,3 @@ void run(const char * cmd) {
 		}
 	}
 }
-

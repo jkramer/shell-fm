@@ -1,6 +1,4 @@
 /*
-	vim:syntax=c tabstop=2 shiftwidth=2 noexpandtab
-
 	Shell.FM - service.c
 	Copyright (C) 2006 by Jonas Kramer
 	Published under the terms of the GNU General Public License (GPL).
@@ -26,7 +24,7 @@
 #include "service.h"
 #include "playlist.h"
 
-extern int stationChanged, discovery;
+extern int stationChanged, discovery, stop;
 
 struct hash data; /* Warning! MUST be bzero'd ASAP or we're all gonna die! */
 extern struct hash track;
@@ -37,18 +35,7 @@ struct playlist playlist;
 char * currentStation = NULL;
 
 
-/*
-	Function: handshake
-	
-	Authenticate and create session by sending username and
-	password to the handshake page.
-	
-	$0 = (const char *) username
-	$1 = (const char *) password
-
-	return value: non-zero on success, zero on error
-*/
-int handshake(const char * username, const char * password) {
+int authenticate(const char * username, const char * password) {
 	const unsigned char * md5;
 	char hexmd5[32 + 1] = { 0 }, url[512] = { 0 }, ** response;
 	char * encuser = NULL;
@@ -78,7 +65,7 @@ int handshake(const char * username, const char * password) {
 	snprintf(url, sizeof(url), fmt, encuser, hexmd5);
 	free(encuser);
 
-	response = fetch(url, NULL, NULL, NULL);
+	response = fetch(url, NULL, NULL);
 	if(!response) {
 		fputs("No response.\n", stderr);
 		return 0;
@@ -103,16 +90,6 @@ int handshake(const char * username, const char * password) {
 }
 
 
-/*
-	Function: station
-	
-	Tell last.fm to stream the station specified by the given
-	station identifier (an URL starting with "lastfm://").
-
-	$0 = (const char *) radio URL ("lastfm://...")
-
-	return value: non-zero on success, zero on error
-*/
 int station(const char * stationURL) {
 	char url[512] = { 0 }, * encodedURL = NULL, ** response;
 	unsigned i = 0, retval = !0, regular = !0;
@@ -159,7 +136,7 @@ int station(const char * stationURL) {
 	snprintf(url, sizeof(url), fmt, value(& data, "session"), encodedURL);
 	free(encodedURL);
 
-	if(!(response = fetch(url, NULL, NULL, NULL)))
+	if(!(response = fetch(url, NULL, NULL)))
 		return 0;
 
 	if(regular) {
@@ -203,8 +180,10 @@ int station(const char * stationURL) {
 
 	currentStation = strdup(stationURL);
 
-	if(retval)
-		play(& playlist);
+	if(retval && playfork) {
+		stop = !0;
+		kill(playfork, SIGKILL);
+	}
 
 	return retval;
 }
@@ -230,7 +209,7 @@ int control(const char * cmd) {
 		"&debug=0";
 
 	snprintf(url, sizeof(url), fmt, value(& data, "session"), cmd);
-	if(!(response = fetch(url, NULL, NULL, NULL)))
+	if(!(response = fetch(url, NULL, NULL)))
 		return 0;
 
 	while(response[i]) {
@@ -259,16 +238,11 @@ int play(struct playlist * list) {
 	assert(list != NULL);
 
 	if(!list->left)
-		expand(list);
-
-	if(!list->left) {
-		puts("No tracks left for this station.");
 		return 0;
-	}
 
 	if(playfork) {
 		kill(playfork, SIGKILL);
-		return 0;
+		return !0;
 	}
 
 	playfork = fork();
@@ -277,7 +251,10 @@ int play(struct playlist * list) {
 
 	if(playfork) {
 		unsigned i;
-		char * keys [] = { "creator", "title", "album", "duration", "station" };
+		char * keys [] = {
+			"creator", "title", "album", "duration",
+			"station", "lastfm:trackauth"
+		};
 
 		for(i = 0; i < (sizeof(keys) / sizeof(char *)); ++i)
 			set(& track, keys[i], value(& list->track->track, keys[i]));
@@ -285,7 +262,7 @@ int play(struct playlist * list) {
 		FILE * fd = NULL;
 		const char * location = value(& list->track->track, "location");
 		if(location != NULL) {
-			fetch(location, & fd, NULL, NULL);
+			fetch(location, & fd, NULL);
 
 			empty(& data);
 			freelist(list);

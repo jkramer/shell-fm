@@ -339,7 +339,7 @@ static char** gen_user_names(time_t *new_expie_time) {
 
 	free (user);
 
-	resp = fetch (url, NULL, NULL, NULL);
+	resp = fetch (url, NULL, NULL);
 	free (url);
 
 	if (!resp)
@@ -384,7 +384,7 @@ static char** gen_user_tag_names(time_t *new_expie_time) {
 			"http://ws.audioscrobbler.com/1.0/user/%s/tags.txt",
 			user);
 
-	resp = fetch (url, NULL, NULL, NULL);
+	resp = fetch (url, NULL, NULL);
 	free (url);
 
 	if (!resp)
@@ -440,7 +440,7 @@ static char** gen_artist_names(time_t *new_expie_time) {
 
 	free (user);
 
-	resp = fetch (url, NULL, NULL, NULL);
+	resp = fetch (url, NULL, NULL);
 	free (url);
 
 	if (!resp)
@@ -497,7 +497,7 @@ static char** gen_tags_names(time_t *new_expie_time) {
 
 	free (user);
 
-	resp = fetch (url, NULL, NULL, NULL);
+	resp = fetch (url, NULL, NULL);
 	free (url);
 
 	if (!resp)

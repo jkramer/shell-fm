@@ -26,6 +26,7 @@
 #include "autoban.h"
 #include "sckif.h"
 #include "playlist.h"
+#include "submit.h"
 
 
 #define PATH_MAX 4096
@@ -33,9 +34,10 @@
 extern struct hash data, track;
 extern struct playlist playlist;
 
-extern pid_t playfork;
+extern pid_t playfork, subfork;
 extern char * currentStation;
 extern float avglag;
+extern unsigned submitting;
 
 int stop = 0, discovery = 0, stationChanged = 0, record = !0, death = 0;
 time_t changeTime = 0;
@@ -184,7 +186,7 @@ int main(int argc, char ** argv) {
 
 
 	/* Authenticate to the Last.FM server. */
-	if(!handshake(value(& rc, "username"), value(& rc, "password")))
+	if(!authenticate(value(& rc, "username"), value(& rc, "password")))
 		exit(EXIT_FAILURE);
 
 	/* Store session key for use by external tools. */
@@ -216,93 +218,89 @@ int main(int argc, char ** argv) {
 
 	/* The main loop. */
 	while(!0) {
-		/* Check if our child process died. */
-		if(death || stationChanged) {
-			pid_t pid;
-			int status;
+		pid_t child;
+		int status, stopped = 0;
 
-			death = 0;
+		/* Check if anything died (submissions fork or playback fork). */
+		while((child = waitpid(-1, & status, WNOHANG)) > 0) {
+			printf("DEBUG: %d died (play = %d, sub = %d).\n", child, playfork, subfork);
+			if(child == subfork)
+				subdead(WEXITSTATUS(status));
+			else if(child == playfork)
+				stopped = !0;
+		}
 
-			time(& changeTime);
+		/*
+			Check if the playback process died. If so, submit the data
+			of the last played track. Then check if there are tracks left
+			in the playlist; if not, try to refresh the list and stop the
+			stream if there are no new tracks to fetch.
+		*/
+		if(stopped) {
+			playfork = 0;
+			submit(value(& rc, "username"), value(& rc, "password"));
 
-			while((pid = waitpid(-1, & status, WNOHANG)) > 0)
-				(pid == playfork && playfork) && (playfork = 0);
-		
-			if(stop) {
-				freelist(& playlist);
-				stationChanged = 0;
-				empty(& track);
-				stop = 0;
-				continue;
-			}
+			shift(& playlist);
+		}
 
 
-			/*
-				The station function already ran the play function, so don't call it
-				again here. If it's not a new station, this means that the previously
-				played track ended, so remove it from the playlist. If the stream
-				was not stopped by the user, we play the next track.
-			*/
-			if(!stationChanged) {
-				shift(& playlist);
-				if(!play(& playlist))
+
+		if(stopped || stationChanged) {
+			if(!playlist.left) {
+				expand(& playlist);
+				if(!playlist.left) {
+					puts("No tracks left.");
+					stopped = 0;
+					stationChanged = 0;
 					continue;
-			}
-
-
-			/*
-				Check if the artist of the current track is marked as auto-banned.
-				If so, send the ban control to Last.FM and skip the track.
-			*/
-			if(banned(meta("%a", 0))) {
-				if(control("ban"))
-					puts(meta("\"%t\" by %a auto-banned.", !0));
-				else
-					puts(meta("Failed to auto-ban \"%t\" by %a.", !0));
-
-				if(playfork)
-					kill(playfork, SIGKILL);
-			}
-
-			
-			if(stationChanged) {
-				if(!background && playlist.left > 0)
-					puts(meta("Receiving %s.", !0));
-
-				stationChanged = 0;
-			}
-
-
-			/* Print what's currently played. (Ondrej Novy) */
-			if(!background && playlist.left > 0) {
-				if(haskey(& rc, "title-format"))
-					printf("%s\n", meta(value(& rc, "title-format"), !0));
-				else
-					printf("%s\n", meta("Now playing \"%t\" by %a.", !0));
-			}
-
-
-			/* Write NP line to a file if wanted. */
-			if(haskey(& rc, "np-file") && haskey(& rc, "np-file-format")) {
-				signed np;
-				const char
-					* file = value(& rc, "np-file"),
-					* fmt = value(& rc, "np-file-format");
-
-				unlink(file);
-				if(-1 != (np = open(file, O_WRONLY | O_CREAT, 0600))) {
-					const char * output = meta(fmt, 0);
-					if(output)
-						write(np, output, strlen(output));
-					close(np);
 				}
 			}
 
-			/* Run a command with our track data. */
-			if(haskey(& rc, "np-cmd"))
-				run(meta(value(& rc, "np-cmd"), 0));
+			if(!playfork) {
+				if(play(& playlist)) {
+					time(& changeTime);
+					enqueue(& track);
+
+					/* Print what's currently played. (Ondrej Novy) */
+					if(!background) {
+						if(stationChanged && playlist.left > 0)
+							puts(meta("Receiving %s.", !0));
+
+						if(haskey(& rc, "title-format"))
+							printf("%s\n", meta(value(& rc, "title-format"), !0));
+						else
+							printf("%s\n", meta("Now playing \"%t\" by %a.", !0));
+					}
+
+
+					if(haskey(& rc, "np-file") && haskey(& rc, "np-file-format")) {
+						signed np;
+						const char
+							* file = value(& rc, "np-file"),
+							* fmt = value(& rc, "np-file-format");
+
+						unlink(file);
+						if(-1 != (np = open(file, O_WRONLY | O_CREAT, 0600))) {
+							const char * output = meta(fmt, 0);
+							if(output)
+								write(np, output, strlen(output));
+							close(np);
+						}
+					}
+
+
+					/* Run a command with our track data. */
+					if(haskey(& rc, "np-cmd"))
+						run(meta(value(& rc, "np-cmd"), 0));
+				} else
+					changeTime = 0;
+			}
 		}
 
+		stationChanged = 0;
+		stopped = 0;
+
+		/*
 		if(playfork && changeTime && haskey(& track, "duration")) {
 			int rem;
 			char remstr[32] = { 0 };
@@ -319,6 +317,7 @@ int main(int argc, char ** argv) {
 				fflush(stdout);
 			}
 		}
+		*/
 		
 		interface(!background);
 		if(haveSocket)

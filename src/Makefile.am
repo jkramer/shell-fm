@@ -28,7 +28,8 @@ utility.c \
 pipe.c \
 md5.c \
 history.c \
-playlist.c
+playlist.c \
+submit.c
 
 
 ## vim: noet ts=8 sw=8

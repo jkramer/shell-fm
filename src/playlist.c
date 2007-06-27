@@ -37,7 +37,7 @@ int expand(struct playlist * list) {
 	memset(url, 0, sizeof(url));
 	snprintf(url, sizeof(url), fmt, value(& data, "session"), discovery);
 
-	if((response = fetch(url, NULL, NULL, NULL))) {
+	if((response = fetch(url, NULL, NULL))) {
 		int retval;
 
 		for(n = 0; response[n]; ++n) {
@@ -71,6 +71,7 @@ int parsexspf(struct playlist * list, const char * xml) {
 			char * next = strcasestr(track + 7, "<track>");
 			const char * tags [] = {
 				"location", "title", "album", "creator", "duration",
+				"lastfm:trackauth",
 			};
 
 			if(next)
@@ -81,8 +82,8 @@ int parsexspf(struct playlist * list, const char * xml) {
 
 			memset(node, 0, sizeof(struct tracknode));
 
-			for(i = 0; i < 5; ++i) {
-				char beg[16] = { 0 }, end[16] = { 0 };
+			for(i = 0; i < (sizeof(tags) / sizeof(char *)); ++i) {
+				char beg[32] = { 0 }, end[32] = { 0 };
 
 				sprintf(beg, "<%s>", tags[i]);
 				sprintf(end, "</%s>", tags[i]);

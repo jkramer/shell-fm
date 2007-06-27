@@ -200,7 +200,7 @@ void tag(struct hash data) {
 
 		free(post);
 
-		if((resp = fetch(url, NULL, xml, NULL))) {
+		if((resp = fetch(url, NULL, xml))) {
 			for(x = 0; resp[x]; ++x)
 				free(resp[x]);
 			free(resp);
@@ -248,7 +248,7 @@ static char ** getPopularTags(char key, struct hash track) {
 
 	strncpy (url+length, file, 512-length);
 
-	resp = fetch(url, NULL, NULL, NULL);
+	resp = fetch(url, NULL, NULL);
 	free(url);
 
 	if(!resp)
@@ -330,7 +330,7 @@ static char * getExistingTags(char key, struct hash track) {
 	if(arg)
 		free(arg);
 
-	resp = fetch(url, NULL, NULL, NULL);
+	resp = fetch(url, NULL, NULL);
 	free(url);
 
 	if(!resp)

@@ -75,6 +75,9 @@ void empty(struct hash * hash) {
 
 int haskey(struct hash * hash, const char * key) {
 	register unsigned x;
+
+	assert(hash != NULL);
+	assert(key != NULL);
 	
 	if(!hash->size || !hash->content)
 		return 0;
