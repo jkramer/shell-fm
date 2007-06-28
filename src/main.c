@@ -48,7 +48,7 @@ static void forcequit(int);
 static void exitWithHelp(const char *, int);
 
 int main(int argc, char ** argv) {
-	int option, nerror = 0, background = 0, haveSocket = 0;
+	int option, nerror = 0, background = 0, haveSocket = 0, queued = 0;
 	char * proxy;
 	opterr = 0;
 	
@@ -246,6 +246,8 @@ int main(int argc, char ** argv) {
 
 
 		if(stopped || stationChanged) {
+			queued = 0;
+
 			if(!playlist.left) {
 				expand(& playlist);
 				if(!playlist.left) {
@@ -259,7 +261,7 @@ int main(int argc, char ** argv) {
 			if(!playfork) {
 				if(play(& playlist)) {
 					time(& changeTime);
-					enqueue(& track);
+					/* enqueue(& track); */
 
 					/* Print what's currently played. (Ondrej Novy) */
 					if(!background) {
@@ -300,24 +302,31 @@ int main(int argc, char ** argv) {
 		stationChanged = 0;
 		stopped = 0;
 
-		/*
 		if(playfork && changeTime && haskey(& track, "duration")) {
-			int rem;
-			char remstr[32] = { 0 };
+			unsigned duration, played, remain;
+			char remstr[32];
 
-			rem = 
-				(changeTime + atoi(value(& track, "duration")) / 1000) - time(NULL);
+			duration = atoi(value(& track, "duration")) / 1000;
+			played = time(NULL) - changeTime;
 
-			snprintf(remstr, 32, "%d", rem);
+			remain = (changeTime + duration) - time(NULL);
 
+			if((played > 30 || remain < duration / 2) && !queued) {
+				enqueue(& track);
+				puts("Track in scrobble queue now.");
+				queued = !0;
+			}
+
+			snprintf(remstr, sizeof(remstr), "%d", remain);
 			set(& track, "remain", remstr);
 
+			/*
 			if(!background) {
 				printf("[%.2f] %c%02d:%02d\r", avglag, rem < 0 ? '-' : ' ', rem / 60, rem % 60);
 				fflush(stdout);
 			}
+			*/
 		}
-		*/
 		
 		interface(!background);
 		if(haveSocket)
