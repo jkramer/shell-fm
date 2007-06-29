@@ -63,8 +63,11 @@ int parsexspf(struct playlist * list, const char * xml) {
 	assert(xml != NULL);
 
 	if((ptr = strcasestr(xml, "<title>")) != NULL) {
-		char * track;
-		list->title = strndup(ptr + 7, strcasestr(xml, "</title>") - ptr - 7);
+		char * track, * radio = NULL;
+
+		radio = strndup(ptr + 7, strcasestr(xml, "</title>") - ptr - 7);
+		decode(radio, & list->title);
+		free(radio);
 
 		while((track = strcasestr(ptr, "<track>")) != NULL) {
 			struct tracknode * node = NULL;
@@ -83,15 +86,15 @@ int parsexspf(struct playlist * list, const char * xml) {
 			memset(node, 0, sizeof(struct tracknode));
 
 			for(i = 0; i < (sizeof(tags) / sizeof(char *)); ++i) {
-				char beg[32] = { 0 }, end[32] = { 0 };
+				char begin[32] = { 0 }, end[32] = { 0 };
 
-				sprintf(beg, "<%s>", tags[i]);
+				sprintf(begin, "<%s>", tags[i]);
 				sprintf(end, "</%s>", tags[i]);
 
-				if((ptr = strcasestr(track, beg)) != NULL) {
+				if((ptr = strcasestr(track, begin)) != NULL) {
 					char * text = strndup(
-						ptr + strlen(beg),
-						(strcasestr(ptr, end)) - (ptr + strlen(beg))
+						ptr + strlen(begin),
+						(strcasestr(ptr, end)) - (ptr + strlen(begin))
 					);
 
 					assert(text != NULL);
@@ -119,14 +122,13 @@ int parsexspf(struct playlist * list, const char * xml) {
 
 
 void freelist(struct playlist * list) {
-	if(list->title) {
+	if(list->title != NULL)
 		free(list->title);
-		list->title = NULL;
-	}
 
 	while(list->track)
 		shift(list);
 
+	memset(list, 0, sizeof(struct playlist));
 }
 
 

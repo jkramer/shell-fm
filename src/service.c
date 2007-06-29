@@ -24,7 +24,7 @@
 #include "service.h"
 #include "playlist.h"
 
-extern int stationChanged, discovery, stop;
+extern int stationChanged, discovery, stopped;
 
 struct hash data; /* Warning! MUST be bzero'd ASAP or we're all gonna die! */
 extern struct hash track;
@@ -181,7 +181,7 @@ int station(const char * stationURL) {
 	currentStation = strdup(stationURL);
 
 	if(retval && playfork) {
-		stop = !0;
+		stopped = !0;
 		kill(playfork, SIGKILL);
 	}
 

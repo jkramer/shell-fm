@@ -36,7 +36,7 @@
 #include "submit.h"
 
 extern pid_t playfork;
-extern int discovery, record, changeTime, stop;
+extern int discovery, record, changeTime, stopped;
 extern char * currentStation;
 
 int fetchkey(unsigned);
@@ -162,7 +162,7 @@ void interface(int interactive) {
 
 			case 'S':
 				if(playfork) {
-					stop = !0;
+					stopped = !0;
 					kill(playfork, SIGKILL);
 				}
 				break;

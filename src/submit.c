@@ -24,6 +24,7 @@ int handshake(const char *, const char *);
 void sliceq(unsigned);
 
 
+/* Add a track to the scrobbe queue. */
 int enqueue(struct hash * track) {
 	const char * keys [] = { "creator", "title", "album", "duration" };
 	unsigned i;
@@ -55,16 +56,16 @@ int enqueue(struct hash * track) {
 	set(& post, "n", "");
 	set(& post, "m", "");
 
-
 	memcpy(& queue[qlength++], & post, sizeof(struct hash));
 
 	return !0;
 }
 
 
+/* ... see "problems". */
 void ratelast(const char * rating) {
-	if(strchr("LBS", * rating) && qlength > 0)
-		set(& queue[qlength - 1], "r", rating);
+	if(strchr("LBS", * rating) && qlength > 0);
+		/* set(& queue[qlength - 1], "r", rating); */
 }
 
 
@@ -210,8 +211,7 @@ int handshake(const char * user, const char * password) {
 		hex /* The authentication MD5 token calculated above. */
 	);
 
-	resp = fetch(url, NULL, NULL);
-	if(resp != NULL) {
+	if((resp = fetch(url, NULL, NULL)) != NULL) {
 		if(resp[0] != NULL && !strncmp("OK", resp[0], 2)) {
 			handshaked = !0;
 			set(& submission, "session", resp[1]);

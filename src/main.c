@@ -39,11 +39,10 @@ extern char * currentStation;
 extern float avglag;
 extern unsigned submitting;
 
-int stop = 0, discovery = 0, stationChanged = 0, record = !0, death = 0;
+int stopped = 0, discovery = 0, stationChanged = 0, record = !0;
 time_t changeTime = 0;
 
 static void cleanup(void);
-static void deadchild(int);
 static void forcequit(int);
 static void exitWithHelp(const char *, int);
 
@@ -181,7 +180,6 @@ int main(int argc, char ** argv) {
 
 
 	/* Set up signal handlers for communication with the playback process. */
-	signal(SIGCHLD, deadchild);
 	signal(SIGINT, forcequit);
 
 
@@ -219,15 +217,25 @@ int main(int argc, char ** argv) {
 	/* The main loop. */
 	while(!0) {
 		pid_t child;
-		int status, stopped = 0;
+		int status, playnext = 0;
+
 
 		/* Check if anything died (submissions fork or playback fork). */
 		while((child = waitpid(-1, & status, WNOHANG)) > 0) {
 			if(child == subfork)
 				subdead(WEXITSTATUS(status));
 			else if(child == playfork)
-				stopped = !0;
+				playnext = !0;
 		}
+
+
+		if(playnext && stopped) {
+			freelist(& playlist);
+			empty(& track);
+			playnext = playfork = 0;
+			continue;
+		}
+
 
 		/*
 			Check if the playback process died. If so, submit the data
@@ -235,7 +243,7 @@ int main(int argc, char ** argv) {
 			in the playlist; if not, try to refresh the list and stop the
 			stream if there are no new tracks to fetch.
 		*/
-		if(stopped) {
+		if(playnext) {
 			playfork = 0;
 			submit(value(& rc, "username"), value(& rc, "password"));
 
@@ -244,14 +252,14 @@ int main(int argc, char ** argv) {
 
 
 
-		if(stopped || stationChanged) {
+		if(playnext || stationChanged) {
 			queued = 0;
 
 			if(!playlist.left) {
 				expand(& playlist);
 				if(!playlist.left) {
 					puts("No tracks left.");
-					stopped = 0;
+					playnext = 0;
 					stationChanged = 0;
 					continue;
 				}
@@ -274,6 +282,7 @@ int main(int argc, char ** argv) {
 					}
 
 
+					/* Write track data into a file. */
 					if(haskey(& rc, "np-file") && haskey(& rc, "np-file-format")) {
 						signed np;
 						const char
@@ -299,7 +308,7 @@ int main(int argc, char ** argv) {
 		}
 
 		stationChanged = 0;
-		stopped = 0;
+		playnext = 0;
 
 		if(playfork && changeTime && haskey(& track, "duration")) {
 			unsigned duration, played, remain;
@@ -337,9 +346,7 @@ int main(int argc, char ** argv) {
 
 
 static void exitWithHelp(const char * argv0, int errorCode) {
-	FILE * out = errorCode ? stderr : stdout;
-
-	fprintf(out,
+	fprintf(stderr,
 		"shell-fm - Copyright (C) 2007 by Jonas Kramer\n"
 		"\n"
 		"%s [options] [lastfm://url]\n"
@@ -364,16 +371,13 @@ static void cleanup(void) {
 	empty(& data);
 	empty(& rc);
 
+	freelist(& playlist);
+
 	if(currentStation)
 		free(currentStation);
 	
 	if(playfork)
 		kill(playfork, SIGTERM);
-}
-
-
-static void deadchild(int sig) {
-	sig == SIGCHLD && (death = !0);
 }
 
 
@@ -383,5 +387,3 @@ static void forcequit(int sig) {
 		exit(-1);
 	}
 }
-
-
