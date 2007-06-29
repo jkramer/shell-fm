@@ -63,13 +63,13 @@ int enqueue(struct hash * track) {
 
 
 void ratelast(const char * rating) {
-	if(strchr("LBS", * rating) && qlength > 0);
-		/* set(& queue[qlength - 1], "r", rating); */
+	if(strchr("LBS", * rating) && qlength > 0)
+		set(& queue[qlength - 1], "r", rating);
 }
 
 
 int submit(const char * user, const char * password) {
-	char * body = NULL;
+	char * body = NULL, ** resp;
 	const unsigned stepsize = 1024 * sizeof(char);
 	unsigned total = stepsize, ntrack;
 	int retval = -1;
@@ -94,6 +94,7 @@ int submit(const char * user, const char * password) {
 
 	/* Prepare POST body. */
 	body = malloc(stepsize);
+	assert(body != NULL);
 	memset(body, 0, stepsize);
 
 	snprintf(body, stepsize, "s=%s", value(& submission, "session"));
@@ -124,32 +125,27 @@ int submit(const char * user, const char * password) {
 
 	sliceq(qlength);
 
-	fprintf(stderr, "POST BODY: %s\n", body);
-
-	printf("DEBUG: Posting to %s.\n", value(& submission, "submissions"));
-	char ** resp = fetch(value(& submission, "submissions"), NULL, body);
+	resp = fetch(value(& submission, "submissions"), NULL, body);
 
 	if(resp) {
 		unsigned i;
 
 		if(resp[0]) {
-			printf("DEBUG: Reply is <%s>\n", resp[0]);
+			printf("DEBUG: RESPONSE=<%s>\n", resp[0]);
 			if(!strncmp(resp[0], "OK", 2))
 				retval = 0;
-		} else {
-			puts("DEBUG: Empty reply.");
 		}
 
-		for(i = 0; resp[i] != NULL; ++i) {
-			puts(resp[i]);
+		for(i = 0; resp[i] != NULL; ++i)
 			free(resp[i]);
-		}
+
 		free(resp);
-	} else {
-		puts("DEBUG: No reply.");
 	}
 
 	free(body);
+
+	if(retval)
+		puts("Couldn't scrobble track(s).");
 
 	exit(retval);
 }
@@ -166,12 +162,10 @@ void sliceq(unsigned tracks) {
 
 	qlength -= tracks;
 
-	if(qlength == 0)
-		free(queue);
-	else {
+	if(qlength > 0)
 		memmove(queue, & queue[tracks], sizeof(struct hash) * qlength);
-		queue = realloc(queue, sizeof(struct hash) * qlength);
-	}
+
+	queue = realloc(queue, sizeof(struct hash) * qlength);
 }
 
 
@@ -182,8 +176,10 @@ int handshake(const char * user, const char * password) {
 	int i, retval = 0;
 	time_t timestamp = time(NULL);
 
-	if(handshaked)
+	if(handshaked) {
+		fputs("Empty in handshake.", stderr);
 		empty(& submission);
+	}
 
 	memset(& submission, 0, sizeof(struct hash));
 	handshaked = 0;
@@ -225,7 +221,7 @@ int handshake(const char * user, const char * password) {
 			retval = !0;
 		}
 
-		for(i = 0; resp[i]; ++i)
+		for(i = 0; resp[i] != NULL; ++i)
 			free(resp[i]);
 
 		free(resp);

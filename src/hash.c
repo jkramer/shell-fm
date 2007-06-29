@@ -61,7 +61,7 @@ void unset(struct hash * hash, const char * key) {
 
 void empty(struct hash * hash) {
 	if(hash && hash->content) {
-		while(hash->size--) {
+		while(hash->size-- > 0) {
 			if(hash->content[hash->size].key)
 				free(hash->content[hash->size].key);
 

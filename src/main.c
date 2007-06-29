@@ -223,7 +223,6 @@ int main(int argc, char ** argv) {
 
 		/* Check if anything died (submissions fork or playback fork). */
 		while((child = waitpid(-1, & status, WNOHANG)) > 0) {
-			printf("DEBUG: %d died (play = %d, sub = %d).\n", child, playfork, subfork);
 			if(child == subfork)
 				subdead(WEXITSTATUS(status));
 			else if(child == playfork)
@@ -317,10 +316,10 @@ int main(int argc, char ** argv) {
 				queued = !0;
 			}
 
+			/*
 			snprintf(remstr, sizeof(remstr), "%d", remain);
 			set(& track, "remain", remstr);
 
-			/*
 			if(!background) {
 				printf("[%.2f] %c%02d:%02d\r", avglag, rem < 0 ? '-' : ' ', rem / 60, rem % 60);
 				fflush(stdout);
