@@ -232,7 +232,7 @@ int main(int argc, char ** argv) {
 		if(playnext && stopped) {
 			freelist(& playlist);
 			empty(& track);
-			playnext = playfork = 0;
+			playnext = playfork = stopped = 0;
 			continue;
 		}
 
@@ -249,7 +249,6 @@ int main(int argc, char ** argv) {
 
 			shift(& playlist);
 		}
-
 
 
 		if(playnext || stationChanged) {
