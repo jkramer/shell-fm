@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <errno.h>
 
 #include <assert.h>
 #include <time.h>
@@ -11,7 +12,12 @@
 #include "hash.h"
 #include "http.h"
 #include "md5.h"
+#include "settings.h"
+#include "split.h"
 
+#define ERROR (strerror(errno))
+
+extern unsigned getln(char **, unsigned *, FILE *);
 
 struct hash submission, * queue = NULL;
 unsigned qlength = 0, submitting = 0;
@@ -24,7 +30,11 @@ int handshake(const char *, const char *);
 void sliceq(unsigned);
 
 
-/* Add a track to the scrobbe queue. */
+void dumpqueue(int);
+void loadqueue(int);
+
+
+/* Add a track to the scrobble queue. */
 int enqueue(struct hash * track) {
 	const char * keys [] = { "creator", "title", "album", "duration" };
 	unsigned i;
@@ -64,8 +74,8 @@ int enqueue(struct hash * track) {
 
 /* ... see "problems". */
 void ratelast(const char * rating) {
-	if(strchr("LBS", * rating) && qlength > 0);
-		/* set(& queue[qlength - 1], "r", rating); */
+	if(strchr("LBS", * rating) && qlength > 0)
+		set(& queue[qlength - 1], "r", rating);
 }
 
 
@@ -176,10 +186,8 @@ int handshake(const char * user, const char * password) {
 	int i, retval = 0;
 	time_t timestamp = time(NULL);
 
-	if(handshaked) {
-		fputs("Empty in handshake.", stderr);
+	if(handshaked)
 		empty(& submission);
-	}
 
 	memset(& submission, 0, sizeof(struct hash));
 	handshaked = 0;
@@ -212,12 +220,11 @@ int handshake(const char * user, const char * password) {
 
 	if((resp = fetch(url, NULL, NULL)) != NULL) {
 		if(resp[0] != NULL && !strncmp("OK", resp[0], 2)) {
-			handshaked = !0;
 			set(& submission, "session", resp[1]);
 			set(& submission, "now-playing", resp[2]);
 			set(& submission, "submissions", resp[3]);
 
-			retval = !0;
+			retval = handshaked = !0;
 		}
 
 		for(i = 0; resp[i] != NULL; ++i)
@@ -236,4 +243,77 @@ void subdead(int exitcode) {
 
 	subfork = 0;
 	submitting = 0;
+}
+
+
+/* Write the tracks from the scrobble queue to a file. */
+void dumpqueue(int overwrite) {
+	const char * path = rcpath("scrobble-cache");
+	if(path != NULL) {
+		FILE * fd = fopen(path, overwrite ? "w" : "a+");
+		if(fd != NULL) {
+			unsigned n, x;
+			for(n = 0; n < qlength; ++n) {
+				const char keys [] = "atirolbnm";
+				for(x = 0; x < sizeof(keys) - 1; ++x) {
+					char key[2] = { keys[x], 0 }, * encoded = NULL;
+					encode(value(& queue[n], key), & encoded);
+					fprintf(fd, "%c=%s;", keys[x], encoded);
+					free(encoded);
+				}
+				fputc(10, fd);
+			}
+			fclose(fd);
+		} else {
+			fprintf(stderr, "Couldn't open scrobble cache. %s.\n", ERROR);
+		}
+	} else {
+		fprintf(stderr, "Can't find suitable scrobble queue path.\n");
+	}
+}
+
+
+void loadqueue(int overwrite) {
+	const char * path = rcpath("scrobble-cache");
+
+	if(overwrite)
+		sliceq(qlength);
+
+	if(path != NULL) {
+		FILE * fd = fopen(path, "r");
+		if(fd != NULL) {
+			while(!feof(fd)) {
+				char * line = NULL;
+				unsigned size = 0;
+
+				if(getln(& line, & size, fd) >= 2) {
+					unsigned n = 0;
+					char ** splt = split(line, ";\n", & n);
+					struct hash track;
+
+					memset(& track, 0, sizeof(struct hash));
+
+					while(n--) {
+						char key[2] = { 0 }, * value = NULL;
+						sscanf(splt[n], "%c=", & key[0]);
+						if(strchr("atirolbnm", key[0])) {
+							decode(splt[n] + 2, & value);
+							set(& track, key, value);
+						}
+						free(splt[n]);
+					}
+
+					free(splt);
+
+					queue = realloc(queue, sizeof(struct hash) * (++qlength));
+					assert(queue != NULL);
+					memcpy(& queue[qlength - 1], & track, sizeof(struct hash));
+				}
+
+				if(line)
+					free(line);
+			}
+		} else {
+		}
+	}
 }

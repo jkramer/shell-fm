@@ -30,6 +30,7 @@
 #include "service.h"
 #include "interface.h"
 #include "hash.h"
+#include "submit.h"
 
 extern unsigned getln(char **, unsigned *, FILE *);
 extern unsigned discovery;
@@ -124,12 +125,8 @@ void execcmd(const char * cmd, FILE * fd) {
 		"love",
 		"ban",
 		"skip",
-		"rtp",
-		"nortp",
 		"quit",
 		"info",
-		"discovery",
-		"stop"
 	};
 
 	memset(arg, sizeof(arg), 0);
@@ -154,31 +151,24 @@ void execcmd(const char * cmd, FILE * fd) {
 
 		case 1:
 		case 2:
-		case 3:
-		case 4:
-		case 5:
 			control(known[ncmd]);
 			break;
 
-		case 6:
+		case 3:
+			if(playfork) {
+				ratelast("S");
+				kill(playfork, SIGKILL);
+			}
+			break;
+
+		case 4:
 			exit(EXIT_SUCCESS);
 
-		case 7:
+		case 5:
 			snprintf(arg, sizeof(arg), "%s", meta(cmd + 5, 0));
 			if(!strlen(arg) && haskey(& rc, "np-file-format"))
 				snprintf(arg, sizeof(arg), "%s", meta(value(& rc, "np-file-format"), 0));
 			fprintf(fd, "%s\n", arg);
-			break;
-
-		case 8:
-			if (setdiscover(discovery = !discovery))
-				fprintf(fd, "%s discovery mode.\n", discovery ? "Enabled" : "Disabled");
-			else
-				fprintf(fd, "Failed to %s discovery mode.\n", discovery ? "enable" : "disable");
-			break;
-		case 9:
-			if(playfork)
-				kill(playfork, SIGKILL);
 			break;
 	}
 	fflush(fd);

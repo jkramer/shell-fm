@@ -177,7 +177,7 @@ int main(int argc, char ** argv) {
 	memset(& playlist, 0, sizeof(struct playlist));
 	
 	atexit(cleanup);
-
+	loadqueue(!0);
 
 	/* Set up signal handlers for communication with the playback process. */
 	signal(SIGINT, forcequit);
@@ -374,6 +374,8 @@ static void cleanup(void) {
 
 	if(currentStation)
 		free(currentStation);
+
+	dumpqueue(!0);
 	
 	if(playfork)
 		kill(playfork, SIGTERM);
