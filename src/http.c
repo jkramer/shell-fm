@@ -24,7 +24,7 @@
 #include "settings.h"
 
 #ifndef USERAGENT
-#define USERAGENT "Shell.FM/0.2"
+#define USERAGENT "Shell.FM/0.3"
 #endif
 
 extern FILE * ropen(const char *, unsigned short);
