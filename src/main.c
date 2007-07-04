@@ -229,7 +229,7 @@ int main(int argc, char ** argv) {
 		}
 
 
-		if(playnext && stopped) {
+		if(stopped) {
 			freelist(& playlist);
 			empty(& track);
 			playnext = playfork = stopped = 0;
@@ -377,6 +377,9 @@ static void cleanup(void) {
 	
 	if(playfork)
 		kill(playfork, SIGTERM);
+
+	if(subfork)
+		kill(subfork, SIGTERM);
 }
 
 

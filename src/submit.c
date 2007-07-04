@@ -131,11 +131,8 @@ int submit(const char * user, const char * password) {
 	if(resp) {
 		unsigned i;
 
-		if(resp[0]) {
-			printf("DEBUG: RESPONSE=<%s>\n", resp[0]);
-			if(!strncmp(resp[0], "OK", 2))
-				retval = 0;
-		}
+		if(resp[0] && !strncmp(resp[0], "OK", 2))
+			retval = 0;
 
 		for(i = 0; resp[i] != NULL; ++i)
 			free(resp[i]);
@@ -147,6 +144,8 @@ int submit(const char * user, const char * password) {
 
 	if(retval)
 		puts("Couldn't scrobble track(s).");
+	else
+		printf("Scrobbled %d track(s).\n", submitting);
 
 	exit(retval);
 }
