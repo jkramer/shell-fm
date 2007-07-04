@@ -67,6 +67,7 @@ int parsexspf(struct playlist * list, const char * xml) {
 
 		radio = strndup(ptr + 7, strcasestr(xml, "</title>") - ptr - 7);
 		decode(radio, & list->title);
+		unhtml(list->title);
 		free(radio);
 
 		while((track = strcasestr(ptr, "<track>")) != NULL) {
@@ -98,6 +99,8 @@ int parsexspf(struct playlist * list, const char * xml) {
 					);
 
 					assert(text != NULL);
+
+					unhtml(text);
 					set(& node->track, tags[i], text);
 					free(text);
 				}

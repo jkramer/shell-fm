@@ -11,5 +11,6 @@ extern char ** fetch(const char *, FILE **, const char *);
 extern unsigned encode(const char *, char **);
 extern unsigned decode(const char *, char **);
 extern const char * makeurl(const char *, ...);
+extern void unhtml(char *);
 
 #endif

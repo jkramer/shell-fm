@@ -255,6 +255,26 @@ void lag(time_t reqtime) {
 }
 
 
+void unhtml(char * html) {
+	unsigned i;
+	const char * codes [] = {
+		"&amp;", "&",
+		"&lt;", "<",
+		"&gt;", ">",
+		"&nbsp;", " ",
+	};
+
+	for(i = 0; i < (sizeof(codes) / sizeof(char *)); i += 2) {
+		unsigned length = strlen(codes[i]);
+		char * ptr;
+		while((ptr = strcasestr(html, codes[i])) != NULL) {
+			* ptr = codes[i + 1][0];
+			memmove(ptr + 1, ptr + length, strlen(ptr + length));
+		}
+	}
+}
+
+
 const char * makeurl(const char * fmt, ...) {
 	static char url[512];
 	const char * src = fmt;
