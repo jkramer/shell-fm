@@ -147,8 +147,6 @@ int submit(const char * user, const char * password) {
 
 	if(retval)
 		puts("Couldn't scrobble track(s).");
-	else
-		printf("Scrobbled %d track(s).\n", submitting);
 
 	exit(retval);
 }

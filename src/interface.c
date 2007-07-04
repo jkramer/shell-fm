@@ -133,10 +133,7 @@ void interface(int interactive) {
 
 			case 'R':
 				record = !record;
-				if(control(record ? "rtp" : "nortp"))
-					printf("%s RTP.\n", record ? "Enabled" : "Disabled");
-				else
-					printf("Sorry, failed to %s RTP.\n", record ? "enable" : "disable");
+				printf("%s RTP.\n", record ? "Enabled" : "Disabled");
 				break;
 
 			case 'f':

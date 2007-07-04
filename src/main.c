@@ -250,10 +250,8 @@ int main(int argc, char ** argv) {
 
 			playfork = 0;
 			
-			if((played > 30 || played > (duration / 2))) {
+			if(record && (played > 30 || played > (duration / 2)))
 				enqueue(& track);
-				puts("Track in scrobble queue now.");
-			}
 
 			submit(value(& rc, "username"), value(& rc, "password"));
 
@@ -317,7 +315,8 @@ int main(int argc, char ** argv) {
 		playnext = 0;
 
 		if(playfork && changeTime && haskey(& track, "duration")) {
-			unsigned duration, played, remain;
+			unsigned duration, played;
+			signed remain;
 			char remstr[32];
 
 			duration = atoi(value(& track, "duration")) / 1000;
@@ -325,15 +324,17 @@ int main(int argc, char ** argv) {
 
 			remain = (changeTime + duration) - time(NULL);
 
-			/*
 			snprintf(remstr, sizeof(remstr), "%d", remain);
 			set(& track, "remain", remstr);
 
 			if(!background) {
-				printf("[%.2f] %c%02d:%02d\r", avglag, rem < 0 ? '-' : ' ', rem / 60, rem % 60);
+				printf(
+					"[%.2f] %c%02d:%02d\r",
+					avglag,
+					remain < 0 ? '-' : ' ',
+					remain / 60, remain % 60);
 				fflush(stdout);
 			}
-			*/
 		}
 		
 		interface(!background);
