@@ -72,6 +72,7 @@ int enqueue(struct hash * track) {
 }
 
 
+/* Submit tracks from the queue. */
 int submit(const char * user, const char * password) {
 	char * body = NULL, ** resp;
 	const unsigned stepsize = 1024 * sizeof(char);
@@ -92,7 +93,7 @@ int submit(const char * user, const char * password) {
 
 	if(!handshaked && !handshake(user, password)) {
 		fputs("Handshake failed.\n", stderr);
-		return 0;
+		exit(retval);
 	}
 
 
@@ -152,6 +153,7 @@ int submit(const char * user, const char * password) {
 }
 
 
+/* Remove a number of tracks from the scrobble queue. */
 void sliceq(unsigned tracks) {
 	unsigned i;
 
@@ -170,6 +172,7 @@ void sliceq(unsigned tracks) {
 }
 
 
+/* Authenticate to the submission server. */
 int handshake(const char * user, const char * password) {
 	char temp[10 + 32 + 1], hex[32 + 1], ** resp;
 	const char * url;

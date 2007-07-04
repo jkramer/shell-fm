@@ -229,6 +229,7 @@ int main(int argc, char ** argv) {
 		}
 
 
+		/* Check if the user stopped the stream. */
 		if(stopped) {
 			freelist(& playlist);
 			empty(& track);
@@ -250,7 +251,7 @@ int main(int argc, char ** argv) {
 
 			playfork = 0;
 			
-			if(record && (played > 30 || played > (duration / 2)))
+			if(record && (played >= 240 || played > (duration / 2)))
 				enqueue(& track);
 
 			submit(value(& rc, "username"), value(& rc, "password"));
