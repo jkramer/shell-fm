@@ -270,6 +270,7 @@ void unhtml(char * html) {
 		while((ptr = strcasestr(html, codes[i])) != NULL) {
 			* ptr = codes[i + 1][0];
 			memmove(ptr + 1, ptr + length, strlen(ptr + length));
+			* (ptr + strlen(ptr) - length + 1) = 0;
 		}
 	}
 }

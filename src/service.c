@@ -190,11 +190,8 @@ int station(const char * stationURL) {
 
 
 /*
-	Send control command to last.fm to skip/love/ban the currently played track
-	or enable/disable recording tracks to profile.
-
+	Send control command to last.fm to love/ban the currently played track.
 	$0 = (const char *) one of "love" or "ban"
-	
 	return value: non-zero on success, zero on error
 
 	THIS WILL BECOME OBSOLETE AS SOON AS THE LAST.FM PEOPLE
