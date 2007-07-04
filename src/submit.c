@@ -59,7 +59,7 @@ int enqueue(struct hash * track) {
 	set(& post, "a", value(track, "creator"));
 	set(& post, "t", value(track, "title"));
 	set(& post, "i", timestamp);
-	set(& post, "r", "");
+	set(& post, "r", value(track, "rating"));
 	set(& post, "o", lastid);
 	set(& post, "l", duration);
 	set(& post, "b", value(track, "album"));
@@ -69,13 +69,6 @@ int enqueue(struct hash * track) {
 	memcpy(& queue[qlength++], & post, sizeof(struct hash));
 
 	return !0;
-}
-
-
-/* ... see "problems". */
-void ratelast(const char * rating) {
-	if(strchr("LBS", * rating) && qlength > 0)
-		set(& queue[qlength - 1], "r", rating);
 }
 
 

@@ -45,6 +45,7 @@ const char * meta(const char *, int);
 void run(const char *);
 void tag(struct hash);
 void artistRadio();
+void rate(const char *);
 
 struct hash track;
 
@@ -71,21 +72,21 @@ void interface(int interactive) {
 		switch(key) {
 			case 'l':
 				if(playfork) {
-					ratelast("L");
+					rate("L");
 					puts(control("love") ? "Loved." : "Sorry, failed.");
 				}
 				break;
 
 			case 'B':
 				if(playfork) {
-					ratelast("B");
+					rate("B");
 					puts(control("ban") ? "Banned." : "Sorry, failed.");
 				}
 				break;
 
 			case 'n':
 				if(playfork) {
-					ratelast("S");
+					rate("S");
 					kill(playfork, SIGKILL);
 				}
 				break;
@@ -321,4 +322,10 @@ void run(const char * cmd) {
 			_exit(pclose(fd));
 		}
 	}
+}
+
+
+void rate(const char * rating) {
+	if(rating != NULL)
+		set(& track, "rating", rating);
 }

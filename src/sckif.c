@@ -41,6 +41,8 @@ extern struct hash rc;
 static int ssck = -1;
 
 int waitread(int, unsigned, unsigned);
+extern void rate(const char *);
+
 
 int mksckif(const char * ip, unsigned short port) {
 	static const int one = 1;
@@ -156,7 +158,7 @@ void execcmd(const char * cmd, FILE * fd) {
 
 		case 3:
 			if(playfork) {
-				ratelast("S");
+				rate("S");
 				kill(playfork, SIGKILL);
 			}
 			break;

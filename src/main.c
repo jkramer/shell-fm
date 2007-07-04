@@ -47,7 +47,7 @@ static void forcequit(int);
 static void exitWithHelp(const char *, int);
 
 int main(int argc, char ** argv) {
-	int option, nerror = 0, background = 0, haveSocket = 0, queued = 0;
+	int option, nerror = 0, background = 0, haveSocket = 0;
 	char * proxy;
 	opterr = 0;
 	
@@ -244,7 +244,17 @@ int main(int argc, char ** argv) {
 			stream if there are no new tracks to fetch.
 		*/
 		if(playnext) {
+			unsigned
+				duration = atoi(value(& track, "duration")),
+				played = time(NULL) - changeTime;
+
 			playfork = 0;
+			
+			if((played > 30 || played > (duration / 2))) {
+				enqueue(& track);
+				puts("Track in scrobble queue now.");
+			}
+
 			submit(value(& rc, "username"), value(& rc, "password"));
 
 			shift(& playlist);
@@ -252,8 +262,6 @@ int main(int argc, char ** argv) {
 
 
 		if(playnext || stationChanged) {
-			queued = 0;
-
 			if(!playlist.left) {
 				expand(& playlist);
 				if(!playlist.left) {
@@ -267,7 +275,6 @@ int main(int argc, char ** argv) {
 			if(!playfork) {
 				if(play(& playlist)) {
 					time(& changeTime);
-					/* enqueue(& track); */
 
 					/* Print what's currently played. (Ondrej Novy) */
 					if(!background) {
@@ -317,12 +324,6 @@ int main(int argc, char ** argv) {
 			played = time(NULL) - changeTime;
 
 			remain = (changeTime + duration) - time(NULL);
-
-			if((played > 30 || remain < duration / 2) && !queued) {
-				enqueue(& track);
-				puts("Track in scrobble queue now.");
-				queued = !0;
-			}
 
 			/*
 			snprintf(remstr, sizeof(remstr), "%d", remain);
