@@ -110,10 +110,12 @@ int station(const char * stationURL) {
 
 	/* Check if it's a static playlist of tracks or track previews. */
 	for(i = 0; i < 4; ++i)
-		if(!strncasecmp(types[i], url, strlen(types[i]))) {
+		if(!strncasecmp(types[i], stationURL, strlen(types[i]))) {
 			regular = 0;
 			break;
 		}
+
+	/* fprintf(stderr, "URL=<%s>, regular=<%d>\n", stationURL, regular); */
 
 	/*
 		If this is not a special "one-time" stream, it's a regular radio
