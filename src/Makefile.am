@@ -24,7 +24,6 @@ settings.c \
 split.c \
 strarray.c \
 tag.c \
-utility.c \
 pipe.c \
 md5.c \
 history.c \

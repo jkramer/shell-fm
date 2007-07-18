@@ -92,9 +92,8 @@ void tag(struct hash data) {
 			md5hex[32 + 1] = { 0 }, tmp[32 + 8 + 1] = { 0 };
 
 		/* remove trailing commas */
-		while (tagstring[tslen-1] == ',') {
+		while (tagstring[tslen-1] == ',')
 			tagstring[--tslen] = 0;
-		}
 
 		splt = split(tagstring, ",\n", & nsplt);
 
@@ -200,9 +199,10 @@ void tag(struct hash data) {
 
 		free(post);
 
-		if((resp = fetch(url, NULL, xml))) {
+		if((resp = fetch(url, NULL, xml)) != NULL) {
 			for(x = 0; resp[x]; ++x)
 				free(resp[x]);
+
 			free(resp);
 		}
 
@@ -359,31 +359,31 @@ static char * getExistingTags(char key, struct hash track) {
 	return tags;
 }
 
-static char * __tag_match_generator (const char *text, int state) {
+static char * __tag_match_generator(const char *text, int state) {
 	static int index, tlen;
-	char *tag;
+	char * tag;
 
-	if (!state) {
+	if(!state) {
 		/* first time */
 		index = 0;
 		tlen = strlen (text);
 	}
 
-	while ((tag = popular_tags[index])) {
-		index ++;
-		if (strncmp (tag, text, tlen) == 0)
+	while((tag = popular_tags[index])) {
+		++index;
+		if(strncmp(tag, text, tlen) == 0)
 			return strdup(tag);
 	}
 
 	return NULL;
 }
 
-static char** rlcompletion(const char *text, int start __attribute__((unused)), int end __attribute__((unused))) {
-	char ** ret;
-
-	ret = rl_completion_matches (text, __tag_match_generator);
-
-	return ret;
+static char ** rlcompletion(
+	const char * text,
+	int start __attribute__((unused)),
+	int end __attribute__((unused))
+) {
+	return rl_completion_matches(text, __tag_match_generator);
 }
 
 static int rlstartup(void) {
