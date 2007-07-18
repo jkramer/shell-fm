@@ -31,8 +31,8 @@
 #include "interface.h"
 #include "hash.h"
 #include "submit.h"
+#include "getln.h"
 
-extern unsigned getln(char **, unsigned *, FILE *);
 extern unsigned discovery;
 extern pid_t playfork;
 
@@ -102,8 +102,12 @@ void sckif(int timeout) {
 					getln(& line, & size, fd);
 
 					if(line && size > 0) {
-						(ptr = strchr(line, 13)) && (* ptr = 0);
-						(ptr = strchr(line, 10)) && (* ptr = 0);
+						if((ptr = strchr(line, 13)) != NULL)
+							* ptr = 0;
+
+						if((ptr = strchr(line, 10)) != NULL)
+							* ptr = 0;
+
 						execcmd(line, fd);
 					}
 

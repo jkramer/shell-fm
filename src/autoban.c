@@ -14,8 +14,9 @@
 #include <stdlib.h>
 
 #include "settings.h"
+#include "autoban.h"
+#include "getln.h"
 
-extern unsigned getln(char **, unsigned *, FILE *);
 
 int banned(const char * artist) {
 	FILE * fd;
@@ -35,7 +36,8 @@ int banned(const char * artist) {
 			continue;
 	
 		if(strlen(line) > 1) {
-			(ptr = strrchr(line, 10)) && (* ptr = (char) 0);
+			if((ptr = strrchr(line, 10)) != NULL)
+					* ptr = (char) 0;
 			match = !strncasecmp(line, artist, strlen(line));
 		}
 	}

@@ -22,6 +22,8 @@
 
 #include "hash.h"
 #include "settings.h"
+#include "getln.h"
+#include "http.h"
 
 #ifndef USERAGENT
 #define USERAGENT "Shell.FM/0.3"
@@ -29,19 +31,16 @@
 
 extern FILE * ropen(const char *, unsigned short);
 extern void fshutdown(FILE *);
-extern unsigned getln(char **, unsigned *, FILE *);
 
 float avglag = 0.0;
 
 void freeln(char **, unsigned *);
 
-unsigned encode(const char *, char **);
-void lag(time_t);
 
-char ** fetch(char * const url, FILE ** pHandle, const char * data) {
+char ** fetch(const char * url, FILE ** pHandle, const char * data) {
 	char ** resp = NULL, * host, * file, * port, * status = NULL, * line = NULL;
 	char * connhost;
-	char urlcpy[512 + 1] = { 0 };
+	char urlcpy[512 + 1];
 	unsigned short nport = 80, chunked = 0;
 	unsigned nline = 0, nstatus = 0, size = 0;
 	signed validHead = 0;
@@ -71,7 +70,7 @@ char ** fetch(char * const url, FILE ** pHandle, const char * data) {
 	connhost = host;
 
 	if(use_proxy) {
-		char proxcpy[512 + 1]; /* = { 0 }; */
+		char proxcpy[512 + 1];
 		memset(proxcpy, (char) 0, sizeof(proxcpy));
 		strncpy(proxcpy, value(& rc, "proxy"), sizeof(proxcpy) - 1);
 		connhost = & proxcpy[strncmp(proxcpy, "http://", 7) ? 0 : 7];
@@ -88,7 +87,8 @@ char ** fetch(char * const url, FILE ** pHandle, const char * data) {
 		* port = (char) 0;
 		++port;
 		nport = strtol(port, & ptr, 10);
-		(ptr == port) && (nport = 80);
+		if(ptr == port)
+			nport = 80;
 	}
 
 	if(!(fd = ropen(connhost, nport)))
@@ -138,7 +138,8 @@ char ** fetch(char * const url, FILE ** pHandle, const char * data) {
 			chunked = !0;
 
 		if(nstatus == 301 && !strncasecmp(line, "Location: ", 10)) {
-			char newurl[512 + 1] = { 0 };
+			char newurl[512 + 1];
+			memset(newurl, 0, sizeof(newurl));
 			sscanf(line, "Location: %512[^\r\n]", newurl);
 			fshutdown(fd);
 
@@ -168,7 +169,8 @@ char ** fetch(char * const url, FILE ** pHandle, const char * data) {
 
 		if(getln(& line, & size, fd)) {
 			char * ptr = strchr(line, 10);
-			ptr && (* ptr = (char) 0);
+			if(ptr != NULL)
+				* ptr = (char) 0;
 			resp[nline] = line;
 		} else if(size)
 			free(line);

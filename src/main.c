@@ -40,14 +40,15 @@ extern float avglag;
 extern unsigned submitting;
 
 int stopped = 0, discovery = 0, stationChanged = 0, record = !0;
-time_t changeTime = 0;
+time_t changeTime = 0, pausetime = 0;
 
 static void cleanup(void);
 static void forcequit(int);
-static void exitWithHelp(const char *, int);
+static void help(const char *, int);
 
 int main(int argc, char ** argv) {
 	int option, nerror = 0, background = 0, haveSocket = 0;
+	time_t pauselength = 0;
 	char * proxy;
 	opterr = 0;
 	
@@ -89,7 +90,7 @@ int main(int argc, char ** argv) {
 				break;
 
 			case 'h': /* Print help text and exit. */
-				exitWithHelp(argv[0], 0);
+				help(argv[0], 0);
 				break;
 
 			case ':':
@@ -118,7 +119,7 @@ int main(int argc, char ** argv) {
 
 	
 	if(nerror)
-		exitWithHelp(argv[0], EXIT_FAILURE);
+		help(argv[0], EXIT_FAILURE);
 
 
 	/* The -D / device option is only used if have libao support. */
@@ -221,11 +222,20 @@ int main(int argc, char ** argv) {
 
 
 		/* Check if anything died (submissions fork or playback fork). */
-		while((child = waitpid(-1, & status, WNOHANG)) > 0) {
+		while((child = waitpid(-1, & status, WNOHANG | WUNTRACED | WCONTINUED)) > 0) {
 			if(child == subfork)
 				subdead(WEXITSTATUS(status));
-			else if(child == playfork)
-				playnext = !0;
+			else if(child == playfork) {
+				if(WIFSTOPPED(status))
+					time(& pausetime);
+				else {
+					if(WIFCONTINUED(status))
+						pauselength += time(NULL) - pausetime;
+					else
+						playnext = !0;
+					pausetime = 0;
+				}
+			}
 		}
 
 
@@ -315,15 +325,15 @@ int main(int argc, char ** argv) {
 		stationChanged = 0;
 		playnext = 0;
 
-		if(playfork && changeTime && haskey(& track, "duration")) {
+		if(playfork && changeTime && haskey(& track, "duration") && !pausetime) {
 			unsigned duration, played;
 			signed remain;
 			char remstr[32];
 
 			duration = atoi(value(& track, "duration")) / 1000;
-			played = time(NULL) - changeTime;
+			played = time(NULL) - changeTime - pauselength;
 
-			remain = (changeTime + duration) - time(NULL);
+			remain = (changeTime + duration) - time(NULL) + pauselength;
 
 			snprintf(remstr, sizeof(remstr), "%d", remain);
 			set(& track, "remain", remstr);
@@ -347,7 +357,7 @@ int main(int argc, char ** argv) {
 }
 
 
-static void exitWithHelp(const char * argv0, int errorCode) {
+static void help(const char * argv0, int errorCode) {
 	fprintf(stderr,
 		"shell-fm - Copyright (C) 2007 by Jonas Kramer\n"
 		"\n"

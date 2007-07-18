@@ -14,10 +14,9 @@
 #include "md5.h"
 #include "settings.h"
 #include "split.h"
+#include "getln.h"
 
 #define ERROR (strerror(errno))
-
-extern unsigned getln(char **, unsigned *, FILE *);
 
 struct hash submission, * queue = NULL;
 unsigned qlength = 0, submitting = 0;

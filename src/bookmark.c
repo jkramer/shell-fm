@@ -15,8 +15,9 @@
 #include <ctype.h>
 
 #include "settings.h"
+#include "bookmark.h"
+#include "getln.h"
 
-extern unsigned getln(char **, unsigned *, FILE *);
 
 void setmark(const char * streamURL, int n) {
 	FILE * fd;
@@ -49,7 +50,8 @@ void setmark(const char * streamURL, int n) {
 		for(i = 0; i < 10; ++i)
 			if(bookmarks[i]) {
 				char * ptr = strchr(bookmarks[i], 10);
-				(ptr) && (* ptr = 0);
+				if(ptr != NULL)
+					* ptr = 0;
 				fprintf(fd, "%d = %s\n", i, bookmarks[i]);
 				free(bookmarks[i]);
 			}
@@ -74,7 +76,8 @@ char * getmark(int n) {
 		if(line && length > 4)
 			if(sscanf(line, "%d = ", & x) == 1 && x == n) {
 				char * ptr = strchr(line, 10);
-				(ptr) && (* ptr = 0);
+				if(ptr != NULL)
+					* ptr = 0;
 				streamURL = strdup(line + 4);
 			}
 

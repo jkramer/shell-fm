@@ -14,8 +14,9 @@
 #include <stdlib.h>
 
 #include "settings.h"
+#include "history.h"
+#include "getln.h"
 
-extern unsigned getln(char **, unsigned *, FILE *);
 
 void histapp(const char * radio) {
 	FILE * fd;
@@ -37,7 +38,8 @@ void histapp(const char * radio) {
 		
 			if(strlen(line) > 1) {
 				char * ptr;
-				(ptr = strrchr(line, 10)) && (* ptr = (char) 0);
+				if((ptr = strrchr(line, 10)) != NULL)
+					* ptr = (char) 0;
 				ptr = strncasecmp("lastfm://", line, 9) ? line : line + 9;
 				match = !strncasecmp(line, radio, strlen(line));
 			}

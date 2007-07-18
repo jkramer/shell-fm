@@ -12,5 +12,6 @@ extern unsigned encode(const char *, char **);
 extern unsigned decode(const char *, char **);
 extern const char * makeurl(const char *, ...);
 extern void unhtml(char *);
+extern void lag(time_t);
 
 #endif

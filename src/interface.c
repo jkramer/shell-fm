@@ -38,6 +38,7 @@
 extern pid_t playfork;
 extern int discovery, record, changeTime, stopped;
 extern char * currentStation;
+extern time_t pausetime;
 
 int fetchkey(unsigned);
 void canon(int);
@@ -168,6 +169,11 @@ void interface(int interactive) {
 			case 'T':
 				if(playfork)
 					tag(track);
+				break;
+
+			case 'p':
+				if(playfork)
+					kill(playfork, pausetime ? SIGCONT : SIGSTOP);
 				break;
 
       case '?':
