@@ -20,11 +20,9 @@
 #include "service.h"
 
 #include "playlist.h"
+#include "globals.h"
 
-extern struct hash data;
-extern int discovery;
 
-void freenode(struct tracknode **);
 
 int expand(struct playlist * list) {
 	char url[512], ** response, * xml = NULL;

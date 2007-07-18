@@ -18,6 +18,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "ropen.h"
+
 FILE * ropen(const char * host, unsigned short port) {
 	int sck;
 	struct hostent * entry;

@@ -34,6 +34,7 @@
 
 #include "settings.h"
 #include "pipe.h"
+#include "play.h"
 
 struct stream {
 	FILE * streamfd;
@@ -51,11 +52,7 @@ struct stream {
 
 static enum mad_flow input(void *, struct mad_stream *);
 static enum mad_flow output(void *, const struct mad_header *, struct mad_pcm *);
-signed scale(mad_fixed_t);
-
-int disturbed = 0;
-
-void disturb(int);
+static signed scale(mad_fixed_t);
 
 
 void playback(FILE * streamfd) {
@@ -269,14 +266,16 @@ static enum mad_flow output(
 		unsigned char word[2];
 
 		sample = scale(* left++);
-		word[0] = (sample & 0xFF);
-		word[1] = (sample >> 8) & 0xFF;
+		word[0] = (unsigned char) (sample & 0xFF);
+		word[1] = (unsigned char) ((sample >> 8) & 0xFF);
 		write(ptr->audiofd, word, 2);
 
 		if(nchan == 2) {
 			sample = scale(* right++);
-			word[0] = (sample & 0xFF);
-			word[1] = (sample >> 8) & 0xFF;
+
+			word[0] = (unsigned char) (sample & 0xFF);
+			word[1] = (unsigned char) ((sample >> 8) & 0xFF);
+
 			write(ptr->audiofd, word, 2);
 		}
 	}
@@ -285,7 +284,7 @@ static enum mad_flow output(
 }
 #endif
 
-signed scale(register mad_fixed_t sample) {
+static signed scale(register mad_fixed_t sample) {
 	sample += (1L << (MAD_F_FRACBITS - 16));
 	
 	if(sample >= MAD_F_ONE)
@@ -294,8 +293,4 @@ signed scale(register mad_fixed_t sample) {
 		sample = -MAD_F_ONE;
 
 	return sample >> (MAD_F_FRACBITS + 1 - 16);
-}
-
-void disturb(int signo __attribute__((unused))) {
-	disturbed = !0;
 }

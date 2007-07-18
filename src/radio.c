@@ -34,6 +34,8 @@
 #include "strarray.h"
 #include "md5.h"
 
+#include "radio.h"
+
 #define LASTFM_URL_PREFIX "lastfm://"
 #define LASTFM_URL_MIN_LENGTH 6 // shortest possible: 'user/a'
 
@@ -327,13 +329,13 @@ static char **url_completion(const char * text, int start, int end) {
  */
 static char** gen_user_names(time_t *new_expie_time) {
 	char *url, *user = NULL, **resp, **names;
-	unsigned ulen, n, first, name_count, name_idx;
+	unsigned n, first, name_count, name_idx;
 
 	url = calloc (512, sizeof(char));
 
 	encode(value(&rc, "username"), &user);
 
-	ulen = snprintf (url, 512,
+	snprintf (url, 512,
 			"http://ws.audioscrobbler.com/1.0/user/%s/friends.txt",
 			user);
 
@@ -374,13 +376,13 @@ static char** gen_user_names(time_t *new_expie_time) {
  */
 static char** gen_user_tag_names(time_t *new_expie_time) {
 	char *url, *user = NULL, **resp;
-	unsigned ulen, t, first, u;
+	unsigned t, first, u;
 
 	url = calloc (512, sizeof(char));
 
 	user = cmpl_state.url_sa.strings[cmpl_state.word_idx-1];
 
-	ulen = snprintf (url, 512,
+	snprintf (url, 512,
 			"http://ws.audioscrobbler.com/1.0/user/%s/tags.txt",
 			user);
 
@@ -428,13 +430,13 @@ static char** gen_user_tag_names(time_t *new_expie_time) {
  */
 static char** gen_artist_names(time_t *new_expie_time) {
 	char *url, *user = NULL, **resp;
-	unsigned ulen, t, first, u;
+	unsigned t, first, u;
 
 	url = calloc (512, sizeof(char));
 
 	encode(value(&rc, "username"), &user);
 
-	ulen = snprintf (url, 512,
+	snprintf (url, 512,
 			"http://ws.audioscrobbler.com/1.0/user/%s/topartists.txt",
 			user);
 
@@ -485,13 +487,13 @@ static char** gen_artist_names(time_t *new_expie_time) {
  */
 static char** gen_tags_names(time_t *new_expie_time) {
 	char *url, *user = NULL, **resp;
-	unsigned ulen, t, first, u;
+	unsigned t, first, u;
 
 	url = calloc (512, sizeof(char));
 
 	encode(value(&rc, "username"), &user);
 
-	ulen = snprintf (url, 512,
+	snprintf (url, 512,
 			"http://ws.audioscrobbler.com/1.0/user/%s/tags.txt",
 			user);
 

@@ -32,7 +32,7 @@ static int rlstartup(void);
 static char * current_tags = NULL;
 static char ** popular_tags = NULL;
 
-void stripslashes(char *);
+static void stripslashes(char *);
 
 void tag(struct hash data) {
 	char key, * tagstring;
@@ -392,7 +392,7 @@ static int rlstartup(void) {
 	return 0;
 }
 
-void stripslashes(char * string) {
+static void stripslashes(char * string) {
 	unsigned x = 0;
 	while(x < strlen(string)) {
 		if(string[x] == 0x2F)

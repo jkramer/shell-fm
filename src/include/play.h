@@ -7,6 +7,6 @@
 
 #include <stdio.h>
 
-void playback(FILE *);
+extern void playback(FILE *);
 
 #endif

@@ -16,6 +16,8 @@
 #include "split.h"
 #include "getln.h"
 
+#include "submit.h"
+
 #define ERROR (strerror(errno))
 
 struct hash submission, * queue = NULL;
@@ -24,13 +26,8 @@ unsigned qlength = 0, submitting = 0;
 int handshaked = 0;
 pid_t subfork = 0;
 
-
-int handshake(const char *, const char *);
-void sliceq(unsigned);
-
-
-void dumpqueue(int);
-void loadqueue(int);
+static int handshake(const char *, const char *);
+static void sliceq(unsigned);
 
 
 /* Add a track to the scrobble queue. */
@@ -153,7 +150,7 @@ int submit(const char * user, const char * password) {
 
 
 /* Remove a number of tracks from the scrobble queue. */
-void sliceq(unsigned tracks) {
+static void sliceq(unsigned tracks) {
 	unsigned i;
 
 	if(tracks > qlength)
@@ -172,7 +169,7 @@ void sliceq(unsigned tracks) {
 
 
 /* Authenticate to the submission server. */
-int handshake(const char * user, const char * password) {
+static int handshake(const char * user, const char * password) {
 	char temp[10 + 32 + 1], hex[32 + 1], ** resp;
 	const char * url;
 	const unsigned char * md5;

@@ -5,12 +5,15 @@
 #ifndef SHELLFM_INTERFACE
 #define SHELLFM_INTERFACE
 
+#include "hash.h"
+
 extern const char * meta(const char *, int);
 extern void interface(int);
 extern void run(const char *);
 extern void canon(int);
 extern int fetchkey(unsigned);
-extern void shownp();
-extern void pause_music();
+extern void shownp(void);
+extern void tag(struct hash);
+extern void rate(const char *);
 
 #endif

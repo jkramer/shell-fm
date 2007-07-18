@@ -33,15 +33,11 @@
 #include "submit.h"
 #include "getln.h"
 
-extern unsigned discovery;
-extern pid_t playfork;
+#include "globals.h"
 
-extern struct hash rc;
 
 static int ssck = -1;
-
-int waitread(int, unsigned, unsigned);
-extern void rate(const char *);
+static int waitread(int, unsigned, unsigned);
 
 
 int mksckif(const char * ip, unsigned short port) {
@@ -180,7 +176,7 @@ void execcmd(const char * cmd, FILE * fd) {
 	fflush(fd);
 }
 
-int waitread(int fd, unsigned sec, unsigned usec) {
+static int waitread(int fd, unsigned sec, unsigned usec) {
 	fd_set readfd;
 	struct timeval tv;
 

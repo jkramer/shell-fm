@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "split.h"
+
 char ** split(char * string, const char * del, unsigned * pnsplt) {
 	char ** splt = NULL;
 	unsigned nsplt = 0;

@@ -24,17 +24,15 @@
 #include "settings.h"
 #include "getln.h"
 #include "http.h"
+#include "ropen.h"
+
 
 #ifndef USERAGENT
 #define USERAGENT "Shell.FM/0.3"
 #endif
 
-extern FILE * ropen(const char *, unsigned short);
-extern void fshutdown(FILE *);
 
 float avglag = 0.0;
-
-void freeln(char **, unsigned *);
 
 
 char ** fetch(const char * url, FILE ** pHandle, const char * data) {
@@ -86,7 +84,7 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data) {
 		char * ptr = NULL;
 		* port = (char) 0;
 		++port;
-		nport = strtol(port, & ptr, 10);
+		nport = (unsigned short) strtol(port, & ptr, 10);
 		if(ptr == port)
 			nport = 80;
 	}
@@ -240,10 +238,12 @@ unsigned decode(const char * orig, char ** decoded) {
 }
 
 void freeln(char ** line, unsigned * size) {
-	if(* size) {
+	if(size)
+		* size = 0;
+
+	if(line && * line) {
 		free(* line);
 		* line = NULL;
-		* size = 0;
 	}
 }
 
@@ -253,7 +253,7 @@ void lag(time_t reqtime) {
 	secwait += time(NULL) - reqtime;
 	++nreq;
 
-	avglag = (double) secwait / (double) nreq;
+	avglag = (float) secwait / (float) nreq;
 }
 
 
@@ -310,7 +310,7 @@ const char * makeurl(const char * fmt, ...) {
 					break;
 
 				case 'u':
-					pos += sprintf(& url[pos], "%d", va_arg(argv, unsigned));
+					pos += sprintf(& url[pos], "%u", va_arg(argv, unsigned));
 					break;
 			}
 			++src;

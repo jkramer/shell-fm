@@ -16,10 +16,9 @@
 
 #include "hash.h"
 #include "getln.h"
+#include "settings.h"
 
 struct hash rc; /* settings read from ~/.shell-fm.rc */
-
-const char * rcpath(const char *);
 
 int settings(const char * path, int first) {
 	int retval = !0;

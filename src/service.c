@@ -24,14 +24,13 @@
 #include "service.h"
 #include "playlist.h"
 
-extern int stationChanged, discovery, stopped;
+#include "globals.h"
 
 struct hash data; /* Warning! MUST be bzero'd ASAP or we're all gonna die! */
-extern struct hash track;
 
 pid_t playfork = 0; /* PID of the decoding & playing process, if running */
-struct playlist playlist;
 
+struct playlist playlist;
 char * currentStation = NULL;
 
 

@@ -35,23 +35,12 @@
 #include "md5.h"
 #include "submit.h"
 
-extern pid_t playfork;
-extern int discovery, record, changeTime, stopped;
-extern char * currentStation;
-extern time_t pausetime;
+#include "globals.h"
 
-int fetchkey(unsigned);
-void canon(int);
-const char * meta(const char *, int);
-void run(const char *);
-void tag(struct hash);
-void artistRadio();
-void rate(const char *);
+#include "interface.h"
+
 
 struct hash track;
-
-extern struct hash data;
-extern struct playlist playlist;
 
 
 void interface(int interactive) {
@@ -65,7 +54,7 @@ void interface(int interactive) {
 			return;
 
 		if(key == 27) {
-			char ch;
+			int ch;
 			while((ch = fetchkey(100000)) != -1 && !strchr("ABCDEFGHMPQRSZojmk~", ch));
 			return;
 		}
@@ -114,7 +103,7 @@ void interface(int interactive) {
 				printf("Discovery mode %s.\n", discovery ? "enabled" : "disabled");
 				if(playfork) {
 					printf(
-						"%d track(s) left to play/skip until change comes into affect.\n",
+						"%u track(s) left to play/skip until change comes into affect.\n",
 						playlist.left
 					);
 				}
@@ -316,7 +305,7 @@ void run(const char * cmd) {
 		if(!fd)
 			exit(EXIT_FAILURE);
 		else {
-			char ch;
+			int ch;
 			
 			while((ch = fgetc(fd)) != EOF)
 				fputc(ch, stdout);

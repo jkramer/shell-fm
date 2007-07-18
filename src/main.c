@@ -28,16 +28,12 @@
 #include "playlist.h"
 #include "submit.h"
 
+#include "globals.h"
 
+#ifndef PATH_MAX
 #define PATH_MAX 4096
+#endif
 
-extern struct hash data, track;
-extern struct playlist playlist;
-
-extern pid_t playfork, subfork;
-extern char * currentStation;
-extern float avglag;
-extern unsigned submitting;
 
 int stopped = 0, discovery = 0, stationChanged = 0, record = !0;
 time_t changeTime = 0, pausetime = 0;
@@ -139,9 +135,12 @@ int main(int argc, char ** argv) {
 
 	/* Open a port so Shell.FM can be controlled over network. */
 	if(haskey(& rc, "bind")) {
-		unsigned short port =
-			haskey(& rc, "port") ? atoi(value(& rc, "port")) : 54311;
-		if(mksckif(value(& rc, "bind"), port))
+		int port = 54311;
+
+		if(haskey(& rc, "port"))
+			port = atoi(value(& rc, "port"));
+
+		if(mksckif(value(& rc, "bind"), (unsigned short) port))
 			haveSocket = !0;
 	}
 
@@ -257,7 +256,7 @@ int main(int argc, char ** argv) {
 		if(playnext) {
 			unsigned
 				duration = atoi(value(& track, "duration")),
-				played = time(NULL) - changeTime;
+				played = time(NULL) - changeTime - pauselength;
 
 			playfork = 0;
 			
@@ -326,12 +325,11 @@ int main(int argc, char ** argv) {
 		playnext = 0;
 
 		if(playfork && changeTime && haskey(& track, "duration") && !pausetime) {
-			unsigned duration, played;
+			unsigned duration;
 			signed remain;
 			char remstr[32];
 
 			duration = atoi(value(& track, "duration")) / 1000;
-			played = time(NULL) - changeTime - pauselength;
 
 			remain = (changeTime + duration) - time(NULL) + pauselength;
 
