@@ -23,11 +23,6 @@ SHELL_FM_DEBUG
 
 # Checks for libraries.
 
-# FIXME: Replace `main' with a function in `-lcurses':
-AC_CHECK_LIB([curses], [main],, [
-	AC_MSG_ERROR([libcurses required but not found])
-])
-
 # FIXME: Replace `main' with a function in `-lmad':
 AC_CHECK_LIB([mad], [main],, [
 	AC_MSG_ERROR([libmad required but not found])
