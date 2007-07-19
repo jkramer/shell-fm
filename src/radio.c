@@ -30,11 +30,10 @@
 #include "completion.h"
 #include "strary.h"
 #include "md5.h"
-
 #include "radio.h"
-
 #include "readline.h"
 #include "history.h"
+#include "split.h"
 
 static int radiocomplete(char *, const unsigned);
 
@@ -86,7 +85,18 @@ void radioprompt(const char * prompt) {
 
 int radiocomplete(char * line, const unsigned max) {
 	unsigned length = strlen(line), nsplt = 0;
-	char ** splt;
+	char
+		** splt,
+		* types [] = {
+			"user",
+			"usertags",
+			"artist",
+			"globaltags",
+			"multipleartists",
+			"play",
+			NULL
+		},
+		* ptr, * match;
 
 	if(!strncasecmp(line, "lastfm://", 9)) {
 		memmove(line, line + 9, 9);
@@ -100,7 +110,11 @@ int radiocomplete(char * line, const unsigned max) {
 		return 0;
 	}
 
-	if(nsplt > 0) {
+	switch(nsplt) {
+		case 1:
+			match = nextmatch(types, splt[0]);
+			snprintf(line, max, "%s/", match);
+			break;
 	}
 
 	return !0;

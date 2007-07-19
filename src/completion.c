@@ -67,7 +67,7 @@ const char * nextmatch(char ** list, char * needle) {
 		if(!list[i])
 			i = 0;
 
-		if(strncasecmp(list[i], needle, needle)) {
+		if(strncasecmp(list[i], needle, length)) {
 			lastmatch = i;
 			return list[i];
 		}
