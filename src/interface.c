@@ -8,7 +8,6 @@
 
 #define _GNU_SOURCE
 
-
 #include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
@@ -19,9 +18,7 @@
 #include <sys/time.h>
 #include <signal.h>
 #include <stdarg.h>
-
-#include <readline/readline.h>
-#include <readline/history.h>
+#include <ctype.h>
 
 #include "service.h"
 #include "hash.h"
@@ -34,10 +31,9 @@
 #include "radio.h"
 #include "md5.h"
 #include "submit.h"
+#include "readline.h"
 
 #include "globals.h"
-
-#include "interface.h"
 
 
 struct hash track;
@@ -228,14 +224,6 @@ int fetchkey(unsigned nsec) {
 	return -1;
 }
 
-void canon(int enable) {
-	struct termios term;
-	tcgetattr(fileno(stdin), & term);
-	term.c_lflag = enable
-		? term.c_lflag | ICANON | ECHO
-		: term.c_lflag & ~(ICANON | ECHO);
-	tcsetattr(fileno(stdin), TCSANOW, & term);
-}
 
 #define remn (sizeof(string) - length - 1)
 const char * meta(const char * fmt, int colored) {
@@ -277,7 +265,7 @@ const char * meta(const char * fmt, int colored) {
 							// Strip leading spaces from end of color (Author: Ondrej Novy)
 							char * color_st = strdup(color);
 							size_t len = strlen(color_st) - 1;
-							while (isspace(color_st[len]) && len > 0) {
+							while(isspace(color_st[len]) && len > 0) {
 								color_st[len] = 0;
 								len--;
 							}

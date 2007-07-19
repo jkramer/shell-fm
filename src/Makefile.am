@@ -22,13 +22,14 @@ sckif.c \
 service.c \
 settings.c \
 split.c \
-strarray.c \
+strary.c \
 tag.c \
 pipe.c \
 md5.c \
 history.c \
 playlist.c \
-submit.c
+submit.c \
+readline.c
 
 
 ## vim: noet ts=8 sw=8

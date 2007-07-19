@@ -14,7 +14,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <readline/readline.h>
 
 #include "settings.h"
 #include "http.h"
@@ -23,21 +22,27 @@
 #include "completion.h"
 #include "md5.h"
 
-static char ** getPopularTags(char, struct hash);
-static char * getExistingTags(char, struct hash);
+#include "readline.h"
 
-static char** rlcompletion(const char *text, int start, int end);
-static int rlstartup(void);
+static char ** toptags(char, struct hash);
+static char * oldtags(char, struct hash);
 
-static char * current_tags = NULL;
-static char ** popular_tags = NULL;
+static char ** popular = NULL;
 
 static void stripslashes(char *);
+
+static int tagcomplete(char *, const unsigned);
+static int tagcompare(const void *, const void *);
 
 void tag(struct hash data) {
 	char key, * tagstring;
 	unsigned tslen;
-	rl_params_t save_rlp;
+	struct prompt setup = {
+		.prompt = "Tags (comma separated): ",
+		.line = NULL,
+		.history = NULL,
+		.callback = tagcomplete,
+	};
 
 	if(!data.content)
 		return;
@@ -50,36 +55,30 @@ void tag(struct hash data) {
 	if(key == 'q')
 		return;
 
-	save_rl_params(& save_rlp);
+	if((popular = toptags(key, data))) {
+		unsigned items = 0;
+		while(popular[items])
+			++items;
 
-	if((popular_tags = getPopularTags(key, data))) {
-		rl_basic_word_break_characters = ",";
-		rl_completer_word_break_characters = ",";
-		rl_completion_append_character = ',';
-		rl_attempted_completion_function = rlcompletion;
+		qsort(popular, items, sizeof(char *), tagcompare);
 	}
 
-	if((current_tags = getExistingTags(key, data)))
-		rl_startup_hook = rlstartup;
+	setup.line = oldtags(key, data);
 
-	canon(!0);
-	tagstring = readline("Your tags, comma separated:\n>> ");
+	tagstring = strdup(readline(& setup));
 
-	if(current_tags) {
-		free(current_tags);
-		current_tags = NULL;
+	if(setup.line) {
+		free(setup.line);
+		setup.line = NULL;
 	}
 
-	if(popular_tags) {
+	if(popular) {
 		unsigned x;
-		for(x = 0; popular_tags[x]; ++x)
-			free(popular_tags[x]);
-		free(popular_tags);
-		popular_tags = NULL;
+		for(x = 0; popular[x]; ++x)
+			free(popular[x]);
+		free(popular);
+		popular = NULL;
 	}
-
-	canon(0);
-	restore_rl_params(&save_rlp);
 
 	if(tagstring && (tslen = strlen(tagstring))) {
 		unsigned nsplt = 0, postlength = 0, x = 0, xmllength;
@@ -212,8 +211,9 @@ void tag(struct hash data) {
 	free(tagstring);
 }
 
-static char ** getPopularTags(char key, struct hash track) {
-	unsigned length, x, tag_count, tag_idx;
+
+static char ** toptags(char key, struct hash track) {
+	unsigned length, x, count, idx;
 	char ** tags = NULL, * url = calloc(512, sizeof(char)),
 			 * type = NULL, * artist = NULL, * arg = NULL,
 			 * file = NULL, ** resp;
@@ -246,7 +246,7 @@ static char ** getPopularTags(char key, struct hash track) {
 		free(arg);
 	}
 
-	strncpy (url+length, file, 512-length);
+	strncpy(url + length, file, 512 - length);
 
 	resp = fetch(url, NULL, NULL);
 	free(url);
@@ -254,40 +254,42 @@ static char ** getPopularTags(char key, struct hash track) {
 	if(!resp)
 		return NULL;
 
-	tag_count = 0;
-	for (x=0; resp[x]; x++) {
+	count = 0;
+	for(x = 0; resp[x]; ++x) {
 		char * pbeg = strstr(resp[x], "<name>");
-		if (pbeg)
-			tag_count ++;
+		if(pbeg)
+			++count;
 	}
 
-	tags = calloc (tag_count+1, sizeof (char*));
+	tags = calloc(count + 1, sizeof(char *));
 
-	for(x = 0, tag_idx = 0; resp[x]; ++x) {
+	for(x = 0, idx = 0; resp[x]; ++x) {
 		char * pbeg = strstr(resp[x], "<name>"), * pend;
 		if(pbeg) {
 			pbeg += 6;
 			pend = strstr(pbeg, "</name>");
 			if(pend) {
-				tags[tag_idx] = malloc (pend - pbeg + 1);
-				memcpy (tags[tag_idx], pbeg, pend - pbeg);
-				tags[tag_idx][pend - pbeg] = 0;
-				tag_idx++;
+				tags[idx] = malloc(pend - pbeg + 1);
+				memcpy(tags[idx], pbeg, pend - pbeg);
+				tags[idx][pend - pbeg] = 0;
+				++idx;
 
-				if (tag_idx >= tag_count)
+				if(idx >= count)
 					break;
 			}
 		}
+
 		free(resp[x]);
 	}
 	free(resp);
 
-	tags[tag_idx] = NULL;
+	tags[idx] = NULL;
 
 	return tags;
 }
 
-static char * getExistingTags(char key, struct hash track) {
+
+static char * oldtags(char key, struct hash track) {
 	unsigned length, x;
 	char * tags = NULL, * url = calloc(512, sizeof(char)),
 			 * user = NULL, * artist = NULL, * arg = NULL,
@@ -359,38 +361,6 @@ static char * getExistingTags(char key, struct hash track) {
 	return tags;
 }
 
-static char * __tag_match_generator(const char *text, int state) {
-	static int index, tlen;
-	char * tag;
-
-	if(!state) {
-		/* first time */
-		index = 0;
-		tlen = strlen (text);
-	}
-
-	while((tag = popular_tags[index])) {
-		++index;
-		if(strncmp(tag, text, tlen) == 0)
-			return strdup(tag);
-	}
-
-	return NULL;
-}
-
-static char ** rlcompletion(
-	const char * text,
-	int start __attribute__((unused)),
-	int end __attribute__((unused))
-) {
-	return rl_completion_matches(text, __tag_match_generator);
-}
-
-static int rlstartup(void) {
-	if(current_tags)
-		rl_insert_text(current_tags);
-	return 0;
-}
 
 static void stripslashes(char * string) {
 	unsigned x = 0;
@@ -400,4 +370,94 @@ static void stripslashes(char * string) {
 		else
 			++x;
 	}
+}
+
+
+static int tagcomplete(char * line, const unsigned max) {
+	char * ptr;
+	unsigned length, i;
+	static int index = 0, lastsug = -1;
+	static char last[256] = { 0, };
+
+	if(!popular)
+		return 0;
+
+	if((ptr = strrchr(line, ',')) == NULL)
+		ptr = line;
+	else
+		++ptr;
+
+	if(lastsug < 0 || strcmp(popular[lastsug], ptr)) {
+		index = 0;
+		lastsug = -1;
+		memset(last, 0, sizeof(0));
+	}
+
+	if(* last) {
+		* ptr = 0;
+		strcat(ptr, last);
+	}
+
+	length = strlen(ptr);
+
+	if(length > 0) {
+		int matches = 0;
+
+		for(i = 0; popular[i]; ++i)
+			if(!strncasecmp(ptr, popular[i], length))
+				++matches;
+
+		if(matches < 1)
+			return 0;
+		else if(matches > 1) {
+			int match = 0;
+			++index;
+			if(index > matches)
+				index = 1;
+
+			if(lastsug < 0)
+				strncpy(last, ptr, length);
+
+			for(i = 0; popular[i]; ++i)
+				if(!strncasecmp(popular[i], last, strlen(last))) {
+					++match;
+					if(match == index)
+						break;
+				}
+
+			line[strlen(line) - strlen(last)] = 0;
+			strncpy(ptr, popular[i], max - (unsigned) (ptr - line) - 1);
+			lastsug = i;
+		} else {
+			for(i = 0; popular[i] && strncasecmp(ptr, popular[i], length); ++i);
+			strncat(line, popular[i] + length, max - strlen(line));
+			strncat(line, ",", max - strlen(line));
+		}
+	} else {
+		unsigned width = 0;
+		fputs("\n\nPopular tags:\n", stderr);
+		for(i = 0; popular[i]; ++i) {
+			width += strlen(popular[i]) + 2;
+			fputs(popular[i], stderr);
+
+			if(popular[i + 1]) {
+				fputs(", ", stderr);
+
+				if(width + strlen(popular[i + 1]) >= 60) {
+					fputs("\n", stderr);
+					width = 0;
+				}
+			} else
+				fputs("\n", stderr);
+		}
+
+		fputs("\n", stderr);
+	}
+
+	return !0;
+}
+
+
+static int tagcompare(const void * one, const void * two) {
+	return strcasecmp(* (char * const *) one, * (char * const *) two);
 }

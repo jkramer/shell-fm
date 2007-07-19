@@ -20,8 +20,9 @@ sckif.h \
 service.h \
 settings.h \
 split.h \
-strarray.h \
+strary.h \
 submit.h \
-tag.h
+tag.h \
+readline.h
 
 ## vim: noet ts=8 sw=8

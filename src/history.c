@@ -60,3 +60,38 @@ void histapp(const char * radio) {
 
 	return;
 }
+
+char ** slurp(const char * path) {
+	char ** history = NULL;
+	unsigned items = 0;
+	FILE * fd;
+
+	if((fd = fopen(path, "r")) != NULL) {
+		char * line = NULL;
+		unsigned size = 0;
+
+		while(!feof(fd)) {
+			if(!getln(& line, & size, fd))
+				continue;
+
+			if(strlen(line) > 1) {
+				char * ptr;
+				if((ptr = strrchr(line, 10)) != NULL)
+					* ptr = (char) 0;
+
+				if(strlen(line) > 0) {
+					history = realloc(history, sizeof(char *) * (items + 2));
+					history[items] = strdup(line);
+					history[++items] = NULL;
+				}
+			}
+		}
+
+		if(line)
+			free(line);
+
+		fclose(fd);
+	}
+
+	return history;
+}

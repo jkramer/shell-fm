@@ -11,4 +11,6 @@
 #define __UNUSED__ __attribute__((unused))
 #endif
 
+extern const char * nextmatch(char **, char *);
+
 #endif // SHELLFM_COMPATIBILITY

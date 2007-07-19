@@ -115,8 +115,12 @@ int station(const char * stationURL) {
 			break;
 		}
 
+<<<<<<< .mine
+
+=======
 	/* fprintf(stderr, "URL=<%s>, regular=<%d>\n", stationURL, regular); */
 
+>>>>>>> .r237
 	/*
 		If this is not a special "one-time" stream, it's a regular radio
 		station and we request it using the good old /adjust.php URL.
