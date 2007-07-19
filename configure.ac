@@ -33,10 +33,6 @@ AC_CHECK_LIB([mad], [main],, [
 	AC_MSG_ERROR([libmad required but not found])
 ])
 
-AC_CHECK_LIB([readline], [using_history],, [
-	AC_MSG_ERROR([libreadline required but not found])
-])
-
 SHELL_FM_HAVE_AO
 
 # Checks for header files.
