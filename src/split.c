@@ -22,22 +22,23 @@ char ** split(char * string, const char * del, unsigned * pnsplt) {
 		return NULL;
 	
 	while(* ptr) {
-		while(strchr(del, * ptr))
+		while(* ptr && strchr(del, * ptr))
 			++ptr;
 		if(* ptr) {
 			register unsigned length = 0;
-			splt = realloc(splt, sizeof(char *) * (nsplt + 1));
+			splt = realloc(splt, sizeof(char *) * (nsplt + 2));
 			assert(splt != NULL);
 			splt[nsplt] = calloc(strlen(ptr) + 1, sizeof(char));
 			assert(splt[nsplt] != NULL);
-			while(!strchr(del, * ptr))
+			while(* ptr && !strchr(del, * ptr))
 				splt[nsplt][length++] = * (ptr++);
 			splt[nsplt] = realloc(splt[nsplt], length + 1);
-			++nsplt;
+			splt[++nsplt] = NULL;
 		}
 	}
 
 	if(pnsplt)
 		* pnsplt = nsplt;
+
 	return splt;
 }

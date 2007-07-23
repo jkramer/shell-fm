@@ -5,7 +5,7 @@
 struct prompt {
 	const char * prompt;
 	char * line, ** history;
-	int (* callback)(char *, const unsigned);
+	int (* callback)(char *, const unsigned, int);
 };
 
 extern char * readline(struct prompt *);

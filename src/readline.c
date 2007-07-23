@@ -12,7 +12,7 @@
 static void delete(unsigned);
 
 char * readline(struct prompt * setup) {
-	int eoln = 0, seq = 0, histsize = 0, index = -1;
+	int eoln = 0, seq = 0, histsize = 0, index = -1, changed = !0;
 	static char line[1024];
 	unsigned length = 0;
 
@@ -32,6 +32,7 @@ char * readline(struct prompt * setup) {
 
 	/* Count items in history. */
 	for(histsize = 0; setup->history && setup->history[histsize]; ++histsize);
+	index = histsize - 1;
 
 	canon(0);
 
@@ -40,12 +41,15 @@ char * readline(struct prompt * setup) {
 		switch(key) {
 			case 9: /* Tab. */
 				/* Call the callback function for completion if present. */
-				if(setup->callback != NULL)
-					if(setup->callback(line, sizeof(line))) {
+				if(setup->callback != NULL) {
+					if(setup->callback(line, sizeof(line), changed)) {
 						delete(length);
 						length = strlen(line);
+						memset(line + length, 0, sizeof(line) - length);
 						fprintf(stderr, "\r%s%s", setup->prompt, line);
 					}
+					changed = 0;
+				}
 				break;
 
 			case 4: /* EOF (^D) */
@@ -61,22 +65,26 @@ char * readline(struct prompt * setup) {
 						line[--length] = 0;
 						delete(1);
 					}
+					changed = !0;
 				}
 
 				break;
 
 			case 27: /* Escape. */
 				++seq;
+				changed = !0;
 				break;
 
 			case 127: /* Backspace. */
 				if(length > 0) {
 					delete(1);
 					line[--length] = 0;
+					changed = !0;
 				}
 				break;
 
 			default:
+				changed = !0;
 				if(seq > 0) {
 					if(seq < 2)
 						++seq;
@@ -86,12 +94,11 @@ char * readline(struct prompt * setup) {
 							case 65: /* Up. */
 							case 66: /* Down. */
 								if(histsize) {
-									if(key == 65 && index < histsize - 1)
+									if(key == 66 && index < histsize - 1)
 										++index;
 
-									if(key == 66 && index > -1)
+									if(key == 65 && index > -1)
 										--index;
-
 
 									delete(length);
 									memset(line, 0, length);

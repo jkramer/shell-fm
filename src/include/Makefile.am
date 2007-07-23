@@ -23,6 +23,7 @@ split.h \
 strary.h \
 submit.h \
 tag.h \
-readline.h
+readline.h \
+feeds.h
 
 ## vim: noet ts=8 sw=8

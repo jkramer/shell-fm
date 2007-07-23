@@ -26,53 +26,50 @@
 
 #include "compatibility.h"
 #include "completion.h"
-#include "strary.h"
-#include "md5.h"
 
 
 const char * nextmatch(char ** list, char * needle) {
-	static char ** lastlist = NULL, * lastneedle = NULL;
-	static int lastmatch = 0, matches = 0;
-	int continued = 0, i = 0, length;
+	static char lastneedle[64] = { 0 };
+	static int lastmatch = 0, matches = 0, nlen = 0;
+	register unsigned i;
 
-	assert(list != NULL && needle != NULL);
-	length = strlen(needle);
+	assert(list != NULL);
 
-	if(lastlist != list || lastneedle != needle || strcmp(needle, lastneedle)) {
-		lastlist = list;
-		lastneedle = needle;
+	/* Check if a new search is needed or wanted. */
+	if(needle != NULL) {
+		/* Remember needle for repeated calls. */
+		memset(lastneedle, 0, sizeof(lastneedle));
+		strncpy(lastneedle, needle, sizeof(lastneedle) - 1);
 
-		lastmatch = 0;
-		matches = 0;
-
-		for(i = 0; list[i]; ++i)
-			if(strncasecmp(list[i], needle, length))
+		/* Count number of matches of needle in list. */
+		nlen = strlen(needle);
+		for(matches = i = 0; list[i] != NULL; ++i)
+			if(!strncasecmp(list[i], needle, nlen))
 				++matches;
 
-		if(!matches)
-			return needle;
+		/* Start search at first item. */
+		i = 0;
 	} else {
-		if(matches == 1)
-			return list[lastmatch];
-		else if(!matches)
-			return needle;
+		/* Search for the last given needle. */
+		needle = lastneedle;
+		nlen = strlen(needle);
 
-		continued = !0;
+		/* Start search at first item after the last matched one. */
 		i = lastmatch + 1;
-		if(!list[i])
-			i = 0;
 	}
 
-	while(list[i]) {
-		if(!list[i])
-			i = 0;
+	if(matches) {
+		while(matches > 0) {
+			if(!list[i])
+				i = 0;
 
-		if(!strncasecmp(list[i], needle, length)) {
-			lastmatch = i;
-			return list[i];
+			if(!strncasecmp(list[i], needle, nlen)) {
+				lastmatch = i;
+				return list[i];
+			}
+
+			++i;
 		}
-
-		++i;
 	}
 
 	return NULL;

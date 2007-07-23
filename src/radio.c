@@ -34,9 +34,12 @@
 #include "readline.h"
 #include "history.h"
 #include "split.h"
+#include "feeds.h"
 
-static int radiocomplete(char *, const unsigned);
 
+static int radiocomplete(char *, const unsigned, int);
+
+static char ** users = NULL, ** artists = NULL;
 
 /*
  * This function is called to change the station
@@ -67,7 +70,20 @@ void radioprompt(const char * prompt) {
 		.callback = radiocomplete,
 	};
 
+	users = neighbors(value(& rc, "username"));
+	artists = topartists(value(& rc, "username"));
+
 	url = readline(& setup);
+
+	for(i = 0; users != NULL && users[i] != NULL; ++i)
+		free(users[i]);
+	free(users);
+	users = NULL;
+
+	for(i = 0; artists != NULL && artists[i] != NULL; ++i)
+		free(artists[i]);
+	free(artists);
+	artists = NULL;
 
 	if(setup.history) {
 		while(setup.history[i])
@@ -83,8 +99,9 @@ void radioprompt(const char * prompt) {
 }
 
 
-int radiocomplete(char * line, const unsigned max) {
-	unsigned length = strlen(line), nsplt = 0;
+int radiocomplete(char * line, const unsigned max, int changed) {
+	unsigned length = strlen(line), nsplt = 0, slash = 0;
+	const char * match;
 	char
 		** splt,
 		* types [] = {
@@ -92,16 +109,17 @@ int radiocomplete(char * line, const unsigned max) {
 			"usertags",
 			"artist",
 			"globaltags",
-			"multipleartists",
 			"play",
 			NULL
-		},
-		* ptr, * match;
+		};
 
 	if(!strncasecmp(line, "lastfm://", 9)) {
 		memmove(line, line + 9, 9);
 		memset(line + 9, 0, max - (length -= 9));
 	}
+
+	if(line[length - 1] == '/')
+		slash = 1;
 
 	splt = split(line, "/", & nsplt);
 	
@@ -110,12 +128,34 @@ int radiocomplete(char * line, const unsigned max) {
 		return 0;
 	}
 
-	switch(nsplt) {
+	/*
+	fprintf(stderr, "\nCHANGED=<%d>\nLEVEL=<%d>\nLINE=<%s>\n", changed, nsplt, line);
+	for(i = 0; splt[i] != NULL; ++i)
+		fprintf(stderr, "%i=<%s>\n", i, splt[i]);
+	fputs("\n", stderr);
+	*/
+
+	switch(nsplt + slash) {
 		case 1:
-			match = nextmatch(types, splt[0]);
-			snprintf(line, max, "%s/", match);
+			if((match = nextmatch(types, changed ? splt[0] : NULL)) != NULL)
+				snprintf(line, max, "%s", match);
+			break;
+
+		case 2:
+			if(!strcmp(splt[0], "user") || !strcmp(splt[0], "usertags")) {
+				match = nextmatch(users, changed ? (slash ? "" : splt[1]) : NULL);
+				snprintf(line, max, "%s/%s", splt[0], match ? match : splt[1]);
+			} else if(!strcmp(splt[0], "artist")) {
+				match = nextmatch(artists, changed ? (slash ? "" : splt[1]) : NULL);
+				snprintf(line, max, "%s/%s", splt[0], match ? match : splt[1]);
+			}
 			break;
 	}
+
+	while(nsplt--)
+		free(splt[nsplt]);
+
+	free(splt);
 
 	return !0;
 }

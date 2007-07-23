@@ -5,6 +5,9 @@
 #ifndef SHELLFM_HTTP
 #define SHELLFM_HTTP
 
+#include <stdio.h>
+#include <sys/time.h>
+
 #include "hash.h"
 
 extern char ** fetch(const char *, FILE **, const char *);

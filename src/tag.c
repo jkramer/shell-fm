@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "settings.h"
 #include "http.h"
@@ -31,7 +32,7 @@ static char ** popular = NULL;
 
 static void stripslashes(char *);
 
-static int tagcomplete(char *, const unsigned);
+static int tagcomplete(char *, const unsigned, int);
 static int tagcompare(const void *, const void *);
 
 void tag(struct hash data) {
@@ -47,12 +48,11 @@ void tag(struct hash data) {
 	if(!data.content)
 		return;
 
-	fputs("Tag artist, album or track (or abort)? [aAtq]\n", stdout);
-	fflush(stdout);
+	fputs("Tag (a)rtist, a(l)bum, (t)rack or (c)ancel?\n", stderr);
 
-	while(!strchr("aAtq", (key = fetchkey(2))));
+	while(!strchr("altc", (key = fetchkey(2))));
 
-	if(key == 'q')
+	if(key == 'c')
 		return;
 
 	if((popular = toptags(key, data))) {
@@ -113,7 +113,7 @@ void tag(struct hash data) {
 					"</methodCall>\n";
 				break;
 
-			case 'A':
+			case 'l':
 				token = value(& data, "album");
 				xmlformat =
 					"<?xml version=\"1.0\"?>\n"
@@ -221,7 +221,7 @@ static char ** toptags(char key, struct hash track) {
 	file = "toptags.xml";
 	
 	switch(key) {
-		case 'A': /* album has not special tags */
+		case 'l': /* album has not special tags */
 		case 'a': /* artist tags */
 			type = "artist";
 			break;
@@ -281,6 +281,7 @@ static char ** toptags(char key, struct hash track) {
 
 		free(resp[x]);
 	}
+
 	free(resp);
 
 	tags[idx] = NULL;
@@ -299,7 +300,7 @@ static char * oldtags(char key, struct hash track) {
 		case 'a':
 			file = "artisttags.xml";
 			break;
-		case 'A':
+		case 'l':
 			file = "albumtags.xml";
 			break;
 		case 't':
@@ -319,7 +320,7 @@ static char * oldtags(char key, struct hash track) {
 	free(user);
 	free(artist);
 
-	if(key == 'A') {
+	if(key == 'l') {
 		encode(value(& track, "album"), & arg);
 		stripslashes(arg);
 		length += snprintf(url + length, 512 - length, "&album=%s", arg);
@@ -372,15 +373,29 @@ static void stripslashes(char * string) {
 	}
 }
 
-
-static int tagcomplete(char * line, const unsigned max) {
-	char * ptr;
+/* THE "changed" PARAMETER WAS ADDED WHICH MAKES THIS A LOT MORE EASY! FIX! */
+static int tagcomplete(char * line, const unsigned max, int changed) {
+	char * ptr = line;
 	unsigned length, i;
 	static int index = 0, lastsug = -1;
 	static char last[256] = { 0, };
+	int retval = 0;
 
-	if(!popular)
-		return 0;
+	length = strlen(line);
+
+	while(isspace(line[0])) {
+		memmove(line, line + 1, strlen(line + 1));
+		line[--length] = 0;
+		retval = !0;
+	}
+
+	while(isspace(line[(length = strlen(line)) - 1])) {
+		retval = !0;
+		line[--length] = 0;
+	}
+
+	if(!popular || !popular[0])
+		return retval;
 
 	if((ptr = strrchr(line, ',')) == NULL)
 		ptr = line;
@@ -408,7 +423,7 @@ static int tagcomplete(char * line, const unsigned max) {
 				++matches;
 
 		if(matches < 1)
-			return 0;
+			return retval;
 		else if(matches > 1) {
 			int match = 0;
 			++index;

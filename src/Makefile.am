@@ -29,7 +29,8 @@ md5.c \
 history.c \
 playlist.c \
 submit.c \
-readline.c
+readline.c \
+feeds.c
 
 
 ## vim: noet ts=8 sw=8
