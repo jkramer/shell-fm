@@ -43,7 +43,10 @@ int expand(struct playlist * list) {
 			strcpy(xml + length, response[n]);
 			length += strlen(response[n]);
 			xml[length] = 0;
+			free(response[n]);
 		}
+
+		free(response);
 
 		retval = parsexspf(list, xml);
 		free(xml);
@@ -64,6 +67,12 @@ int parsexspf(struct playlist * list, const char * xml) {
 		char * track, * radio = NULL;
 
 		radio = strndup(ptr + 7, strcasestr(xml, "</title>") - ptr - 7);
+
+		if(list->title != NULL) {
+			free(list->title);
+			list->title = NULL;
+		}
+
 		decode(radio, & list->title);
 		unhtml(list->title);
 		free(radio);
@@ -143,7 +152,7 @@ void push(struct playlist * list, struct tracknode * node) {
 		last->next = node;
 	}
 
-	++(list->left);
+	++list->left;
 }
 
 void shift(struct playlist * list) {

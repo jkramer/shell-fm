@@ -60,7 +60,8 @@ FILE * ropen(const char * host, unsigned short port) {
 	return fd;
 }
 
-void fshutdown(FILE * fd) {
-	shutdown(fileno(fd), SHUT_RDWR);
-	fclose(fd);
+void fshutdown(FILE ** fd) {
+	shutdown(fileno(* fd), SHUT_RDWR);
+	fclose(* fd);
+	* fd = NULL;
 }

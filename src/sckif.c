@@ -159,7 +159,7 @@ void execcmd(const char * cmd, FILE * fd) {
 		case 3:
 			if(playfork) {
 				rate("S");
-				kill(playfork, SIGKILL);
+				kill(playfork, SIGUSR1);
 			}
 			break;
 

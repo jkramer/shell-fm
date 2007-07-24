@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <assert.h>
 
 #include "settings.h"
 #include "http.h"
@@ -22,18 +23,15 @@
 #include "interface.h"
 #include "completion.h"
 #include "md5.h"
+#include "feeds.h"
 
 #include "readline.h"
+#include "tag.h"
 
-static char ** toptags(char, struct hash);
 static char * oldtags(char, struct hash);
-
 static char ** popular = NULL;
 
-static void stripslashes(char *);
-
 static int tagcomplete(char *, const unsigned, int);
-static int tagcompare(const void *, const void *);
 
 void tag(struct hash data) {
 	char key, * tagstring;
@@ -59,8 +57,6 @@ void tag(struct hash data) {
 		unsigned items = 0;
 		while(popular[items])
 			++items;
-
-		qsort(popular, items, sizeof(char *), tagcompare);
 	}
 
 	setup.line = oldtags(key, data);
@@ -212,84 +208,6 @@ void tag(struct hash data) {
 }
 
 
-static char ** toptags(char key, struct hash track) {
-	unsigned length, x, count, idx;
-	char ** tags = NULL, * url = calloc(512, sizeof(char)),
-			 * type = NULL, * artist = NULL, * arg = NULL,
-			 * file = NULL, ** resp;
-
-	file = "toptags.xml";
-	
-	switch(key) {
-		case 'l': /* album has not special tags */
-		case 'a': /* artist tags */
-			type = "artist";
-			break;
-		case 't':
-		default:
-			type = "track";
-	}
-
-	encode(value(& track, "creator"), & artist);
-	stripslashes(artist);
-
-	length = snprintf(
-			url, 512, "http://ws.audioscrobbler.com/1.0/%s/%s/",
-			type, artist);
-
-	free(artist);
-
-	if(key == 't') {
-		encode(value(& track, "title"), & arg);
-		stripslashes(arg);
-		length += snprintf(url + length, 512 - length, "%s/", arg);
-		free(arg);
-	}
-
-	strncpy(url + length, file, 512 - length);
-
-	resp = fetch(url, NULL, NULL);
-	free(url);
-
-	if(!resp)
-		return NULL;
-
-	count = 0;
-	for(x = 0; resp[x]; ++x) {
-		char * pbeg = strstr(resp[x], "<name>");
-		if(pbeg)
-			++count;
-	}
-
-	tags = calloc(count + 1, sizeof(char *));
-
-	for(x = 0, idx = 0; resp[x]; ++x) {
-		char * pbeg = strstr(resp[x], "<name>"), * pend;
-		if(pbeg) {
-			pbeg += 6;
-			pend = strstr(pbeg, "</name>");
-			if(pend) {
-				tags[idx] = malloc(pend - pbeg + 1);
-				memcpy(tags[idx], pbeg, pend - pbeg);
-				tags[idx][pend - pbeg] = 0;
-				++idx;
-
-				if(idx >= count)
-					break;
-			}
-		}
-
-		free(resp[x]);
-	}
-
-	free(resp);
-
-	tags[idx] = NULL;
-
-	return tags;
-}
-
-
 static char * oldtags(char key, struct hash track) {
 	unsigned length, x;
 	char * tags = NULL, * url = calloc(512, sizeof(char)),
@@ -363,7 +281,7 @@ static char * oldtags(char key, struct hash track) {
 }
 
 
-static void stripslashes(char * string) {
+void stripslashes(char * string) {
 	unsigned x = 0;
 	while(x < strlen(string)) {
 		if(string[x] == 0x2F)
@@ -373,7 +291,52 @@ static void stripslashes(char * string) {
 	}
 }
 
-/* THE "changed" PARAMETER WAS ADDED WHICH MAKES THIS A LOT MORE EASY! FIX! */
+
+static int tagcomplete(char * line, const unsigned max, int changed) {
+	unsigned length;
+	int retval = 0;
+	char * ptr = NULL, * match = NULL;
+
+	assert(line != NULL);
+
+	length = strlen(line);
+
+	/* Remove spaces at the beginning of the string. */
+	while(isspace(line[0])) {
+		retval = !0;
+		memmove(line, line + 1, strlen(line + 1));
+		line[--length] = 0;
+	}
+
+	/* Remove spaces at the end of the string. */
+	while(isspace(line[(length = strlen(line)) - 1])) {
+		retval = !0;
+		line[--length] = 0;
+	}
+
+	/* No need for tab completion if there are no popular tags. */
+	if(!popular || !popular[0])
+		return retval;
+
+	/* Get pointer to the beginning of the last tag in tag string. */
+	if((ptr = strrchr(line, ',')) == NULL)
+		ptr = line;
+	else
+		++ptr;
+
+	length = strlen(ptr);
+
+	/* Get next match in list of popular tags. */
+	if((match = nextmatch(popular, changed ? ptr : NULL)) != NULL) {
+		strncpy(ptr, match, max - (ptr - line));
+		retval = !0;
+	}
+
+	return retval;
+}
+
+
+/*
 static int tagcomplete(char * line, const unsigned max, int changed) {
 	char * ptr = line;
 	unsigned length, i;
@@ -381,36 +344,10 @@ static int tagcomplete(char * line, const unsigned max, int changed) {
 	static char last[256] = { 0, };
 	int retval = 0;
 
-	length = strlen(line);
-
-	while(isspace(line[0])) {
-		memmove(line, line + 1, strlen(line + 1));
-		line[--length] = 0;
-		retval = !0;
-	}
-
-	while(isspace(line[(length = strlen(line)) - 1])) {
-		retval = !0;
-		line[--length] = 0;
-	}
-
-	if(!popular || !popular[0])
-		return retval;
-
-	if((ptr = strrchr(line, ',')) == NULL)
-		ptr = line;
-	else
-		++ptr;
-
-	if(lastsug < 0 || strcmp(popular[lastsug], ptr)) {
+	if(changed) {
 		index = 0;
 		lastsug = -1;
 		memset(last, 0, sizeof(0));
-	}
-
-	if(* last) {
-		* ptr = 0;
-		strcat(ptr, last);
 	}
 
 	length = strlen(ptr);
@@ -471,8 +408,4 @@ static int tagcomplete(char * line, const unsigned max, int changed) {
 
 	return !0;
 }
-
-
-static int tagcompare(const void * one, const void * two) {
-	return strcasecmp(* (char * const *) one, * (char * const *) two);
-}
+*/

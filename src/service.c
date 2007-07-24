@@ -23,6 +23,7 @@
 #include "history.h"
 #include "service.h"
 #include "playlist.h"
+#include "ropen.h"
 
 #include "globals.h"
 
@@ -181,7 +182,7 @@ int station(const char * stationURL) {
 
 	if(retval && playfork) {
 		stopped = !0;
-		kill(playfork, SIGKILL);
+		kill(playfork, SIGUSR1);
 	}
 
 	return retval;
@@ -219,7 +220,7 @@ int control(const char * cmd) {
 	free(response);
 
 	if(!strncmp("ban", cmd, 3) && retval && playfork)
-		kill(playfork, SIGKILL);
+		kill(playfork, SIGUSR1);
 
 	return retval;
 }
@@ -238,7 +239,7 @@ int play(struct playlist * list) {
 		return 0;
 
 	if(playfork) {
-		kill(playfork, SIGKILL);
+		kill(playfork, SIGUSR1);
 		return !0;
 	}
 
@@ -258,18 +259,22 @@ int play(struct playlist * list) {
 	} else {
 		FILE * fd = NULL;
 		const char * location = value(& list->track->track, "location");
+
 		if(location != NULL) {
 			fetch(location, & fd, NULL);
 
-			empty(& data);
-			freelist(list);
-
-			if(fd != NULL)
+			if(fd != NULL) {
 				playback(fd);
-
-			empty(& rc);
+				fshutdown(& fd);
+			}
 		}
-		exit(0);
+
+		freelist(list);
+		empty(& data);
+		empty(& track);
+		empty(& rc);
+
+		exit(EXIT_SUCCESS);
 	}
 
 	return !0;

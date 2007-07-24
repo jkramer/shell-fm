@@ -33,42 +33,43 @@ void set(struct hash * hash, const char * key, const char * value) {
 
 const char * value(struct hash * hash, const char * key) {
 	unsigned index = haskey(hash, key);
-
-	if(index)
-		return hash->content[index - 1].value;
-	
-	return "";
+	return index > 0 ? hash->content[index - 1].value : "";
 }
 
 void unset(struct hash * hash, const char * key) {
 	unsigned index = haskey(hash, key);
-	if(index--) {
-		if(hash->content[index].key)
+	if(index > 0) {
+		--index;
+
+		if(hash->content[index].key != NULL)
 			free(hash->content[index].key);
 
-		if(hash->content[index].value)
+		if(hash->content[index].value != NULL)
 			free(hash->content[index].value);
 
 		memcpy(
 				& hash->content[index],
-				& hash->content[hash->size - 1],
+				& hash->content[--hash->size],
 				sizeof(struct pair));
 
-		hash->content = realloc(hash->content, sizeof(struct pair) * --hash->size);
-		assert(hash->content);
+		hash->content = realloc(hash->content, sizeof(struct pair) * hash->size);
+		assert(hash->content != NULL);
 	}
 }
 
 void empty(struct hash * hash) {
-	if(hash && hash->content) {
-		while(hash->size-- > 0) {
-			if(hash->content[hash->size].key)
-				free(hash->content[hash->size].key);
+	if(hash != NULL) {
+		if(hash->content != NULL) {
+			while(hash->size > 0) {
+				--hash->size;
+				if(hash->content[hash->size].key != NULL)
+					free(hash->content[hash->size].key);
 
-			if(hash->content[hash->size].value)
-				free(hash->content[hash->size].value);
+				if(hash->content[hash->size].value != NULL)
+					free(hash->content[hash->size].value);
+			}
+			free(hash->content);
 		}
-		free(hash->content);
 		memset(hash, 0, sizeof(struct hash));
 	}
 }

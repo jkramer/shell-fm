@@ -73,7 +73,7 @@ void interface(int interactive) {
 			case 'n':
 				if(playfork) {
 					rate("S");
-					kill(playfork, SIGKILL);
+					kill(playfork, SIGUSR1);
 				}
 				break;
 
@@ -147,7 +147,7 @@ void interface(int interactive) {
 			case 'S':
 				if(playfork) {
 					stopped = !0;
-					kill(playfork, SIGKILL);
+					kill(playfork, SIGUSR1);
 				}
 				break;
 

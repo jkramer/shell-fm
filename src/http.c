@@ -112,7 +112,7 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data) {
 		validHead = sscanf(status, "HTTP/%*f %u", & nstatus);
 
 	if(nstatus != 200 && nstatus != 301) {
-		fshutdown(fd);
+		fshutdown(& fd);
 		if(size) {
 			if(validHead != 2)
 				fprintf(stderr, "Invalid HTTP: %s\n", status);
@@ -139,7 +139,7 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data) {
 			char newurl[512 + 1];
 			memset(newurl, 0, sizeof(newurl));
 			sscanf(line, "Location: %512[^\r\n]", newurl);
-			fshutdown(fd);
+			fshutdown(& fd);
 
 			lag(reqtime);
 			return fetch(newurl, pHandle, data);
@@ -162,21 +162,22 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data) {
 		line = NULL;
 		size = 0;
 		
-		resp = realloc(resp, (nline + 2) * sizeof(char *));
-		assert(resp != NULL);
-
 		if(getln(& line, & size, fd)) {
 			char * ptr = strchr(line, 10);
+
 			if(ptr != NULL)
 				* ptr = (char) 0;
+
+			resp = realloc(resp, (nline + 2) * sizeof(char *));
+			assert(resp != NULL);
+
 			resp[nline] = line;
+			resp[++nline] = NULL;
 		} else if(size)
 			free(line);
-
-		resp[++nline] = NULL;
 	}
 	
-	fshutdown(fd);
+	fshutdown(& fd);
 
 	lag(reqtime);
 	return resp;

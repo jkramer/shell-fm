@@ -22,77 +22,61 @@
 #include "compatibility.h"
 #include "strary.h"
 
-/* Initialize a string array structure. */
-void mkstrary(struct strary * sa) {
-	sa->strings = NULL;
-	sa->count = 0;
-	sa->max = 0;
+
+/* Counts the elements of a NULL-terminated array of strings. */
+unsigned count(char ** list) {
+	unsigned n = 0;
+
+	if(list)
+		while(list[n] != NULL)
+			++n;
+
+	return n;
 }
 
-/* Free and clear a string array structure. */
-void rmstrary(struct strary * sa) {
-	while(sa->count--)
-		free(sa->strings[sa->count]);
+/* Appends a string to a NULL-terminated array of strings. */
+char ** append(char ** list, const char * string) {
+	unsigned size = count(list);
 
-	free(sa->strings);
-	sa->strings = NULL;
+	list = realloc(list, sizeof(char *) * (size + 2));
+
+	list[size++] = strdup(string);
+	list[size] = NULL;
+
+	return list;
 }
 
-/* Append a string to a string array. */
-int strapp(struct strary * sa, char * str) {
-	/* Grow the array if needed. */
-	if(sa->count == sa->max) {
-		if(sa->max < 10)
-			sa->max = 10;
-		else
-			sa->max += (sa->max / 2);
+/*
+	Merge two arrays of strings. If the third parameter is zero,
+	the elements of the second array and the array itself are freed.
+*/
+char ** merge(char ** list, char ** appendix, int keep) {
+	unsigned size = count(list), i;
 
-		sa->strings = realloc(sa->strings, sa->max * sizeof (char *));
-		assert(sa->strings != NULL);
+	for(i = 0; appendix && appendix[i] != NULL; ++i) {
+		list = realloc(list, sizeof(char *) * (size + 2));
+		list[size++] = strdup(appendix[i]);
+		list[size] = NULL;
+
+		if(!keep)
+			free(appendix[i]);
 	}
 
-	/* Append the string. */
-	sa->strings[sa->count++] = str;
-	sa->strings[sa->count] = NULL;
+	if(appendix != NULL && !keep)
+		free(appendix);
 
-	return sa->count;
+	return list;
 }
 
-/* strdup a string a append the copy to a string array. */
-int strappdup(struct strary * sa, const char * str) {
-	return strapp(sa, strdup(str));
-}
 
-/* strndup a string a append the copy to a string array. */
-int strappndup(struct strary * sa, const char * str, unsigned len) {
-	return strapp(sa, strndup(str, len));
-}
+/* Free a NULL-terminated array of strings. */
+void purge(char ** list) {
+	unsigned i = 0;
 
-/* strdup the strings of a string array and append them to another one. */
-int straryapp(struct strary * dst, const struct strary * src) {
-	unsigned i;
-	int ret = dst->count;
-	for(i = 0; i < src->count; ++i) {
-		ret = strappdup(dst, src->strings[i]);
-		if(ret < 0)
-			break;
+	if(list != NULL) {
+		while(list[i] != NULL)
+			free(list[i++]);
+
+		free(list);
 	}
-
-	return ret;
-}
-
-/* Split a string at a given character and put the strings into an array. */
-int strappsplt(struct strary * sa, const char * str, char delim) {
-	const char * p, * c;
-
-	if(str == NULL)
-		return -1;
-
-	p = str;
-	while((c = strchr(p, delim))) {
-		strappndup(sa, p, c - p);
-		p = c + 1;
-	}
-
-	return strappdup(sa, p);
 }

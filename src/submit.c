@@ -29,6 +29,7 @@ pid_t subfork = 0;
 static int handshake(const char *, const char *);
 static void sliceq(unsigned);
 
+extern struct hash data, rc, track;
 
 /* Add a track to the scrobble queue. */
 int enqueue(struct hash * track) {
@@ -89,6 +90,9 @@ int submit(const char * user, const char * password) {
 
 	if(!handshaked && !handshake(user, password)) {
 		fputs("Handshake failed.\n", stderr);
+		empty(& rc);
+		empty(& track);
+		empty(& data);
 		exit(retval);
 	}
 
@@ -145,6 +149,9 @@ int submit(const char * user, const char * password) {
 	if(retval)
 		puts("Couldn't scrobble track(s).");
 
+	empty(& rc);
+	empty(& track);
+	empty(& data);
 	exit(retval);
 }
 
@@ -161,10 +168,13 @@ static void sliceq(unsigned tracks) {
 
 	qlength -= tracks;
 
-	if(qlength > 0)
+	if(qlength > 0) {
 		memmove(queue, & queue[tracks], sizeof(struct hash) * qlength);
-
-	queue = realloc(queue, sizeof(struct hash) * qlength);
+		queue = realloc(queue, sizeof(struct hash) * qlength);
+	} else {
+		free(queue);
+		queue = NULL;
+	}
 }
 
 
@@ -260,6 +270,8 @@ void dumpqueue(int overwrite) {
 	} else {
 		fprintf(stderr, "Can't find suitable scrobble queue path.\n");
 	}
+
+	sliceq(qlength);
 }
 
 
@@ -303,7 +315,7 @@ void loadqueue(int overwrite) {
 				if(line)
 					free(line);
 			}
-		} else {
+			fclose(fd);
 		}
 	}
 }

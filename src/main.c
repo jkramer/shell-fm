@@ -380,6 +380,7 @@ static void cleanup(void) {
 
 	empty(& data);
 	empty(& rc);
+	empty(& track);
 
 	freelist(& playlist);
 
@@ -389,7 +390,7 @@ static void cleanup(void) {
 	dumpqueue(!0);
 	
 	if(playfork)
-		kill(playfork, SIGTERM);
+		kill(playfork, SIGUSR1);
 
 	if(subfork)
 		kill(subfork, SIGTERM);

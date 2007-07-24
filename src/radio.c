@@ -22,19 +22,15 @@
 #include <signal.h>
 #include <stdarg.h>
 
-#include "compatibility.h"
-#include "service.h"
-#include "interface.h"
+#include "completion.h"
 #include "http.h"
 #include "settings.h"
-#include "completion.h"
-#include "strary.h"
-#include "md5.h"
-#include "radio.h"
 #include "readline.h"
 #include "history.h"
 #include "split.h"
 #include "feeds.h"
+#include "strary.h"
+#include "service.h"
 
 
 static int radiocomplete(char *, const unsigned, int);
@@ -61,7 +57,6 @@ static char ** users = NULL, ** artists = NULL;
  */
 void radioprompt(const char * prompt) {
 	char * url, * decoded = NULL;
-	unsigned i = 0;
 
 	struct prompt setup = {
 		.prompt = prompt,
@@ -71,25 +66,20 @@ void radioprompt(const char * prompt) {
 	};
 
 	users = neighbors(value(& rc, "username"));
+	users = merge(users, friends(value(& rc, "username")), 0);
+	users = append(users, value(& rc, "username"));
+
 	artists = topartists(value(& rc, "username"));
 
 	url = readline(& setup);
 
-	for(i = 0; users != NULL && users[i] != NULL; ++i)
-		free(users[i]);
-	free(users);
-	users = NULL;
+	purge(users);
+	purge(artists);
 
-	for(i = 0; artists != NULL && artists[i] != NULL; ++i)
-		free(artists[i]);
-	free(artists);
-	artists = NULL;
+	users = artists = NULL;
 
-	if(setup.history) {
-		while(setup.history[i])
-			free(setup.history[i++]);
-		free(setup.history);
-	}
+	if(setup.history)
+		purge(setup.history);
 
 	if(strlen(url)) {
 		decode(url, & decoded);
@@ -148,6 +138,29 @@ int radiocomplete(char * line, const unsigned max, int changed) {
 			} else if(!strcmp(splt[0], "artist")) {
 				match = nextmatch(artists, changed ? (slash ? "" : splt[1]) : NULL);
 				snprintf(line, max, "%s/%s", splt[0], match ? match : splt[1]);
+			}
+			break;
+
+		case 3:
+			if(!strcmp(splt[0], "user")) {
+				char * radios [] = {
+					"personal",
+					"neighbours",
+					"loved",
+					"recommended",
+					NULL
+				};
+
+				match = nextmatch(radios, changed ? (slash ? "" : splt[2]) : NULL);
+				snprintf(line, max, "%s/%s/%s", splt[0], splt[1], match ? match : splt[2]);
+			} else if(!strcmp(splt[0], "artist")) {
+				char * radios [] = {
+					"fans",
+					"similar",
+					NULL
+				};
+				match = nextmatch(radios, changed ? (slash ? "" : splt[2]) : NULL);
+				snprintf(line, max, "%s/%s/%s", splt[0], splt[1], match ? match : splt[2]);
 			}
 			break;
 	}

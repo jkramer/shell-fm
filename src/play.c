@@ -54,8 +54,13 @@ static enum mad_flow input(void *, struct mad_stream *);
 static enum mad_flow output(void *, const struct mad_header *, struct mad_pcm *);
 static signed scale(mad_fixed_t);
 
+int killed = 0;
+
+static void sighand(int);
 
 void playback(FILE * streamfd) {
+	signal(SIGUSR1, sighand);
+
 	if(!haskey(& rc, "extern")) {
 		struct stream data;
 		struct mad_decoder dec;
@@ -137,12 +142,8 @@ void playback(FILE * streamfd) {
 			if(nbyte > 0)
 				fwrite(buf, sizeof(unsigned char), nbyte, ext);
 
-			if(kill(ppid, 0) == -1 && errno == ESRCH) {
-				free(buf);
-				fclose(ext);
-				fclose(streamfd);
-				exit(EXIT_FAILURE);
-			}
+			if(kill(ppid, 0) == -1 && errno == ESRCH)
+				break;
 		}
 
 		free(buf);
@@ -190,8 +191,11 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 #ifndef __HAVE_LIBAO__
 		close(ptr->audiofd);
 #endif
-		exit(EXIT_FAILURE);
+		return MAD_FLOW_STOP;
 	}
+
+	if(killed)
+		return MAD_FLOW_STOP;
 
 	return MAD_FLOW_CONTINUE;
 }
@@ -241,6 +245,9 @@ static enum mad_flow output(
 	ao_play(ptr->device, stream, pcm->length * (pcm->channels == 2 ? 4 : 2));
 	free(stream);
 
+	if(killed)
+		return MAD_FLOW_STOP;
+
 	return MAD_FLOW_CONTINUE;
 }
 #else
@@ -280,6 +287,9 @@ static enum mad_flow output(
 		}
 	}
 
+	if(killed)
+		return MAD_FLOW_STOP;
+
 	return MAD_FLOW_CONTINUE;
 }
 #endif
@@ -293,4 +303,9 @@ static signed scale(register mad_fixed_t sample) {
 		sample = -MAD_F_ONE;
 
 	return sample >> (MAD_F_FRACBITS + 1 - 16);
+}
+
+static void sighand(int sig) {
+	if(sig == SIGUSR1)
+		killed = !0;
 }
