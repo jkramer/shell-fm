@@ -90,7 +90,7 @@ void radioprompt(const char * prompt) {
 
 
 int radiocomplete(char * line, const unsigned max, int changed) {
-	unsigned length = strlen(line), nsplt = 0, slash = 0;
+	unsigned length = strlen(line), nsplt = 0, slash = 0, nres = 0;
 	const char * match;
 	char
 		** splt,
@@ -108,8 +108,10 @@ int radiocomplete(char * line, const unsigned max, int changed) {
 		memset(line + 9, 0, max - (length -= 9));
 	}
 
-	if(line[length - 1] == '/')
-		slash = 1;
+	if(line[length - 1] == '/') {
+		slash = !0;
+		changed = !0;
+	}
 
 	splt = split(line, "/", & nsplt);
 	
@@ -118,26 +120,21 @@ int radiocomplete(char * line, const unsigned max, int changed) {
 		return 0;
 	}
 
-	/*
-	fprintf(stderr, "\nCHANGED=<%d>\nLEVEL=<%d>\nLINE=<%s>\n", changed, nsplt, line);
-	for(i = 0; splt[i] != NULL; ++i)
-		fprintf(stderr, "%i=<%s>\n", i, splt[i]);
-	fputs("\n", stderr);
-	*/
-
 	switch(nsplt + slash) {
 		case 1:
-			if((match = nextmatch(types, changed ? splt[0] : NULL)) != NULL)
-				snprintf(line, max, "%s", match);
+			if((match = nextmatch(types, changed ? splt[0] : NULL, & nres)) != NULL)
+				snprintf(line, max, "%s%s", match, nres == 1 ? "/" : "");
 			break;
 
 		case 2:
 			if(!strcmp(splt[0], "user") || !strcmp(splt[0], "usertags")) {
-				match = nextmatch(users, changed ? (slash ? "" : splt[1]) : NULL);
-				snprintf(line, max, "%s/%s", splt[0], match ? match : splt[1]);
+				match = nextmatch(users, changed ? (slash ? "" : splt[1]) : NULL, & nres);
+				if(match)
+					snprintf(line, max, "%s/%s%s", splt[0], match, nres == 1 ? "/" : "");
 			} else if(!strcmp(splt[0], "artist")) {
-				match = nextmatch(artists, changed ? (slash ? "" : splt[1]) : NULL);
-				snprintf(line, max, "%s/%s", splt[0], match ? match : splt[1]);
+				match = nextmatch(artists, changed ? (slash ? "" : splt[1]) : NULL, & nres);
+				if(match)
+					snprintf(line, max, "%s/%s%s", splt[0], match, nres == 1 ? "/" : "");
 			}
 			break;
 
@@ -151,7 +148,7 @@ int radiocomplete(char * line, const unsigned max, int changed) {
 					NULL
 				};
 
-				match = nextmatch(radios, changed ? (slash ? "" : splt[2]) : NULL);
+				match = nextmatch(radios, changed ? (slash ? "" : splt[2]) : NULL, NULL);
 				snprintf(line, max, "%s/%s/%s", splt[0], splt[1], match ? match : splt[2]);
 			} else if(!strcmp(splt[0], "artist")) {
 				char * radios [] = {
@@ -159,7 +156,7 @@ int radiocomplete(char * line, const unsigned max, int changed) {
 					"similarartists",
 					NULL
 				};
-				match = nextmatch(radios, changed ? (slash ? "" : splt[2]) : NULL);
+				match = nextmatch(radios, changed ? (slash ? "" : splt[2]) : NULL, NULL);
 				snprintf(line, max, "%s/%s/%s", splt[0], splt[1], match ? match : splt[2]);
 			}
 			break;

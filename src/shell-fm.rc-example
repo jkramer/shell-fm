@@ -1,0 +1,101 @@
+# This is a sample configuration for Shell.FM. Just change
+# it to your needs and copy it to ~/.shell-fm/shell-fm.rc.
+# You might also want to touch(1) ~/.shell-fm/radio-history,
+# so you can browse and restart the stations you entered
+# before.
+
+# These are the only settings needed by Shell.FM to work.
+# All the other settings below are optional.
+
+username = yourname
+password = yourpassword
+
+# Url of your http proxy.
+
+# proxy = proxy.example.com
+
+# This is the (absolute!) path to a file in which Shell.FM
+# will store information about the currently played track
+# whenever it changes.
+
+#np-file = /tmp/now-playing
+
+
+# This is the format string, that Shell.FM will write to the
+# file pointed to by "np-file". This example would result in
+# a string like "np: artist - title". Have a look at the
+# project page for a complete list of valid variables.
+
+#np-file-format = np: %a - %t
+
+
+# Here you can specify an external command that is run by
+# Shell.FM whenever the track changes. The arguments may
+# contain the same variables as the "np-file-format" option.
+
+#np-cmd = echo "%a - %t" >> /tmp/shell-fm-history
+
+
+# If you want Shell.FM to automatically start playing a
+# stream on startup, you may specify the URL here.
+
+#default-radio = lastfm://user/yourname/personal
+
+
+# If you have any external programs you want to bind to
+# a key whithin Shell.FM, use this option. The format
+# is somewhat difficult. It starts with "key", followed
+# by the uppercase hexadecimal ASCII code of the key.
+# If the ASCII code is less than 0x10, you need to add
+# a zero (e.g. 0x9 would become 0x09). The command may
+# contain meta data variables, like the "np-file-format"
+# option. This example would use my lyrics fetch script
+# to get the lyrics of the currently played song whenever
+# I press "o".
+
+#key0x6F = /usr/local/bin/zyrc "%a" "%t"
+
+
+# This set of options will make Shell.FM print meta-data
+# in some fancy colors, if supported by your console. The
+# option consists of the corresponding character of the
+# format variable (e.g. "a" for artist, "t" for track title
+# and so on), followed by "-color". The actual color code
+# may be one of these:
+#
+# 0;30 = black (not very useful)
+# 1;30 = dark gray
+# 0;31 = red
+# 1;31 = light red
+# 0;32 = green
+# 1;32 = light green
+# 0;33 = dark yellow/brown
+# 1;33 = yellow
+# 0;34 = blue
+# 1;34 = light blue
+# 0;35 = violet
+# 1;35 = pink
+# 0;36 = turquoise
+# 1;36 = cyan
+# 0;37 = gray
+# 1;37 = white
+
+t-color = 1;32 # light green track titles
+a-color = 0;32 # dark green track artist names
+s-color = 1;37 # white station names
+# ...
+
+# If this is set to a valid IP or hostname,
+# shell-fm will open a listening socket where
+# you can send commands to. Use IP 127.0.0.1
+# or hostname to bind the socket to the loopback
+# interface (socket won't be available for others
+# over the network), or use the "real" IP or
+# hostname to make the socket available via
+# network.
+bind = localhost
+
+# By default, shell-fm binds to socket (see above)
+# to port 54311. With this option, you can specify
+# an other port, if you don't like the default.
+#port = 1234

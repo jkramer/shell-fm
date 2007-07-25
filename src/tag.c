@@ -293,9 +293,10 @@ void stripslashes(char * string) {
 
 
 static int tagcomplete(char * line, const unsigned max, int changed) {
-	unsigned length;
+	unsigned length, nres = 0;
 	int retval = 0;
-	char * ptr = NULL, * match = NULL;
+	char * ptr = NULL;
+	const char * match = NULL;
 
 	assert(line != NULL);
 
@@ -325,87 +326,15 @@ static int tagcomplete(char * line, const unsigned max, int changed) {
 		++ptr;
 
 	length = strlen(ptr);
+	if(!length)
+		changed = !0;
 
 	/* Get next match in list of popular tags. */
-	if((match = nextmatch(popular, changed ? ptr : NULL)) != NULL) {
-		strncpy(ptr, match, max - (ptr - line));
+	if((match = nextmatch(popular, changed ? ptr : NULL, & nres)) != NULL) {
+		snprintf(ptr, max - (ptr - line) - 1, "%s%s", match, nres < 2 ? "," : "");
 		retval = !0;
 	}
 
 	return retval;
 }
 
-
-/*
-static int tagcomplete(char * line, const unsigned max, int changed) {
-	char * ptr = line;
-	unsigned length, i;
-	static int index = 0, lastsug = -1;
-	static char last[256] = { 0, };
-	int retval = 0;
-
-	if(changed) {
-		index = 0;
-		lastsug = -1;
-		memset(last, 0, sizeof(0));
-	}
-
-	length = strlen(ptr);
-
-	if(length > 0) {
-		int matches = 0;
-
-		for(i = 0; popular[i]; ++i)
-			if(!strncasecmp(ptr, popular[i], length))
-				++matches;
-
-		if(matches < 1)
-			return retval;
-		else if(matches > 1) {
-			int match = 0;
-			++index;
-			if(index > matches)
-				index = 1;
-
-			if(lastsug < 0)
-				strncpy(last, ptr, length);
-
-			for(i = 0; popular[i]; ++i)
-				if(!strncasecmp(popular[i], last, strlen(last))) {
-					++match;
-					if(match == index)
-						break;
-				}
-
-			line[strlen(line) - strlen(last)] = 0;
-			strncpy(ptr, popular[i], max - (unsigned) (ptr - line) - 1);
-			lastsug = i;
-		} else {
-			for(i = 0; popular[i] && strncasecmp(ptr, popular[i], length); ++i);
-			strncat(line, popular[i] + length, max - strlen(line));
-			strncat(line, ",", max - strlen(line));
-		}
-	} else {
-		unsigned width = 0;
-		fputs("\n\nPopular tags:\n", stderr);
-		for(i = 0; popular[i]; ++i) {
-			width += strlen(popular[i]) + 2;
-			fputs(popular[i], stderr);
-
-			if(popular[i + 1]) {
-				fputs(", ", stderr);
-
-				if(width + strlen(popular[i + 1]) >= 60) {
-					fputs("\n", stderr);
-					width = 0;
-				}
-			} else
-				fputs("\n", stderr);
-		}
-
-		fputs("\n", stderr);
-	}
-
-	return !0;
-}
-*/

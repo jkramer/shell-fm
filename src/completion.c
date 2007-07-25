@@ -28,7 +28,7 @@
 #include "completion.h"
 
 
-const char * nextmatch(char ** list, char * needle) {
+const char * nextmatch(char ** list, char * needle, unsigned * nres) {
 	static char lastneedle[64] = { 0 };
 	static int lastmatch = 0, matches = 0, nlen = 0;
 	register unsigned i;
@@ -57,6 +57,9 @@ const char * nextmatch(char ** list, char * needle) {
 		/* Start search at first item after the last matched one. */
 		i = lastmatch + 1;
 	}
+
+	if(nres != NULL)
+		* nres = matches;
 
 	if(matches) {
 		while(matches > 0) {

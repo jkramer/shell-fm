@@ -7,6 +7,6 @@
 
 #include "strary.h"
 
-const char * nextmatch(char **, char *);
+const char * nextmatch(char **, char *, unsigned *);
 
 #endif
