@@ -59,6 +59,7 @@ int killed = 0;
 static void sighand(int);
 
 void playback(FILE * streamfd) {
+	killed = 0;
 	signal(SIGUSR1, sighand);
 
 	if(!haskey(& rc, "extern")) {

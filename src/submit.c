@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <errno.h>
+#include <signal.h>
 
 #include <assert.h>
 #include <time.h>
@@ -17,6 +18,7 @@
 #include "getln.h"
 
 #include "submit.h"
+#include "globals.h"
 
 #define ERROR (strerror(errno))
 
@@ -26,10 +28,12 @@ unsigned qlength = 0, submitting = 0;
 int handshaked = 0;
 pid_t subfork = 0;
 
+extern pid_t playfork;
+extern struct hash data, rc, track;
+
 static int handshake(const char *, const char *);
 static void sliceq(unsigned);
 
-extern struct hash data, rc, track;
 
 /* Add a track to the scrobble queue. */
 int enqueue(struct hash * track) {
@@ -80,22 +84,21 @@ int submit(const char * user, const char * password) {
 	if(!qlength || subfork > 0)
 		return 0;
 
-
 	submitting = qlength;
 	subfork = fork();
 
 	if(subfork != 0)
 		return !0;
 
+	playfork = 0;
+	enable(QUIET);
+
+	signal(SIGTERM, SIG_IGN);
 
 	if(!handshaked && !handshake(user, password)) {
 		fputs("Handshake failed.\n", stderr);
-		empty(& rc);
-		empty(& track);
-		empty(& data);
 		exit(retval);
 	}
-
 
 	/* Prepare POST body. */
 	body = malloc(stepsize);
@@ -149,9 +152,6 @@ int submit(const char * user, const char * password) {
 	if(retval)
 		puts("Couldn't scrobble track(s).");
 
-	empty(& rc);
-	empty(& track);
-	empty(& data);
 	exit(retval);
 }
 

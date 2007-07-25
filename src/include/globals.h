@@ -18,10 +18,20 @@ extern char * currentStation; /* Name of the current station. */
 extern float avglag; /* Average lag. */
 extern unsigned submitting; /* Number of tracks currently submitted. */
 extern time_t pausetime; /* Pause start time. */
-extern int
-	discovery, /* Discovery mode switch. */
-	record, /* RTP switch (Record To Profile). */
-	stopped, /* Radio stopped? */
-	stationChanged; /* Did station change? */
+
+
+extern unsigned flags;
+
+#define STOPPED 0x1
+#define DISCOVERY 0x2
+#define CHANGED 0x4
+#define RTP 0x8
+#define QUIET 0x10
+
+#define enabled(n) (flags & n)
+#define enable(n) (flags |= n)
+#define disable(n) (flags &= ~n)
+#define toggle(n) (flags ^= n)
+
 
 #endif

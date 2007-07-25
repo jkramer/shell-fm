@@ -33,7 +33,7 @@ int expand(struct playlist * list) {
 	assert(list != NULL);
 
 	memset(url, 0, sizeof(url));
-	snprintf(url, sizeof(url), fmt, value(& data, "session"), discovery);
+	snprintf(url, sizeof(url), fmt, value(& data, "session"), !!enabled(DISCOVERY));
 
 	if((response = fetch(url, NULL, NULL))) {
 		int retval;

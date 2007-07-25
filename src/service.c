@@ -172,7 +172,7 @@ int station(const char * stationURL) {
 		free(xml);
 	}
 	
-	stationChanged = !0;
+	enable(CHANGED);
 	histapp(stationURL);
 
 	if(currentStation)
@@ -181,7 +181,7 @@ int station(const char * stationURL) {
 	currentStation = strdup(stationURL);
 
 	if(retval && playfork) {
-		stopped = !0;
+		enable(STOPPED);
 		kill(playfork, SIGUSR1);
 	}
 
@@ -226,12 +226,6 @@ int control(const char * cmd) {
 }
 
 
-int setdiscover(int enable) {
-	char url[512] = { 0 };
-	snprintf(url, sizeof(url), "lastfm://settings/discovery/%s", enable ? "on" : "off");
-	return station(url);
-}
-
 int play(struct playlist * list) {
 	assert(list != NULL);
 
@@ -244,6 +238,7 @@ int play(struct playlist * list) {
 	}
 
 	playfork = fork();
+	enable(QUIET);
 
 	empty(& track);
 
@@ -271,8 +266,8 @@ int play(struct playlist * list) {
 
 		freelist(list);
 		empty(& data);
-		empty(& track);
 		empty(& rc);
+		subfork = 0;
 
 		exit(EXIT_SUCCESS);
 	}

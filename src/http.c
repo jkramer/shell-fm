@@ -25,6 +25,7 @@
 #include "getln.h"
 #include "http.h"
 #include "ropen.h"
+#include "globals.h"
 
 
 #ifndef USERAGENT
@@ -43,6 +44,7 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data) {
 	unsigned nline = 0, nstatus = 0, size = 0;
 	signed validHead = 0;
 	FILE * fd;
+	int useproxy;
 
 	time_t reqtime;
 
@@ -57,7 +59,9 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data) {
 		"Host: %s\r\n"
 		"User-Agent: " USERAGENT "\r\n";
 
-	int use_proxy = haskey(& rc, "proxy");
+	fputs("...\r", stderr);
+
+	useproxy = haskey(& rc, "proxy");
 
 	if(pHandle)
 		* pHandle = NULL;
@@ -67,7 +71,7 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data) {
 	host = & urlcpy[strncmp(urlcpy, "http://", 7) ? 0 : 7];
 	connhost = host;
 
-	if(use_proxy) {
+	if(useproxy) {
 		char proxcpy[512 + 1];
 		memset(proxcpy, (char) 0, sizeof(proxcpy));
 		strncpy(proxcpy, value(& rc, "proxy"), sizeof(proxcpy) - 1);
@@ -94,7 +98,7 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data) {
 
 	reqtime = time(NULL);
 
-	if(use_proxy)
+	if(useproxy)
 		fprintf(fd, proxiedheadFormat, data ? "POST" : "GET", host,
 				file ? file : "", host);
 	else
@@ -150,6 +154,8 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data) {
 
 	if(pHandle) {
 		* pHandle = fd;
+		if(!enabled(QUIET))
+			fputs("\r   \r", stderr);
 
 		lag(reqtime);
 		return NULL;
@@ -180,6 +186,8 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data) {
 	fshutdown(& fd);
 
 	lag(reqtime);
+	if(!enabled(QUIET))
+		fputs("\r   \r", stderr);
 	return resp;
 }
 

@@ -95,8 +95,8 @@ void interface(int interactive) {
 				break;
 
 			case 'd':
-				discovery = !discovery;
-				printf("Discovery mode %s.\n", discovery ? "enabled" : "disabled");
+				toggle(DISCOVERY);
+				printf("Discovery mode %s.\n", enabled(DISCOVERY) ? "enabled" : "disabled");
 				if(playfork) {
 					printf(
 						"%u track(s) left to play/skip until change comes into affect.\n",
@@ -118,8 +118,8 @@ void interface(int interactive) {
 				break;
 
 			case 'R':
-				record = !record;
-				printf("%s RTP.\n", record ? "Enabled" : "Disabled");
+				toggle(RTP);
+				printf("%s RTP.\n", enabled(RTP) ? "Enabled" : "Disabled");
 				break;
 
 			case 'f':
@@ -146,7 +146,7 @@ void interface(int interactive) {
 
 			case 'S':
 				if(playfork) {
-					stopped = !0;
+					enable(STOPPED);
 					kill(playfork, SIGUSR1);
 				}
 				break;

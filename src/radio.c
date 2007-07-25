@@ -156,7 +156,7 @@ int radiocomplete(char * line, const unsigned max, int changed) {
 			} else if(!strcmp(splt[0], "artist")) {
 				char * radios [] = {
 					"fans",
-					"similar",
+					"similarartists",
 					NULL
 				};
 				match = nextmatch(radios, changed ? (slash ? "" : splt[2]) : NULL);

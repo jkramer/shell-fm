@@ -17,7 +17,6 @@
 #include <signal.h>
 #include <sys/wait.h>
 #include <time.h>
-#include <readline/history.h>
 
 #include "hash.h"
 #include "service.h"
@@ -34,8 +33,7 @@
 #define PATH_MAX 4096
 #endif
 
-
-int stopped = 0, discovery = 0, stationChanged = 0, record = !0;
+unsigned flags = RTP;
 time_t changeTime = 0, pausetime = 0;
 
 static void cleanup(void);
@@ -206,6 +204,7 @@ int main(int argc, char ** argv) {
 		} else if(pid) {
 			exit(EXIT_SUCCESS);
 		}
+		enable(QUIET);
 	}
 
 
@@ -239,10 +238,11 @@ int main(int argc, char ** argv) {
 
 
 		/* Check if the user stopped the stream. */
-		if(stopped) {
+		if(enabled(STOPPED)) {
 			freelist(& playlist);
 			empty(& track);
-			playnext = playfork = stopped = 0;
+			playnext = playfork = 0;
+			disable(STOPPED);
 			continue;
 		}
 
@@ -255,12 +255,12 @@ int main(int argc, char ** argv) {
 		*/
 		if(playnext) {
 			unsigned
-				duration = atoi(value(& track, "duration")),
+				duration = atoi(value(& track, "duration")) / 1000,
 				played = time(NULL) - changeTime - pauselength;
 
 			playfork = 0;
-			
-			if(record && (played >= 240 || played > (duration / 2)))
+
+			if(enabled(RTP) && duration > 29 && (played >= 240 || played > (duration / 2)))
 				enqueue(& track);
 
 			submit(value(& rc, "username"), value(& rc, "password"));
@@ -269,13 +269,13 @@ int main(int argc, char ** argv) {
 		}
 
 
-		if(playnext || stationChanged) {
+		if(playnext || enabled(CHANGED)) {
 			if(!playlist.left) {
 				expand(& playlist);
 				if(!playlist.left) {
 					puts("No tracks left.");
 					playnext = 0;
-					stationChanged = 0;
+					disable(CHANGED);
 					continue;
 				}
 			}
@@ -286,7 +286,7 @@ int main(int argc, char ** argv) {
 
 					/* Print what's currently played. (Ondrej Novy) */
 					if(!background) {
-						if(stationChanged && playlist.left > 0)
+						if(enabled(CHANGED) && playlist.left > 0)
 							puts(meta("Receiving %s.", !0));
 
 						if(haskey(& rc, "title-format"))
@@ -321,7 +321,7 @@ int main(int argc, char ** argv) {
 			}
 		}
 
-		stationChanged = 0;
+		disable(CHANGED);
 		playnext = 0;
 
 		if(playfork && changeTime && haskey(& track, "duration") && !pausetime) {
@@ -384,16 +384,18 @@ static void cleanup(void) {
 
 	freelist(& playlist);
 
-	if(currentStation)
+	if(currentStation) {
 		free(currentStation);
+		currentStation = NULL;
+	}
+
+	if(subfork)
+		waitpid(subfork, NULL, 0);
 
 	dumpqueue(!0);
 	
 	if(playfork)
 		kill(playfork, SIGUSR1);
-
-	if(subfork)
-		kill(subfork, SIGTERM);
 }
 
 
