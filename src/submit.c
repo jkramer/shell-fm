@@ -301,6 +301,7 @@ void loadqueue(int overwrite) {
 						if(strchr("atirolbnm", key[0])) {
 							decode(splt[n] + 2, & value);
 							set(& track, key, value);
+							free(value);
 						}
 						free(splt[n]);
 					}

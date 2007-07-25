@@ -61,7 +61,7 @@ void radioprompt(const char * prompt) {
 	struct prompt setup = {
 		.prompt = prompt,
 		.line = NULL,
-		.history = slurp(rcpath("radio-history")),
+		.history = uniq(slurp(rcpath("radio-history"))),
 		.callback = radiocomplete,
 	};
 

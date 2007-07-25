@@ -32,7 +32,7 @@ char * readline(struct prompt * setup) {
 
 	/* Count items in history. */
 	for(histsize = 0; setup->history && setup->history[histsize]; ++histsize);
-	index = histsize - 1;
+	index = histsize;
 
 	canon(0);
 
@@ -104,7 +104,7 @@ char * readline(struct prompt * setup) {
 									memset(line, 0, length);
 									length = 0;
 
-									if(index > -1) {
+									if(index > -1 && index < histsize) {
 										strncpy(
 											line,
 											setup->history[index],

@@ -7,5 +7,6 @@
 
 extern void histapp(const char *);
 extern char ** slurp(const char *);
+extern char ** uniq(char **);
 
 #endif

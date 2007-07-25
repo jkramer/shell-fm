@@ -12,10 +12,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include "settings.h"
 #include "history.h"
 #include "getln.h"
+#include "strary.h"
 
 
 void histapp(const char * radio) {
@@ -94,4 +96,29 @@ char ** slurp(const char * path) {
 	}
 
 	return history;
+}
+
+
+char ** uniq(char ** list) {
+	if(list != NULL) {
+		int size = count(list), n = size;
+
+		while(--n) {
+			int x = n;
+
+			while(x-- > 0) {
+				if(!strcmp(list[n], list[x])) {
+					free(list[x]);
+					memmove(& list[x], & list[x + 1], sizeof(char *) * (size - x));
+					list[--size] = NULL;
+					--n;
+				}
+			}
+		}
+
+		list = realloc(list, sizeof(char *) * (size + 1));
+		assert(list != NULL);
+	}
+
+	return list;
 }
