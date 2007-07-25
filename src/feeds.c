@@ -1,4 +1,6 @@
 
+#define _GNU_SOURCE
+
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
@@ -99,69 +101,56 @@ char ** friends(const char * user) {
 
 char ** toptags(char key, struct hash track) {
 	unsigned length, x, count, idx;
-	char ** tags = NULL, * url = calloc(512, sizeof(char)),
-			 * type = NULL, * artist = NULL, * arg = NULL,
-			 * file = NULL, ** resp;
+	char ** tags = NULL, url[512 + 1], * type = NULL, * artist = NULL,
+		 ** resp;
 
-	file = "toptags.xml";
-	
-	switch(key) {
-		case 'l': /* album has not special tags */
-		case 'a': /* artist tags */
-			type = "artist";
-			break;
-		case 't':
-		default:
-			type = "track";
-	}
+	/* Get artist, album or track tags? */
+	type = strchr("al", key) ? "artist" : "track";
 
+	/* Prepare artist name for use in URL. */
 	encode(value(& track, "creator"), & artist);
 	stripslashes(artist);
 
+	/* Prepare URL for album / artist tags. */
+	memset(url, 0, sizeof(url));
 	length = snprintf(
-			url, 512, "http://ws.audioscrobbler.com/1.0/%s/%s/",
-			type, artist);
+		url, sizeof(url),
+		"http://ws.audioscrobbler.com/1.0/%s/%s/",
+		type, artist
+	);
 
 	free(artist);
 
+	/* Append title if we want track tags. */
 	if(key == 't') {
-		encode(value(& track, "title"), & arg);
-		stripslashes(arg);
-		length += snprintf(url + length, 512 - length, "%s/", arg);
-		free(arg);
+		char * title = NULL;
+		encode(value(& track, "title"), & title);
+		stripslashes(title);
+		length += snprintf(url + length, sizeof(url) - length, "%s/", title);
+		free(title);
 	}
 
-	strncpy(url + length, file, 512 - length);
+	strncpy(url + length, "toptags.xml", sizeof(url) - length - 1);
 
-	resp = fetch(url, NULL, NULL);
-	free(url);
-
-	if(!resp)
+	/* Fetch XML document. */
+	if((resp = fetch(url, NULL, NULL)) == NULL)
 		return NULL;
 
-	count = 0;
-	for(x = 0; resp[x]; ++x) {
-		char * pbeg = strstr(resp[x], "<name>");
-		if(pbeg)
+	/* Count tags in XML. */
+	for(count = x = 0; resp[x]; ++x)
+		if(strstr(resp[x], "<name>") != NULL)
 			++count;
-	}
 
 	tags = calloc(count + 1, sizeof(char *));
+	tags[count] = NULL;
 
-	for(x = 0, idx = 0; resp[x]; ++x) {
-		char * pbeg = strstr(resp[x], "<name>"), * pend;
+	/* Search tag names in XML document and copy them into our list. */
+	for(x = 0, idx = 0; resp[x] && idx < count; ++x) {
+		char * pbeg = strstr(resp[x], "<name>");
 		if(pbeg) {
-			pbeg += 6;
-			pend = strstr(pbeg, "</name>");
-			if(pend) {
-				tags[idx] = malloc(pend - pbeg + 1);
-				memcpy(tags[idx], pbeg, pend - pbeg);
-				tags[idx][pend - pbeg] = 0;
-				++idx;
-
-				if(idx >= count)
-					break;
-			}
+			char * pend = strstr(pbeg += 6, "</name>");
+			if(pend)
+				tags[idx++] = strndup(pbeg, pend - pbeg);
 		}
 
 		free(resp[x]);
@@ -169,9 +158,37 @@ char ** toptags(char key, struct hash track) {
 
 	free(resp);
 
-	tags[idx] = NULL;
-
 	return tags;
 }
 
 
+char ** overalltags(void) {
+	unsigned x, count = 0, idx;
+	const char * url = "http://ws.audioscrobbler.com/1.0/tag/toptags.xml";
+	char ** tags = NULL, ** resp;
+
+	if((resp = fetch(url, NULL, NULL)) == NULL)
+		return NULL;
+
+	for(x = 0; resp[x]; ++x)
+		if(strstr(resp[x], "<tag name=\"") != NULL)
+			++count;
+
+	tags = calloc(count + 1, sizeof(char *));
+	tags[count] = NULL;
+
+	for(x = 0, idx = 0; resp[x]; ++x) {
+		char * pbeg = strstr(resp[x], "<tag name=\""), * pend;
+		if(pbeg) {
+			pend = strstr(pbeg += 11, "\"");
+			if(pend)
+				tags[idx++] = strndup(pbeg, pend - pbeg);
+		}
+
+		free(resp[x]);
+	}
+
+	free(resp);
+
+	return tags;
+}

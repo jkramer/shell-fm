@@ -35,7 +35,7 @@
 
 static int radiocomplete(char *, const unsigned, int);
 
-static char ** users = NULL, ** artists = NULL;
+static char ** users = NULL, ** artists = NULL, ** overall = NULL;
 
 /*
  * This function is called to change the station
@@ -65,18 +65,27 @@ void radioprompt(const char * prompt) {
 		.callback = radiocomplete,
 	};
 
+	/* Get overall top tags. */
+	overall = overalltags();
+
+	/* Get user, friends and neighbors. */
 	users = neighbors(value(& rc, "username"));
 	users = merge(users, friends(value(& rc, "username")), 0);
 	users = append(users, value(& rc, "username"));
 
+	/* Get top artists. */
 	artists = topartists(value(& rc, "username"));
 
+	/* Read the line. */
 	url = readline(& setup);
 
+	/* Free everything. */
 	purge(users);
 	purge(artists);
+	purge(overall);
 
-	users = artists = NULL;
+	overall = users = artists = NULL;
+
 
 	if(setup.history)
 		purge(setup.history);
