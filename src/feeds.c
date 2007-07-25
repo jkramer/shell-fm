@@ -10,7 +10,7 @@
 #include "tag.h"
 
 char ** neighbors(const char * user) {
-	char * encoded = NULL, feed[512], ** names = NULL;
+	char * encoded = NULL, feed[128], ** names = NULL;
 	unsigned i;
 
 	assert(user != NULL);
@@ -44,7 +44,7 @@ char ** neighbors(const char * user) {
 
 
 char ** topartists(const char * user) {
-	char * encoded = NULL, feed[512], ** names = NULL;
+	char * encoded = NULL, feed[128], ** names = NULL;
 	unsigned i;
 
 	assert(user != NULL);
@@ -80,10 +80,9 @@ char ** topartists(const char * user) {
 }
 
 char ** friends(const char * user) {
-	char * encoded = NULL, feed[512];
+	char * encoded = NULL, feed[128];
 
 	assert(user != NULL);
-
 	encode(user, & encoded);
 
 	memset(feed, (char) 0, sizeof(feed));
@@ -101,7 +100,7 @@ char ** friends(const char * user) {
 
 char ** toptags(char key, struct hash track) {
 	unsigned length, x, count, idx;
-	char ** tags = NULL, url[512 + 1], * type = NULL, * artist = NULL,
+	char ** tags = NULL, url[256], * type = NULL, * artist = NULL,
 		 ** resp;
 
 	/* Get artist, album or track tags? */

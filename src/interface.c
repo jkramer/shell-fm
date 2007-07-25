@@ -171,6 +171,7 @@ void interface(int interactive) {
         puts("i = Current Track Information");
         puts("l = Love Track");
         puts("n = Skip Track");
+				puts("p = Pause");
         puts("Q = Quit Shell-FM");
         puts("R = Enable/Disable RTP");
         puts("r = change radio station");
