@@ -33,9 +33,6 @@
 #endif
 
 
-float avglag = 0.0;
-
-
 char ** fetch(const char * url, FILE ** pHandle, const char * data) {
 	char ** resp = NULL, * host, * file, * port, * status = NULL, * line = NULL;
 	char * connhost;
@@ -45,8 +42,6 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data) {
 	signed validHead = 0;
 	FILE * fd;
 	int useproxy;
-
-	time_t reqtime;
 
 	const char * headFormat =
 		"%s /%s HTTP/1.1\r\n"
@@ -96,8 +91,6 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data) {
 	if(!(fd = ropen(connhost, nport)))
 		return NULL;
 
-	reqtime = time(NULL);
-
 	if(useproxy)
 		fprintf(fd, proxiedheadFormat, data ? "POST" : "GET", host,
 				file ? file : "", host);
@@ -126,7 +119,6 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data) {
 			free(status);
 		}
 
-		lag(reqtime);
 		return NULL;
 	}
 
@@ -145,7 +137,6 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data) {
 			sscanf(line, "Location: %512[^\r\n]", newurl);
 			fshutdown(& fd);
 
-			lag(reqtime);
 			return fetch(newurl, pHandle, data);
 		}
 	}
@@ -157,7 +148,6 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data) {
 		if(!enabled(QUIET))
 			fputs("\r   \r", stderr);
 
-		lag(reqtime);
 		return NULL;
 	}
 	
@@ -185,7 +175,6 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data) {
 	
 	fshutdown(& fd);
 
-	lag(reqtime);
 	if(!enabled(QUIET))
 		fputs("\r   \r", stderr);
 	return resp;
@@ -254,15 +243,6 @@ void freeln(char ** line, unsigned * size) {
 		free(* line);
 		* line = NULL;
 	}
-}
-
-void lag(time_t reqtime) {
-	static unsigned nreq = 0, secwait = 0;
-
-	secwait += time(NULL) - reqtime;
-	++nreq;
-
-	avglag = (float) secwait / (float) nreq;
 }
 
 

@@ -15,7 +15,6 @@ extern pid_t playfork, subfork;
 
 extern char * currentStation; /* Name of the current station. */
 
-extern float avglag; /* Average lag. */
 extern unsigned submitting; /* Number of tracks currently submitted. */
 extern time_t pausetime; /* Pause start time. */
 

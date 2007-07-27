@@ -337,11 +337,7 @@ int main(int argc, char ** argv) {
 			set(& track, "remain", remstr);
 
 			if(!background) {
-				printf(
-					"[%.2f] %c%02d:%02d\r",
-					avglag,
-					remain < 0 ? '-' : ' ',
-					remain / 60, remain % 60);
+				printf("%c%02d:%02d\r", remain < 0 ? '-' : ' ', remain / 60, remain % 60);
 				fflush(stdout);
 			}
 		}

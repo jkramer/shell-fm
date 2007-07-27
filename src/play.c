@@ -25,6 +25,8 @@
 
 #include <sys/wait.h>
 
+#include "config.h"
+
 #include <sys/ioctl.h>
 #ifdef __HAVE_LIBAO__
 #include <ao/ao.h>
