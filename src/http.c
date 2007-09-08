@@ -33,7 +33,7 @@
 #endif
 
 
-char ** fetch(const char * url, FILE ** pHandle, const char * data) {
+char ** fetch(const char * url, FILE ** pHandle, const char * data, const char * content_type) {
 	char ** resp = NULL, * host, * file, * port, * status = NULL, * line = NULL;
 	char * connhost;
 	char urlcpy[512 + 1];
@@ -98,7 +98,7 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data) {
 		fprintf(fd, headFormat, data ? "POST" : "GET", file ? file : "", host);
 
 	if(data != NULL) {
-		fputs("Content-Type: application/x-www-form-urlencoded\r\n", fd);
+		fprintf(fd, "Content-Type: %s\r\n", content_type);
 		fprintf(fd, "Content-Length: %ld\r\n\r\n%s\r\n", (long) strlen(data), data);
 	}
 
@@ -137,7 +137,7 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data) {
 			sscanf(line, "Location: %512[^\r\n]", newurl);
 			fshutdown(& fd);
 
-			return fetch(newurl, pHandle, data);
+			return fetch(newurl, pHandle, data, content_type);
 		}
 	}
 

@@ -26,7 +26,7 @@ char ** neighbors(const char * user) {
 
 	free(encoded);
 
-	names = fetch(feed, NULL, NULL);
+	names = fetch(feed, NULL, NULL, "application/x-www-form-urlencoded");
 
 	if(names != NULL)
 		for(i = 0; names[i] != NULL; ++i) {
@@ -60,7 +60,7 @@ char ** topartists(const char * user) {
 
 	free(encoded);
 
-	names = fetch(feed, NULL, NULL);
+	names = fetch(feed, NULL, NULL, "application/x-www-form-urlencoded");
 
 	if(names != NULL)
 		for(i = 0; names[i] != NULL; ++i) {
@@ -94,7 +94,7 @@ char ** friends(const char * user) {
 
 	free(encoded);
 
-	return fetch(feed, NULL, NULL);
+	return fetch(feed, NULL, NULL, "application/x-www-form-urlencoded");
 }
 
 
@@ -132,7 +132,7 @@ char ** toptags(char key, struct hash track) {
 	strncpy(url + length, "toptags.xml", sizeof(url) - length - 1);
 
 	/* Fetch XML document. */
-	if((resp = fetch(url, NULL, NULL)) == NULL)
+	if((resp = fetch(url, NULL, NULL, "application/x-www-form-urlencoded")) == NULL)
 		return NULL;
 
 	/* Count tags in XML. */
@@ -166,7 +166,7 @@ char ** overalltags(void) {
 	const char * url = "http://ws.audioscrobbler.com/1.0/tag/toptags.xml";
 	char ** tags = NULL, ** resp;
 
-	if((resp = fetch(url, NULL, NULL)) == NULL)
+	if((resp = fetch(url, NULL, NULL, "application/x-www-form-urlencoded")) == NULL)
 		return NULL;
 
 	for(x = 0; resp[x]; ++x)

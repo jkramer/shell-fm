@@ -65,7 +65,7 @@ int authenticate(const char * username, const char * password) {
 	snprintf(url, sizeof(url), fmt, encuser, hexmd5);
 	free(encuser);
 
-	response = fetch(url, NULL, NULL);
+	response = fetch(url, NULL, NULL, "application/x-www-form-urlencoded");
 	if(!response) {
 		fputs("No response.\n", stderr);
 		return 0;
@@ -136,7 +136,7 @@ int station(const char * stationURL) {
 	snprintf(url, sizeof(url), fmt, value(& data, "session"), encodedURL);
 	free(encodedURL);
 
-	if(!(response = fetch(url, NULL, NULL)))
+	if(!(response = fetch(url, NULL, NULL, "application/x-www-form-urlencoded")))
 		return 0;
 
 	if(regular) {
@@ -207,7 +207,7 @@ int control(const char * cmd) {
 		"&debug=0";
 
 	snprintf(url, sizeof(url), fmt, value(& data, "session"), cmd);
-	if(!(response = fetch(url, NULL, NULL)))
+	if(!(response = fetch(url, NULL, NULL, "application/x-www-form-urlencoded")))
 		return 0;
 
 	while(response[i]) {
@@ -256,7 +256,7 @@ int play(struct playlist * list) {
 		const char * location = value(& list->track->track, "location");
 
 		if(location != NULL) {
-			fetch(location, & fd, NULL);
+			fetch(location, & fd, NULL, "application/x-www-form-urlencoded");
 
 			if(fd != NULL) {
 				playback(fd);

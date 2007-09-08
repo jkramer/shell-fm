@@ -194,7 +194,7 @@ void tag(struct hash data) {
 
 		free(post);
 
-		if((resp = fetch(url, NULL, xml)) != NULL) {
+		if((resp = fetch(url, NULL, xml, "text/xml")) != NULL) {
 			for(x = 0; resp[x]; ++x)
 				free(resp[x]);
 
@@ -251,7 +251,7 @@ static char * oldtags(char key, struct hash track) {
 	if(arg)
 		free(arg);
 
-	resp = fetch(url, NULL, NULL);
+	resp = fetch(url, NULL, NULL, "application/x-www-form-urlencoded");
 	free(url);
 
 	if(!resp)

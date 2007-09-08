@@ -35,7 +35,7 @@ int expand(struct playlist * list) {
 	memset(url, 0, sizeof(url));
 	snprintf(url, sizeof(url), fmt, value(& data, "session"), !!enabled(DISCOVERY));
 
-	if((response = fetch(url, NULL, NULL))) {
+	if((response = fetch(url, NULL, NULL, "application/x-www-form-urlencoded"))) {
 		int retval;
 
 		for(n = 0; response[n]; ++n) {
