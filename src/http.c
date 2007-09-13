@@ -108,7 +108,7 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data, const char *
 	if(getln(& status, & size, fd) >= 12)
 		validHead = sscanf(status, "HTTP/%*f %u", & nstatus);
 
-	if(nstatus != 200 && nstatus != 301) {
+	if(nstatus != 200 && nstatus != 301 && nstatus != 302) {
 		fshutdown(& fd);
 		if(size) {
 			if(validHead != 2)
@@ -131,7 +131,7 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data, const char *
 		if(!strncasecmp(line, "Transfer-Encoding: chunked", 26))
 			chunked = !0;
 
-		if(nstatus == 301 && !strncasecmp(line, "Location: ", 10)) {
+		if((nstatus == 301 || nstatus == 302) && !strncasecmp(line, "Location: ", 10)) {
 			char newurl[512 + 1];
 			memset(newurl, 0, sizeof(newurl));
 			sscanf(line, "Location: %512[^\r\n]", newurl);
