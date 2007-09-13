@@ -8,7 +8,6 @@
 
 #define _GNU_SOURCE
 
-#include <config.h>
 
 #include <stdio.h>
 #include <sys/socket.h>
@@ -18,6 +17,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+
+#include "ropen.h"
 
 FILE * ropen(const char * host, unsigned short port) {
 	int sck;
@@ -59,7 +60,8 @@ FILE * ropen(const char * host, unsigned short port) {
 	return fd;
 }
 
-void fshutdown(FILE * fd) {
-	shutdown(fileno(fd), SHUT_RDWR);
-	fclose(fd);
+void fshutdown(FILE ** fd) {
+	shutdown(fileno(* fd), SHUT_RDWR);
+	fclose(* fd);
+	* fd = NULL;
 }

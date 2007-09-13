@@ -8,8 +8,6 @@
 
 #define _GNU_SOURCE
 
-#include <config.h>
-
 #include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
@@ -20,9 +18,7 @@
 #include <sys/time.h>
 #include <signal.h>
 #include <stdarg.h>
-
-#include <readline/readline.h>
-#include <readline/history.h>
+#include <ctype.h>
 
 #include "service.h"
 #include "hash.h"
@@ -34,30 +30,14 @@
 #include "bookmark.h"
 #include "radio.h"
 #include "md5.h"
+#include "submit.h"
+#include "readline.h"
 
-extern pid_t playfork;
-extern unsigned discovery, record, paused, changeTime;
-extern char * currentStation;
+#include "globals.h"
 
-int fetchkey(unsigned);
-void canon(int);
-const char * meta(const char *, int);
-void run(const char *);
-void tag(struct hash);
-void artistRadio();
-void pause_music();
 
 struct hash track;
 
-extern struct hash data;
-
-// Print what is now played (Author: Ondrej Novy)
-void shownp() {
-	if(haskey(& rc, "title-format"))
-		printf("%s\n", meta(value(& rc, "title-format"), !0));
-	else
-		printf("%s\n", meta("Now playing \"%t\" by %a.", !0));
-}
 
 void interface(int interactive) {
 	if(interactive) {
@@ -70,26 +50,31 @@ void interface(int interactive) {
 			return;
 
 		if(key == 27) {
-			char ch;
+			int ch;
 			while((ch = fetchkey(100000)) != -1 && !strchr("ABCDEFGHMPQRSZojmk~", ch));
 			return;
 		}
 
 		switch(key) {
 			case 'l':
-				if(playfork)
+				if(playfork) {
+					rate("L");
 					puts(control("love") ? "Loved." : "Sorry, failed.");
+				}
 				break;
 
 			case 'B':
-				if(playfork)
+				if(playfork) {
+					rate("B");
 					puts(control("ban") ? "Banned." : "Sorry, failed.");
+				}
 				break;
 
 			case 'n':
-				if(playfork)
-					if (!control("skip"))
-						puts("Sorry, failed.");
+				if(playfork) {
+					rate("S");
+					kill(playfork, SIGUSR1);
+				}
 				break;
 
 			case 'Q':
@@ -98,10 +83,10 @@ void interface(int interactive) {
 
 			case 'i':
 				if(playfork) {
-					puts(meta("Track:    \"%t\" (%T)", !0));
-					puts(meta("Artist:   \"%a\" (%U)", !0));
-					puts(meta("Album:    \"%A\" (%X)", !0));
-					puts(meta("Station:  %s (%u)", !0));
+					puts(meta("Track:    \"%t\"", !0));
+					puts(meta("Artist:   \"%a\"", !0));
+					puts(meta("Album:    \"%A\"", !0));
+					puts(meta("Station:  %s", !0));
 				}
 				break;
 
@@ -110,12 +95,13 @@ void interface(int interactive) {
 				break;
 
 			case 'd':
-				if(playfork && haskey(& track, "discovery")) {
-					discovery = !atoi(value(& track, "discovery"));
-					if(setdiscover(discovery)) {
-						printf("Discovery mode %s.\n", discovery ? "enabled" : "disabled");
-					} else
-						printf("Failed to %s discovery mode.", discovery ? "enable" : "disable");
+				toggle(DISCOVERY);
+				printf("Discovery mode %s.\n", enabled(DISCOVERY) ? "enabled" : "disabled");
+				if(playfork) {
+					printf(
+						"%u track(s) left to play/skip until change comes into affect.\n",
+						playlist.left
+					);
 				}
 				break;
 
@@ -124,7 +110,7 @@ void interface(int interactive) {
 				fflush(stdout);
 				if(fetchkey(5000000) != 'y')
 					puts("\nAbort.");
-				else if(autoban(value(& track, "artist"))) {
+				else if(autoban(value(& track, "creator"))) {
 					printf("\n%s banned.\n", meta("%a", !0));
 					control("ban");
 				}
@@ -132,11 +118,8 @@ void interface(int interactive) {
 				break;
 
 			case 'R':
-				record = !record;
-				if(control(record ? "rtp" : "nortp"))
-					printf("%s RTP.\n", record ? "Enabled" : "Disabled");
-				else
-					printf("Sorry, failed to %s RTP.\n", record ? "enable" : "disable");
+				toggle(RTP);
+				printf("%s RTP.\n", enabled(RTP) ? "Enabled" : "Disabled");
 				break;
 
 			case 'f':
@@ -161,31 +144,23 @@ void interface(int interactive) {
 				}
 				break;
 
-			case 'p':
-				pause_music();
-				break;
-
 			case 'S':
-				if(playfork)
-					kill(playfork, SIGKILL);
+				if(playfork) {
+					enable(STOPPED);
+					kill(playfork, SIGUSR1);
+				}
 				break;
 
 			case 'T':
 				if(playfork)
 					tag(track);
 				break;
-			case 't':
-				if(playfork) {
-					// Retry update and check if it's changed (Author: Ondrej Novy)
-					char * last = strdup(meta("%a %t", 0));
-					update(& track);
-					if (last && strcmp(last, meta("%a %t", 0))) {
-						shownp();
-					}
-					if (last)
-						free(last);
-				}
+
+			case 'p':
+				if(playfork)
+					kill(playfork, pausetime ? SIGCONT : SIGSTOP);
 				break;
+
       case '?':
         puts("A = Autoban Artist");
         puts("B = Ban Track");
@@ -196,14 +171,13 @@ void interface(int interactive) {
         puts("i = Current Track Information");
         puts("l = Love Track");
         puts("n = Skip Track");
-        puts("p = Pause Track");
+				puts("p = Pause");
         puts("Q = Quit Shell-FM");
         puts("R = Enable/Disable RTP");
         puts("r = change radio station");
         puts("S = Stop");
         puts("s = Similiar Artist");
         puts("T = Tag Track/Artist/Album");
-        puts("t = Update track data");
         break;
 
 			case '0':
@@ -251,21 +225,13 @@ int fetchkey(unsigned nsec) {
 	return -1;
 }
 
-void canon(int enable) {
-	struct termios term;
-	tcgetattr(fileno(stdin), & term);
-	term.c_lflag = enable
-		? term.c_lflag | ICANON | ECHO
-		: term.c_lflag & ~(ICANON | ECHO);
-	tcsetattr(fileno(stdin), TCSANOW, & term);
-}
 
 #define remn (sizeof(string) - length - 1)
 const char * meta(const char * fmt, int colored) {
 	static char string[4096];
 	unsigned length = 0, x = 0;
 	
-	if(!fmt || !playfork)
+	if(!fmt)
 		return NULL;
 	
 	memset(string, 0, sizeof(string));
@@ -275,8 +241,8 @@ const char * meta(const char * fmt, int colored) {
 			string[length++] = fmt[x++];
 		else if(fmt[++x]) {
 			const char * keys [] = {
-				"aartist",
-				"ttrack",
+				"acreator",
+				"ttitle",
 				"Aalbum",
 				"dtrackduration",
 				"sstation",
@@ -298,9 +264,9 @@ const char * meta(const char * fmt, int colored) {
 						color = value(& rc, colorkey);
 						if(color) {
 							// Strip leading spaces from end of color (Author: Ondrej Novy)
-							char *color_st = strdup(color);
+							char * color_st = strdup(color);
 							size_t len = strlen(color_st) - 1;
-							while (isspace(color_st[len]) && len > 0) {
+							while(isspace(color_st[len]) && len > 0) {
 								color_st[len] = 0;
 								len--;
 							}
@@ -328,7 +294,7 @@ void run(const char * cmd) {
 		if(!fd)
 			exit(EXIT_FAILURE);
 		else {
-			char ch;
+			int ch;
 			
 			while((ch = fgetc(fd)) != EOF)
 				fputc(ch, stdout);
@@ -339,12 +305,8 @@ void run(const char * cmd) {
 	}
 }
 
-void pause_music(void) {
-	if(playfork) {
-		if(paused)
-			kill(playfork, SIGCONT);
-		else
-			kill(playfork, SIGSTOP);
-		paused = !paused;
-	}
+
+void rate(const char * rating) {
+	if(rating != NULL)
+		set(& track, "rating", rating);
 }

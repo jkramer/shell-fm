@@ -6,16 +6,17 @@
 	Published under the terms of the GNU General Public License (GPL).
 */
 
-#include <config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <sys/types.h>
 
+#include "getln.h"
+
 unsigned getln(char ** ptr, unsigned * size, FILE * fd) {
 	unsigned length = 0;
-	char ch = 0;
+	int ch = 0;
 
 	if(!(* ptr))
 		* size = 0;
@@ -23,7 +24,7 @@ unsigned getln(char ** ptr, unsigned * size, FILE * fd) {
 	while(!feof(fd) && ch != (char) 10) {
 		ch = fgetc(fd);
 
-		if(ch == (char) -1)
+		if(ch == -1)
 			ch = 0;
 		
 		if(length + 2 > * size) {
@@ -31,7 +32,7 @@ unsigned getln(char ** ptr, unsigned * size, FILE * fd) {
 			assert(* ptr);
 		}
 
-		(* ptr)[length++] = ch;
+		(* ptr)[length++] = (char) ch;
 		(* ptr)[length] = 0;
 	}
 

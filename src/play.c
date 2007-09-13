@@ -12,7 +12,6 @@
 
 #define _GNU_SOURCE
 
-#include <config.h>
 
 #include <mad.h>
 
@@ -26,6 +25,8 @@
 
 #include <sys/wait.h>
 
+#include "config.h"
+
 #include <sys/ioctl.h>
 #ifdef __HAVE_LIBAO__
 #include <ao/ao.h>
@@ -35,6 +36,7 @@
 
 #include "settings.h"
 #include "pipe.h"
+#include "play.h"
 
 struct stream {
 	FILE * streamfd;
@@ -52,16 +54,16 @@ struct stream {
 
 static enum mad_flow input(void *, struct mad_stream *);
 static enum mad_flow output(void *, const struct mad_header *, struct mad_pcm *);
-signed scale(mad_fixed_t);
+static signed scale(mad_fixed_t);
 
-void * findsync(register unsigned char *, unsigned);
+int killed = 0;
 
-int disturbed = 0;
-
-void disturb(int);
-
+static void sighand(int);
 
 void playback(FILE * streamfd) {
+	killed = 0;
+	signal(SIGUSR1, sighand);
+
 	if(!haskey(& rc, "extern")) {
 		struct stream data;
 		struct mad_decoder dec;
@@ -124,9 +126,6 @@ void playback(FILE * streamfd) {
 		pid_t ppid = getppid(), cpid = 0;
 		FILE * ext = openpipe(value(& rc, "extern"), & cpid);
 		unsigned char * buf;
-		int first = !0;
-
-		signal(SIGUSR1, disturb);
 
 		if(!ext) {
 			fprintf(stderr, "Failed to execute external player (%s). %s.\n",
@@ -143,50 +142,16 @@ void playback(FILE * streamfd) {
 		while(!feof(streamfd)) {
 			signed nbyte = fread(buf, sizeof(unsigned char), BUFSIZE, streamfd);
 
-			if(nbyte > 0) {
-				unsigned char * sync = findsync(buf, nbyte);
+			if(nbyte > 0)
+				fwrite(buf, sizeof(unsigned char), nbyte, ext);
 
-				if(sync) {
-					unsigned len = nbyte - (sync - buf) - 4;
-
-					if(!first) {
-						fwrite(buf, sizeof(unsigned char), sync - buf, ext);
-
-						if(haskey(& rc, "extern-signals"))
-							kill(cpid, disturbed ? SIGUSR1 : SIGUSR2);
-
-						if(haskey(& rc, "extern-restart")) {
-							fclose(ext);
-							kill(cpid, SIGTERM);
-							while(-1 == wait(NULL));
-							fputs("Child terminated.\n", stderr);
-							ext = openpipe(value(& rc, "extern"), & cpid);
-						}
-					} else
-						first = 0;
-
-					fwrite(sync + 4, sizeof(unsigned char), len, ext);
-
-					kill(ppid, SIGUSR1);
-
-					disturbed = 0;
-				} else
-					fwrite(buf, sizeof(unsigned char), nbyte, ext);
-			}
-
-			if(kill(ppid, 0) == -1 && errno == ESRCH) {
-				free(buf);
-				fclose(ext);
-				fclose(streamfd);
-				exit(EXIT_FAILURE);
-			}
+			if(kill(ppid, 0) == -1 && errno == ESRCH)
+				break;
 		}
 
 		free(buf);
 		fclose(ext);
 	}
-
-	fputs("Reached end of stream.\n", stderr);
 }
 
 static enum mad_flow input(void * data, struct mad_stream * stream) {
@@ -196,7 +161,6 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 
 	struct stream * ptr = (struct stream *) data;
 	unsigned remnbyte = 0;
-	unsigned char * syncptr;
 
 	if(feof(ptr->streamfd))
 		return MAD_FLOW_STOP;
@@ -223,13 +187,6 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 
 	nbyte += remnbyte;
 
-	if((syncptr = findsync(buf, nbyte)) != NULL) {
-		remnbyte = ((unsigned) (& buf[nbyte] - syncptr)) - 4;
-		memmove(syncptr, syncptr + 4, remnbyte);
-		kill(ptr->parent, SIGUSR1);
-		nbyte -= 4;
-	}
-
 	mad_stream_buffer(stream, (unsigned char *) buf, nbyte);
 
 	if(kill(ptr->parent, 0) == -1 && errno == ESRCH) {
@@ -237,8 +194,11 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 #ifndef __HAVE_LIBAO__
 		close(ptr->audiofd);
 #endif
-		exit(EXIT_FAILURE);
+		return MAD_FLOW_STOP;
 	}
+
+	if(killed)
+		return MAD_FLOW_STOP;
 
 	return MAD_FLOW_CONTINUE;
 }
@@ -288,6 +248,9 @@ static enum mad_flow output(
 	ao_play(ptr->device, stream, pcm->length * (pcm->channels == 2 ? 4 : 2));
 	free(stream);
 
+	if(killed)
+		return MAD_FLOW_STOP;
+
 	return MAD_FLOW_CONTINUE;
 }
 #else
@@ -313,23 +276,28 @@ static enum mad_flow output(
 		unsigned char word[2];
 
 		sample = scale(* left++);
-		word[0] = (sample & 0xFF);
-		word[1] = (sample >> 8) & 0xFF;
+		word[0] = (unsigned char) (sample & 0xFF);
+		word[1] = (unsigned char) ((sample >> 8) & 0xFF);
 		write(ptr->audiofd, word, 2);
 
 		if(nchan == 2) {
 			sample = scale(* right++);
-			word[0] = (sample & 0xFF);
-			word[1] = (sample >> 8) & 0xFF;
+
+			word[0] = (unsigned char) (sample & 0xFF);
+			word[1] = (unsigned char) ((sample >> 8) & 0xFF);
+
 			write(ptr->audiofd, word, 2);
 		}
 	}
+
+	if(killed)
+		return MAD_FLOW_STOP;
 
 	return MAD_FLOW_CONTINUE;
 }
 #endif
 
-signed scale(register mad_fixed_t sample) {
+static signed scale(register mad_fixed_t sample) {
 	sample += (1L << (MAD_F_FRACBITS - 16));
 	
 	if(sample >= MAD_F_ONE)
@@ -340,17 +308,7 @@ signed scale(register mad_fixed_t sample) {
 	return sample >> (MAD_F_FRACBITS + 1 - 16);
 }
 
-void * findsync(register unsigned char * ptr, unsigned size) {
-	register const unsigned char * needle = (unsigned char *) "SYNC";
-	register unsigned char * end = ptr + size - 4;
-	while(ptr < end) {
-		if((* (unsigned *) ptr) == * (unsigned *) needle)
-			return ptr;
-		++ptr;
-	}
-	return NULL;
-}
-
-void disturb(int signo __attribute__((unused))) {
-	disturbed = !0;
+static void sighand(int sig) {
+	if(sig == SIGUSR1)
+		killed = !0;
 }

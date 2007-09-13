@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.50)
-AC_INIT([shell-fm], [0.2], [jonas.kramer@gmx.net])
+AC_INIT([shell-fm], [0.3], [jonas.kramer@gmx.net])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([src/settings.c])
 AM_CONFIG_HEADER(config.h)
@@ -23,18 +23,9 @@ SHELL_FM_DEBUG
 
 # Checks for libraries.
 
-# FIXME: Replace `main' with a function in `-lcurses':
-AC_CHECK_LIB([curses], [main],, [
-	AC_MSG_ERROR([libcurses required but not found])
-])
-
 # FIXME: Replace `main' with a function in `-lmad':
 AC_CHECK_LIB([mad], [main],, [
 	AC_MSG_ERROR([libmad required but not found])
-])
-
-AC_CHECK_LIB([readline], [using_history],, [
-	AC_MSG_ERROR([libreadline required but not found])
 ])
 
 SHELL_FM_HAVE_AO

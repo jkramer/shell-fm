@@ -1,6 +1,4 @@
 /*
-	vim:syntax=c tabstop=2 shiftwidth=2 noexpandtab
-
 	Shell.FM - service.c
 	Copyright (C) 2006 by Jonas Kramer
 	Published under the terms of the GNU General Public License (GPL).
@@ -8,7 +6,6 @@
 
 #define _GNU_SOURCE
 
-#include <config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,26 +22,20 @@
 #include "md5.h"
 #include "history.h"
 #include "service.h"
+#include "playlist.h"
+#include "ropen.h"
 
-extern int stationChanged, discovery;
+#include "globals.h"
 
 struct hash data; /* Warning! MUST be bzero'd ASAP or we're all gonna die! */
+
 pid_t playfork = 0; /* PID of the decoding & playing process, if running */
 
+struct playlist playlist;
 char * currentStation = NULL;
 
-/*
-	Function: handshake
-	
-	Authenticate and create session by sending username and
-	password to the handshake page.
-	
-	$0 = (const char *) username
-	$1 = (const char *) password
 
-	return value: non-zero on success, zero on error
-*/
-int handshake(const char * username, const char * password) {
+int authenticate(const char * username, const char * password) {
 	const unsigned char * md5;
 	char hexmd5[32 + 1] = { 0 }, url[512] = { 0 }, ** response;
 	char * encuser = NULL;
@@ -55,11 +46,12 @@ int handshake(const char * username, const char * password) {
 		"&platform=linux"
 		"&username=%s"
 		"&passwordmd5=%s"
-		"&debug=0";
+		"&debug=0"
+		"&language=en";
 	
 	memset(& data, 0, sizeof(struct hash));
 	
-	/* let openSSL create the hash, then convert to ASCII */
+	/* create the hash, then convert to ASCII */
 	md5 = MD5((const unsigned char *) password, strlen(password));
 	for(ndigit = 0; ndigit < 16; ++ndigit)
 		sprintf(2 * ndigit + hexmd5, "%02x", md5[ndigit]);
@@ -73,7 +65,7 @@ int handshake(const char * username, const char * password) {
 	snprintf(url, sizeof(url), fmt, encuser, hexmd5);
 	free(encuser);
 
-	response = fetch(url, NULL, NULL, NULL);
+	response = fetch(url, NULL, NULL, "application/x-www-form-urlencoded");
 	if(!response) {
 		fputs("No response.\n", stderr);
 		return 0;
@@ -97,25 +89,15 @@ int handshake(const char * username, const char * password) {
 	return !0;
 }
 
-/*
-	Function: station
-	
-	Tell last.fm to stream the station specified by the given
-	station identifier (an URL starting with "lastfm://").
 
-	$0 = (const char *) radio URL ("lastfm://...")
-
-	return value: non-zero on success, zero on error
-*/
 int station(const char * stationURL) {
 	char url[512] = { 0 }, * encodedURL = NULL, ** response;
-	unsigned i = 0, retval = !0;
-	const char * fmt =
-    "http://ws.audioscrobbler.com/radio/adjust.php"
-		"?session=%s"
-		"&url=%s"
-		"&debug=0";
-	
+	unsigned i = 0, retval = !0, regular = !0;
+	const char * fmt;	
+	const char * types[4] = {"play", "preview", "track", "playlist"};
+
+	freelist(& playlist);
+
 	if(!haskey(& data, "session")) {
 		fputs("Not authenticated, yet.\n", stderr);
 		return 0;
@@ -124,102 +106,96 @@ int station(const char * stationURL) {
 	if(!stationURL)
 		return 0;
 
+	if(!strncasecmp(stationURL, "lastfm://", 9))
+		stationURL += 9;
+
+	/* Check if it's a static playlist of tracks or track previews. */
+	for(i = 0; i < 4; ++i)
+		if(!strncasecmp(types[i], stationURL, strlen(types[i]))) {
+			regular = 0;
+			break;
+		}
+
+	/*
+		If this is not a special "one-time" stream, it's a regular radio
+		station and we request it using the good old /adjust.php URL.
+		If it's not a regular stream, the reply of this request already is
+		a XSPF playlist we have to parse.
+	*/
+	if(regular) {
+		playlist.continuous = !0;
+		fmt = "http://ws.audioscrobbler.com/radio/adjust.php?session=%s&url=%s";
+	} else {
+		playlist.continuous = 0;
+		fmt =
+			"http://ws.audioscrobbler.com/1.0/webclient/getresourceplaylist.php"
+			"?sk=%s&url=%s&desktop=1";
+	}
+
 	encode(stationURL, & encodedURL);
 	snprintf(url, sizeof(url), fmt, value(& data, "session"), encodedURL);
 	free(encodedURL);
 
-	if((response = fetch(url, NULL, NULL, NULL))) {
-		while(response[i]) {
+	if(!(response = fetch(url, NULL, NULL, "application/x-www-form-urlencoded")))
+		return 0;
+
+	if(regular) {
+		for(i = 0; response[i]; ++i) {
 			char status[64] = { 0 };
 			if(sscanf(response[i], "response=%63[^\r\n]", status) > 0)
 				if(!strncmp(status, "FAILED", 6))
 					retval = 0;
-			free(response[i++]);
+			free(response[i]);
 		}
 		free(response);
-	} else
-		retval = 0;
-
-	if(retval) {
-		stationChanged = !0;
-		if(strncmp("lastfm://settings/discovery/", stationURL, 28)) {
-			histapp(stationURL);
-			setdiscover(discovery);
+		
+		if(!retval) {
+			printf("Sorry, couldn't set station to %s.\n", stationURL);
+			return 0;
 		}
+
+		expand(& playlist);
 	} else {
-		printf("Sorry, couldn't set station to %s.\n", stationURL);
-	}
+		char * xml = NULL;
+		unsigned length = 0;
 
-	if(!playfork) {
-		pid_t pid = fork();
-		if(pid)
-			playfork = pid;
-		else {
-			int i;
-			FILE * fd = NULL;
-			for (i = 3; i < FD_SETSIZE; i++)
-				close(i);
-			signal(SIGINT, SIG_IGN);
-			fetch(value(& data, "stream_url"), & fd, NULL, NULL);
-			playback(fd);
-			fclose(fd);
-			exit(EXIT_SUCCESS);
+		for(i = 0; response[i]; ++i) {
+			xml = realloc(xml, sizeof(char) * (length + strlen(response[i]) + 1));
+			strcpy(xml + length, response[i]);
+			length += strlen(response[i]);
+			xml[length] = 0;
 		}
+
+		freelist(& playlist);
+		if(!parsexspf(& playlist, xml))
+			retval = 0;
+		free(xml);
 	}
+	
+	enable(CHANGED);
+	histapp(stationURL);
 
 	if(currentStation)
 		free(currentStation);
 
 	currentStation = strdup(stationURL);
 
+	if(retval && playfork) {
+		enable(STOPPED);
+		kill(playfork, SIGUSR1);
+	}
+
 	return retval;
 }
 
-/*
-	Function: update
-
-	Fetch meta data of currently streamed song from last.fm and
-	store them in the hash structure given by reference.
-
-	$0 = pointer to hash structure
-
-	return value: non-zero on success, zero on error
-*/
-int update(struct hash * track) {
-	const char * fmt =
-		"http://ws.audioscrobbler.com/radio/np.php?session=%s&debug=0";
-	char url[512] = { 0 }, ** response;
-	unsigned i = 0;
-	
-	assert(track);
-	snprintf(url, sizeof(url), fmt, value(& data, "session"));
-	
-	if(!(response = fetch(url, NULL, NULL, NULL)))
-		return 0;
-
-	while(response[i]) {
-		char key[64] = { 0 }, value[256] = { 0 };
-		if(sscanf(response[i], "%63[^=]=%255[^\r\n]", key, value) > 0) {
-			/* debug */
-			/* printf("%s => %s\n", key, value); */
-			set(track, key, value);
-		}
-		free(response[i++]);
-	}
-	free(response);
-
-	return !0;
-}
 
 /*
-	Function: control
-
-	Send control command to last.fm to skip/love/ban the currently played track
-	or enable/disable recording tracks to profile.
-
-	$0 = (const char *) one of "love", "skip", "ban", "rtp" and "nortp"
-	
+	Send control command to last.fm to love/ban the currently played track.
+	$0 = (const char *) one of "love" or "ban"
 	return value: non-zero on success, zero on error
+
+	THIS WILL BECOME OBSOLETE AS SOON AS THE LAST.FM PEOPLE
+	FULLY IMPLEMENT THEIR OWN STUPID PROTOCOL.
 */
 int control(const char * cmd) {
 	char url[512] = { 0 }, ** response;
@@ -231,7 +207,7 @@ int control(const char * cmd) {
 		"&debug=0";
 
 	snprintf(url, sizeof(url), fmt, value(& data, "session"), cmd);
-	if(!(response = fetch(url, NULL, NULL, NULL)))
+	if(!(response = fetch(url, NULL, NULL, "application/x-www-form-urlencoded")))
 		return 0;
 
 	while(response[i]) {
@@ -243,14 +219,58 @@ int control(const char * cmd) {
 
 	free(response);
 
-	if((!strncmp("skip", cmd, 4) || !strncmp("ban", cmd, 3)) && retval && playfork)
+	if(!strncmp("ban", cmd, 3) && retval && playfork)
 		kill(playfork, SIGUSR1);
 
 	return retval;
 }
 
-int setdiscover(int enable) {
-	char url[512] = { 0 };
-	snprintf(url, sizeof(url), "lastfm://settings/discovery/%s", enable ? "on" : "off");
-	return station(url);
+
+int play(struct playlist * list) {
+	assert(list != NULL);
+
+	if(!list->left)
+		return 0;
+
+	if(playfork) {
+		kill(playfork, SIGUSR1);
+		return !0;
+	}
+
+	playfork = fork();
+	enable(QUIET);
+
+	empty(& track);
+
+	if(playfork) {
+		unsigned i;
+		char * keys [] = {
+			"creator", "title", "album", "duration",
+			"station", "lastfm:trackauth"
+		};
+
+		for(i = 0; i < (sizeof(keys) / sizeof(char *)); ++i)
+			set(& track, keys[i], value(& list->track->track, keys[i]));
+	} else {
+		FILE * fd = NULL;
+		const char * location = value(& list->track->track, "location");
+
+		if(location != NULL) {
+			fetch(location, & fd, NULL, "application/x-www-form-urlencoded");
+
+			if(fd != NULL) {
+				playback(fd);
+				fshutdown(& fd);
+			}
+		}
+
+		freelist(list);
+		empty(& data);
+		empty(& rc);
+		subfork = 0;
+
+		exit(EXIT_SUCCESS);
+	}
+
+	return !0;
 }

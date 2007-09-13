@@ -1,25 +1,29 @@
 
 noinst_HEADERS = \
 autoban.h \
-compatibility.h \
 bookmark.h \
+compatibility.h \
+completion.h \
+getln.h \
+globals.h \
 hash.h \
-http.h \
 history.h \
+http.h \
 interface.h \
-Makefile.am \
 md5.h \
-play.h \
 pipe.h \
+play.h \
+playlist.h \
 radio.h \
-rl_completion.h \
 ropen.h \
 sckif.h \
 service.h \
 settings.h \
 split.h \
-strarray.h \
+strary.h \
+submit.h \
 tag.h \
-utility.h
+readline.h \
+feeds.h
 
 ## vim: noet ts=8 sw=8

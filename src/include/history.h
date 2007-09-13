@@ -5,6 +5,8 @@
 #ifndef SHELLFM_HISTORY
 #define SHELLFM_HISTORY
 
-extern int histapp(const char *);
+extern void histapp(const char *);
+extern char ** slurp(const char *);
+extern char ** uniq(char **);
 
 #endif

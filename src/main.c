@@ -8,7 +8,6 @@
 
 #define _GNU_SOURCE
 
-#include <config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +17,6 @@
 #include <signal.h>
 #include <sys/wait.h>
 #include <time.h>
-#include <readline/history.h>
 
 #include "hash.h"
 #include "service.h"
@@ -26,46 +24,49 @@
 #include "settings.h"
 #include "autoban.h"
 #include "sckif.h"
+#include "playlist.h"
+#include "submit.h"
 
+#include "globals.h"
+
+#ifndef PATH_MAX
 #define PATH_MAX 4096
+#endif
 
-extern struct hash data, track;
-extern pid_t playfork;
-extern char * currentStation;
-extern float avglag;
-
-int changed = 0, discovery = 0, stationChanged = 0, record = !0, death = 0;
-unsigned paused = 0;
+unsigned flags = RTP;
 time_t changeTime = 0, pausetime = 0;
 
 static void cleanup(void);
-static void deadchild(int);
-static void songchanged(int);
 static void forcequit(int);
-static void exitWithHelp(const char *, int);
+static void help(const char *, int);
 
 int main(int argc, char ** argv) {
-	int option, nerror = 0, daemon = 0, haveSocket = 0;
+	int option, nerror = 0, background = 0, haveSocket = 0;
+	time_t pauselength = 0;
+	char * proxy;
 	opterr = 0;
 	
+	/* Load settings from ~/.shell-fm/shell-fm.rc. */
 	settings(rcpath("shell-fm.rc"), !0);
 
-	{
-		char * proxy = getenv("http_proxy");
 
-		if(proxy)
-			set(& rc, "proxy", proxy);
-	}
+	/* Get proxy environment variable. */
+	if((proxy = getenv("http_proxy")) != NULL)
+		set(& rc, "proxy", proxy);
 
+
+	/* Parse through command line options. */
 	while(-1 != (option = getopt(argc, argv, ":dhi:p:D:y:")))
 		switch(option) {
-			case 'd':
-				daemon = !0;
+			case 'd': /* Daemonize. */
+				background = !0;
 				break;
-			case 'i':
+
+			case 'i': /* IP to bind network interface to. */
 				set(& rc, "bind", optarg);
 				break;
-			case 'p':
+
+			case 'p': /* Port to listen on. */
 				if(atoi(optarg))
 					set(& rc, "port", optarg);
 				else {
@@ -73,19 +74,24 @@ int main(int argc, char ** argv) {
 					++nerror;
 				}
 				break;
+
+			case 'D': /* Path to audio device file. */
+				set(& rc, "device", optarg);
+				break;
+
+			case 'y': /* Proxy address. */
+				set(& rc, "proxy", optarg);
+				break;
+
+			case 'h': /* Print help text and exit. */
+				help(argv[0], 0);
+				break;
+
 			case ':':
 				fprintf(stderr, "Missing argument for option -%c.\n\n", optopt);
 				++nerror;
 				break;
-			case 'D':
-				set(& rc, "device", optarg);
-				break;
-			case 'y':
-				set(& rc, "proxy", optarg);
-				break;
-			case 'h':
-				exitWithHelp(argv[0], 0);
-				break;
+
 			case '?':
 			default:
 				fprintf(stderr, "Unknown option -%c.\n\n", optopt);
@@ -93,7 +99,7 @@ int main(int argc, char ** argv) {
 				break;
 		}
 
-	/* the next argument, if present is the lastfm:// url we want to play */
+	/* The next argument, if present, is the lastfm:// URL we want to play. */
 	if(optind > 0 && optind < argc && argv[optind]) {
 		const char * station = argv[optind];
 
@@ -104,33 +110,47 @@ int main(int argc, char ** argv) {
 			set(& rc, "default-radio", station);
 		}
 	}
+
 	
 	if(nerror)
-		exitWithHelp(argv[0], EXIT_FAILURE);
+		help(argv[0], EXIT_FAILURE);
 
+
+	/* The -D / device option is only used if have libao support. */
 #ifndef __HAVE_LIBAO__ 
 	if(!haskey(& rc, "device"))
 		set(& rc, "device", "/dev/audio");
 #endif
 
+
 	puts("Shell.FM v" PACKAGE_VERSION ", (C) 2007 by Jonas Kramer");
 	puts("Published under the terms of the GNU General Public License (GPL)\n");
 
-	if(!daemon)
+
+	if(!background)
 		puts("Press ? for help.\n");
 	
+
+	/* Open a port so Shell.FM can be controlled over network. */
 	if(haskey(& rc, "bind")) {
-		unsigned short port =
-			haskey(& rc, "port") ? atoi(value(& rc, "port")) : 54311;
-		if(mksckif(value(& rc, "bind"), port))
+		int port = 54311;
+
+		if(haskey(& rc, "port"))
+			port = atoi(value(& rc, "port"));
+
+		if(mksckif(value(& rc, "bind"), (unsigned short) port))
 			haveSocket = !0;
 	}
 
-	if(daemon && !haveSocket) {
+
+	/* We can't daemonize if there's no possibility left to control Shell.FM. */
+	if(background && !haveSocket) {
 		fputs("Can't daemonize without control socket.", stderr);
 		exit(EXIT_FAILURE);
 	}
 
+
+	/* Ask for username/password if they weren't specified in the .rc file. */
 	if(!haskey(& rc, "password")) {
 		char * password;
 		
@@ -149,18 +169,23 @@ int main(int argc, char ** argv) {
 		set(& rc, "password", password);
 	}
 
+
 	memset(& data, 0, sizeof(struct hash));
 	memset(& track, 0, sizeof(struct hash));
+	memset(& playlist, 0, sizeof(struct playlist));
 	
 	atexit(cleanup);
-	
-	signal(SIGCHLD, deadchild);
-	signal(SIGUSR1, songchanged);
+	loadqueue(!0);
+
+	/* Set up signal handlers for communication with the playback process. */
 	signal(SIGINT, forcequit);
 
-	if(!handshake(value(& rc, "username"), value(& rc, "password")))
+
+	/* Authenticate to the Last.FM server. */
+	if(!authenticate(value(& rc, "username"), value(& rc, "password")))
 		exit(EXIT_FAILURE);
 
+	/* Store session key for use by external tools. */
 	if(haskey(& data, "session")) {
 		FILE * fd = fopen(rcpath("session"), "w");
 		if(fd) {
@@ -169,7 +194,9 @@ int main(int argc, char ** argv) {
 		}
 	}
 
-	if(daemon) {
+
+	/* Fork to background. */
+	if(background) {
 		pid_t pid = fork();
 		if(pid == -1) {
 			fputs("Failed to daemonize.\n", stderr);
@@ -177,135 +204,155 @@ int main(int argc, char ** argv) {
 		} else if(pid) {
 			exit(EXIT_SUCCESS);
 		}
+		enable(QUIET);
 	}
 
+
+	/* Play default radio, if specified. */
 	if(haskey(& rc, "default-radio"))
 		station(value(& rc, "default-radio"));
 
+
+	/* The main loop. */
 	while(!0) {
-		if(death) {
-			pid_t pid;
-			int status;
+		pid_t child;
+		int status, playnext = 0;
 
-			death = 0;
-			while((pid = waitpid(-1, &status, WNOHANG)) > 0) {
-				(pid == playfork && playfork) && (playfork = 0);
-				if(WIFSIGNALED(status) && !playfork) {
-					paused = !paused;
-					if(!daemon) {
-						fputs("Stopped.\r", stdout);
-						fflush(stdout);
-					}
+
+		/* Check if anything died (submissions fork or playback fork). */
+		while((child = waitpid(-1, & status, WNOHANG | WUNTRACED | WCONTINUED)) > 0) {
+			if(child == subfork)
+				subdead(WEXITSTATUS(status));
+			else if(child == playfork) {
+				if(WIFSTOPPED(status))
+					time(& pausetime);
+				else {
+					if(WIFCONTINUED(status))
+						pauselength += time(NULL) - pausetime;
+					else
+						playnext = !0;
+					pausetime = 0;
 				}
 			}
 		}
-		
-		if(changed) {
-			int show_np = 0;
-			// Try to fetch track metadata
-			char * last = strdup(meta("%a %t", 0));
-			unsigned retries = 0;
-			if(last) {
-				while(retries < 3 && !strcmp(last, meta("%a %t", 0))) {
-					update(& track);
-					++retries;
-					interface(!daemon);
-				}
-				free(last);
 
-				if(!daemon) {
-					if(retries == 3) {
-						memset(& track, 0, sizeof(struct hash));
-						fputs("Couldn't update track data. Use 't' to retry\n", stderr);
-					} else {
-						show_np = 1;
-					}
-				}
-			}
 
-			if(banned(meta("%a", 0))) {
-				const char * msg = meta(control("ban")
-						? "\"%t\" by %a auto-banned."
-						: "Failed to auto-ban \"%t\" by %a.", !0);
-				puts(msg);
-				changed = 0;
-				continue;
-			}
-			
-			if(stationChanged) {
-				if(!daemon)
-					puts(meta("Receiving %s.", !0));
-				paused = stationChanged = 0;
-			}
-
-			if (show_np)
-				shownp();
-
-    			changed = 0;
-
-			if(haskey(& rc, "np-file") && haskey(& rc, "np-file-format")) {
-				signed np;
-				const char
-					* file = value(& rc, "np-file"),
-					* fmt = value(& rc, "np-file-format");
-
-				unlink(file);
-				if(-1 != (np = open(file, O_WRONLY | O_CREAT, 0600))) {
-					const char * output = meta(fmt, 0);
-					if(output)
-						write(np, output, strlen(output));
-					close(np);
-				}
-			}
-
-			if(haskey(& rc, "np-cmd"))
-				run(meta(value(& rc, "np-cmd"), 0));
+		/* Check if the user stopped the stream. */
+		if(enabled(STOPPED)) {
+			freelist(& playlist);
+			empty(& track);
+			playnext = playfork = 0;
+			disable(STOPPED);
+			continue;
 		}
 
-		if(playfork && changeTime && haskey(& track, "trackduration") && !paused) {
-			int rem;
-			char remstr[32] = { 0 };
 
-			if(pausetime) {
-				changeTime += time(NULL) - pausetime;
-				pausetime = 0;
+		/*
+			Check if the playback process died. If so, submit the data
+			of the last played track. Then check if there are tracks left
+			in the playlist; if not, try to refresh the list and stop the
+			stream if there are no new tracks to fetch.
+		*/
+		if(playnext) {
+			unsigned
+				duration = atoi(value(& track, "duration")) / 1000,
+				played = time(NULL) - changeTime - pauselength;
+
+			playfork = 0;
+
+			if(enabled(RTP) && duration > 29 && (played >= 240 || played > (duration / 2)))
+				enqueue(& track);
+
+			submit(value(& rc, "username"), value(& rc, "password"));
+
+			shift(& playlist);
+		}
+
+
+		if(playnext || enabled(CHANGED)) {
+			if(!playlist.left) {
+				expand(& playlist);
+				if(!playlist.left) {
+					puts("No tracks left.");
+					playnext = 0;
+					disable(CHANGED);
+					continue;
+				}
 			}
 
-			rem = 
-				(changeTime + atoi(value(& track, "trackduration"))) - time(NULL);
+			if(!playfork) {
+				if(play(& playlist)) {
+					time(& changeTime);
 
-			snprintf(remstr, 32, "%d", rem);
+					/* Print what's currently played. (Ondrej Novy) */
+					if(!background) {
+						if(enabled(CHANGED) && playlist.left > 0)
+							puts(meta("Receiving %s.", !0));
 
+						if(haskey(& rc, "title-format"))
+							printf("%s\n", meta(value(& rc, "title-format"), !0));
+						else
+							printf("%s\n", meta("Now playing \"%t\" by %a.", !0));
+					}
+
+
+					/* Write track data into a file. */
+					if(haskey(& rc, "np-file") && haskey(& rc, "np-file-format")) {
+						signed np;
+						const char
+							* file = value(& rc, "np-file"),
+							* fmt = value(& rc, "np-file-format");
+
+						unlink(file);
+						if(-1 != (np = open(file, O_WRONLY | O_CREAT, 0600))) {
+							const char * output = meta(fmt, 0);
+							if(output)
+								write(np, output, strlen(output));
+							close(np);
+						}
+					}
+
+
+					/* Run a command with our track data. */
+					if(haskey(& rc, "np-cmd"))
+						run(meta(value(& rc, "np-cmd"), 0));
+				} else
+					changeTime = 0;
+			}
+		}
+
+		disable(CHANGED);
+		playnext = 0;
+
+		if(playfork && changeTime && haskey(& track, "duration") && !pausetime) {
+			unsigned duration;
+			signed remain;
+			char remstr[32];
+
+			duration = atoi(value(& track, "duration")) / 1000;
+
+			remain = (changeTime + duration) - time(NULL) + pauselength;
+
+			snprintf(remstr, sizeof(remstr), "%d", remain);
 			set(& track, "remain", remstr);
 
-			if(!daemon) {
-				printf("[%.2f] %c%02d:%02d\r", avglag, rem < 0 ? '-' : ' ', rem / 60, rem % 60);
+			if(!background) {
+				printf("%c%02d:%02d\r", remain < 0 ? '-' : ' ', remain / 60, remain % 60);
 				fflush(stdout);
-			}
-		} else {
-			if(paused && playfork) {
-				if(!pausetime)
-					pausetime = time(NULL);
-				if(!daemon) {
-					fputs("Paused.\r", stdout);
-					fflush(stdout);
-				}
 			}
 		}
 		
-		interface(!daemon);
+		interface(!background);
 		if(haveSocket)
-			sckif(daemon ? 2 : 0);
+			sckif(background ? 2 : 0);
 	}
 	
 	return 0;
 }
 
 
-static void exitWithHelp(const char * argv0, int errorCode) {
-	FILE * out = errorCode ? stderr : stdout;
-
-	fprintf(out,
+static void help(const char * argv0, int errorCode) {
+	fprintf(stderr,
 		"shell-fm - Copyright (C) 2007 by Jonas Kramer\n"
 		"\n"
 		"%s [options] [lastfm://url]\n"
@@ -324,32 +371,29 @@ static void exitWithHelp(const char * argv0, int errorCode) {
 
 
 static void cleanup(void) {
-	fputs("Exiting...\n", stdout);
-
 	canon(!0);
 	rmsckif();
 
 	empty(& data);
 	empty(& rc);
+	empty(& track);
 
-	if(currentStation)
+	freelist(& playlist);
+
+	if(currentStation) {
 		free(currentStation);
+		currentStation = NULL;
+	}
+
+	if(subfork)
+		waitpid(subfork, NULL, 0);
+
+	dumpqueue(!0);
 	
 	if(playfork)
-		kill(playfork, SIGTERM);
+		kill(playfork, SIGUSR1);
 }
 
-static void deadchild(int sig) {
-	sig == SIGCHLD && (death = !0);
-}
-
-
-static void songchanged(int sig) {
-	if(sig == SIGUSR1) {
-		changed = !0;
-		changeTime = time(NULL);
-	}
-}
 
 static void forcequit(int sig) {
 	if(sig == SIGINT) {

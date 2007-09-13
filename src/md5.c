@@ -9,9 +9,10 @@
 /* See the file NOTICE for conditions of use and distribution. */
 
 
-
 #include <string.h>
 #include <stdio.h>
+
+#include "md5.h"
 
 typedef struct md5 {
 	unsigned int length;
@@ -29,7 +30,7 @@ Argument:  pointer to md5 storage structure
 Returns:   nothing
 */
 
-void md5_start(md5 *base) {
+static void md5_start(md5 * base) {
 	base->abcd[0] = 0x67452301;
 	base->abcd[1] = 0xefcdab89;
 	base->abcd[2] = 0x98badcfe;
@@ -53,9 +54,7 @@ text       pointer to next 64 bytes of subject text
 Returns:     nothing
 */
 
-	void
-md5_mid(md5 *base, const unsigned char *text)
-{
+static void md5_mid(md5 * base, const unsigned char * text) {
 	register unsigned int a = base->abcd[0];
 	register unsigned int b = base->abcd[1];
 	register unsigned int c = base->abcd[2];
@@ -223,7 +222,7 @@ digest    points to 16 bytes in which to place the result
 Returns:    nothing
 */
 
-void md5_end(md5 *base, const unsigned char *text, int length, unsigned char *digest) {
+static void md5_end(md5 *base, const unsigned char *text, int length, unsigned char *digest) {
 	int i;
 	unsigned char work[64];
 
@@ -264,10 +263,10 @@ void md5_end(md5 *base, const unsigned char *text, int length, unsigned char *di
 	length += base->length;   /* Total length in bytes */
 	length <<= 3;             /* Total length in bits */
 
-	work[56] = length         & 0xff;
-	work[57] = (length >>  8) & 0xff;
-	work[58] = (length >> 16) & 0xff;
-	work[59] = (length >> 24) & 0xff;
+	work[56] = (unsigned char) (length         & 0xff);
+	work[57] = (unsigned char) ((length >>  8) & 0xff);
+	work[58] = (unsigned char) ((length >> 16) & 0xff);
+	work[59] = (unsigned char) ((length >> 24) & 0xff);
 
 	memset(work+60, 0, 4);
 
@@ -280,10 +279,10 @@ void md5_end(md5 *base, const unsigned char *text, int length, unsigned char *di
 	for (i = 0; i < 4; i++)
 	{
 		register int x = base->abcd[i];
-		*digest++ =  x        & 0xff;
-		*digest++ = (x >>  8) & 0xff;
-		*digest++ = (x >> 16) & 0xff;
-		*digest++ = (x >> 24) & 0xff;
+		*digest++ = (unsigned char) (x        & 0xff);
+		*digest++ = (unsigned char) ((x >>  8) & 0xff);
+		*digest++ = (unsigned char) ((x >> 16) & 0xff);
+		*digest++ = (unsigned char) ((x >> 24) & 0xff);
 	}
 }
 

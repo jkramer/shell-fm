@@ -16,18 +16,21 @@ interface.c \
 main.c \
 play.c \
 radio.c \
-rl_completion.c \
+completion.c \
 ropen.c \
 sckif.c \
 service.c \
 settings.c \
 split.c \
-strarray.c \
+strary.c \
 tag.c \
-utility.c \
 pipe.c \
 md5.c \
-history.c
+history.c \
+playlist.c \
+submit.c \
+readline.c \
+feeds.c
 
 
 ## vim: noet ts=8 sw=8

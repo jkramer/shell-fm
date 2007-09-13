@@ -8,6 +8,6 @@
 #include <stdio.h>
 
 extern FILE * ropen(const char *, unsigned short);
-extern void fshutdown(FILE *);
+extern void fshutdown(FILE **);
 
 #endif

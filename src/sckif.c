@@ -8,7 +8,6 @@
 
 #define _GNU_SOURCE
 
-#include <config.h>
 
 #include <stdio.h>
 #include <unistd.h>
@@ -31,16 +30,15 @@
 #include "service.h"
 #include "interface.h"
 #include "hash.h"
+#include "submit.h"
+#include "getln.h"
 
-extern unsigned getln(char **, unsigned *, FILE *);
-extern unsigned discovery;
-extern pid_t playfork;
+#include "globals.h"
 
-extern struct hash rc;
 
 static int ssck = -1;
+static int waitread(int, unsigned, unsigned);
 
-int waitread(int, unsigned, unsigned);
 
 int mksckif(const char * ip, unsigned short port) {
 	static const int one = 1;
@@ -100,8 +98,12 @@ void sckif(int timeout) {
 					getln(& line, & size, fd);
 
 					if(line && size > 0) {
-						(ptr = strchr(line, 13)) && (* ptr = 0);
-						(ptr = strchr(line, 10)) && (* ptr = 0);
+						if((ptr = strchr(line, 13)) != NULL)
+							* ptr = 0;
+
+						if((ptr = strchr(line, 10)) != NULL)
+							* ptr = 0;
+
 						execcmd(line, fd);
 					}
 
@@ -125,13 +127,8 @@ void execcmd(const char * cmd, FILE * fd) {
 		"love",
 		"ban",
 		"skip",
-		"rtp",
-		"nortp",
 		"quit",
 		"info",
-		"discovery",
-		"stop",
-		"pause"
 	};
 
 	memset(arg, sizeof(arg), 0);
@@ -156,40 +153,30 @@ void execcmd(const char * cmd, FILE * fd) {
 
 		case 1:
 		case 2:
-		case 3:
-		case 4:
-		case 5:
 			control(known[ncmd]);
 			break;
 
-		case 6:
+		case 3:
+			if(playfork) {
+				rate("S");
+				kill(playfork, SIGUSR1);
+			}
+			break;
+
+		case 4:
 			exit(EXIT_SUCCESS);
 
-		case 7:
+		case 5:
 			snprintf(arg, sizeof(arg), "%s", meta(cmd + 5, 0));
 			if(!strlen(arg) && haskey(& rc, "np-file-format"))
 				snprintf(arg, sizeof(arg), "%s", meta(value(& rc, "np-file-format"), 0));
 			fprintf(fd, "%s\n", arg);
 			break;
-
-		case 8:
-			if (setdiscover(discovery = !discovery))
-				fprintf(fd, "%s discovery mode.\n", discovery ? "Enabled" : "Disabled");
-			else
-				fprintf(fd, "Failed to %s discovery mode.\n", discovery ? "enable" : "disable");
-			break;
-		case 9:
-			if(playfork)
-				kill(playfork, SIGKILL);
-			break;
-		case 10:
-			pause_music();
-			break;
 	}
 	fflush(fd);
 }
 
-int waitread(int fd, unsigned sec, unsigned usec) {
+static int waitread(int fd, unsigned sec, unsigned usec) {
 	fd_set readfd;
 	struct timeval tv;
 

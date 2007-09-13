@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "interface.h"
+#include "pipe.h"
 
 FILE * openpipe(const char * cmd, pid_t * cpid) {
 	pid_t pid;

@@ -8,7 +8,6 @@
 
 #define _GNU_SOURCE
 
-#include <config.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -16,11 +15,10 @@
 #include <unistd.h>
 
 #include "hash.h"
+#include "getln.h"
+#include "settings.h"
 
 struct hash rc; /* settings read from ~/.shell-fm.rc */
-
-extern unsigned getln(char **, unsigned *, FILE *);
-const char * rcpath(const char *);
 
 int settings(const char * path, int first) {
 	int retval = !0;

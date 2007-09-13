@@ -10,77 +10,71 @@
 
 #define _GNU_SOURCE
 
-#include <config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <readline/readline.h>
+#include <ctype.h>
+#include <assert.h>
 
 #include "settings.h"
 #include "http.h"
 #include "split.h"
 #include "interface.h"
-#include "rl_completion.h"
+#include "completion.h"
 #include "md5.h"
+#include "feeds.h"
 
-static char ** getPopularTags(char, struct hash);
-static char * getExistingTags(char, struct hash);
+#include "readline.h"
+#include "tag.h"
 
-static char** rlcompletion(const char *text, int start, int end);
-static int rlstartup(void);
+static char * oldtags(char, struct hash);
+static char ** popular = NULL;
 
-static char * current_tags = NULL;
-static char ** popular_tags = NULL;
-
-void stripslashes(char *);
+static int tagcomplete(char *, const unsigned, int);
 
 void tag(struct hash data) {
 	char key, * tagstring;
 	unsigned tslen;
-	rl_params_t save_rlp;
+	struct prompt setup = {
+		.prompt = "Tags (comma separated): ",
+		.line = NULL,
+		.history = NULL,
+		.callback = tagcomplete,
+	};
 
 	if(!data.content)
 		return;
 
-	fputs("Tag artist, album or track (or abort)? [aAtq]\n", stdout);
-	fflush(stdout);
+	fputs("Tag (a)rtist, a(l)bum, (t)rack or (c)ancel?\n", stderr);
 
-	while(!strchr("aAtq", (key = fetchkey(2))));
+	while(!strchr("altc", (key = fetchkey(2))));
 
-	if(key == 'q')
+	if(key == 'c')
 		return;
 
-	save_rl_params(& save_rlp);
-
-	if((popular_tags = getPopularTags(key, data))) {
-		rl_basic_word_break_characters = ",";
-		rl_completer_word_break_characters = ",";
-		rl_completion_append_character = ',';
-		rl_attempted_completion_function = rlcompletion;
+	if((popular = toptags(key, data))) {
+		unsigned items = 0;
+		while(popular[items])
+			++items;
 	}
 
-	if((current_tags = getExistingTags(key, data)))
-		rl_startup_hook = rlstartup;
+	setup.line = oldtags(key, data);
 
-	canon(!0);
-	tagstring = readline("Your tags, comma separated:\n>> ");
+	tagstring = strdup(readline(& setup));
 
-	if(current_tags) {
-		free(current_tags);
-		current_tags = NULL;
+	if(setup.line) {
+		free(setup.line);
+		setup.line = NULL;
 	}
 
-	if(popular_tags) {
+	if(popular) {
 		unsigned x;
-		for(x = 0; popular_tags[x]; ++x)
-			free(popular_tags[x]);
-		free(popular_tags);
-		popular_tags = NULL;
+		for(x = 0; popular[x]; ++x)
+			free(popular[x]);
+		free(popular);
+		popular = NULL;
 	}
-
-	canon(0);
-	restore_rl_params(&save_rlp);
 
 	if(tagstring && (tslen = strlen(tagstring))) {
 		unsigned nsplt = 0, postlength = 0, x = 0, xmllength;
@@ -93,9 +87,8 @@ void tag(struct hash data) {
 			md5hex[32 + 1] = { 0 }, tmp[32 + 8 + 1] = { 0 };
 
 		/* remove trailing commas */
-		while (tagstring[tslen-1] == ',') {
+		while (tagstring[tslen-1] == ',')
 			tagstring[--tslen] = 0;
-		}
 
 		splt = split(tagstring, ",\n", & nsplt);
 
@@ -116,7 +109,7 @@ void tag(struct hash data) {
 					"</methodCall>\n";
 				break;
 
-			case 'A':
+			case 'l':
 				token = value(& data, "album");
 				xmlformat =
 					"<?xml version=\"1.0\"?>\n"
@@ -135,7 +128,7 @@ void tag(struct hash data) {
 				break;
 
 			case 't':
-				token = value(& data, "track");
+				token = value(& data, "title");
 				xmlformat =
 					"<?xml version=\"1.0\"?>\n"
 					"<methodCall>\n"
@@ -168,7 +161,7 @@ void tag(struct hash data) {
 			+ strlen(value(& rc, "username"))
 			+ strlen(challenge)
 			+ sizeof(md5hex)
-			+ strlen(value(& data, "artist"))
+			+ strlen(value(& data, "creator"))
 			+ (token ? strlen(token) : 0)
 			+ postlength;
 
@@ -185,7 +178,7 @@ void tag(struct hash data) {
 				value(& rc, "username"), /* username */
 				challenge, /* challenge */
 				md5hex, /* password/challenge hash */
-				value(& data, "artist"), /* artist */
+				value(& data, "creator"), /* artist */
 				token, /* album/track */
 				post /* tags */
 			);
@@ -195,15 +188,16 @@ void tag(struct hash data) {
 				value(& rc, "username"), /* username */
 				challenge, /* challenge */
 				md5hex, /* password/challenge hash */
-				value(& data, "artist"), /* artist */
+				value(& data, "creator"), /* artist */
 				post /* tags */
 			);
 
 		free(post);
 
-		if((resp = fetch(url, NULL, xml, NULL))) {
+		if((resp = fetch(url, NULL, xml, "text/xml")) != NULL) {
 			for(x = 0; resp[x]; ++x)
 				free(resp[x]);
+
 			free(resp);
 		}
 
@@ -213,82 +207,8 @@ void tag(struct hash data) {
 	free(tagstring);
 }
 
-static char ** getPopularTags(char key, struct hash track) {
-	unsigned length, x, tag_count, tag_idx;
-	char ** tags = NULL, * url = calloc(512, sizeof(char)),
-			 * type = NULL, * artist = NULL, * arg = NULL,
-			 * file = NULL, ** resp;
 
-	file = "toptags.xml";
-	
-	switch(key) {
-		case 'A': /* album has not special tags */
-		case 'a': /* artist tags */
-			type = "artist";
-			break;
-		case 't':
-		default:
-			type = "track";
-	}
-
-	encode(value(& track, "artist"), & artist);
-	stripslashes(artist);
-
-	length = snprintf(
-			url, 512, "http://ws.audioscrobbler.com/1.0/%s/%s/",
-			type, artist);
-
-	free(artist);
-
-	if(key == 't') {
-		encode(value(& track, "track"), & arg);
-		stripslashes(arg);
-		length += snprintf(url + length, 512 - length, "%s/", arg);
-		free(arg);
-	}
-
-	strncpy (url+length, file, 512-length);
-
-	resp = fetch(url, NULL, NULL, NULL);
-	free(url);
-
-	if(!resp)
-		return NULL;
-
-	tag_count = 0;
-	for (x=0; resp[x]; x++) {
-		char * pbeg = strstr(resp[x], "<name>");
-		if (pbeg)
-			tag_count ++;
-	}
-
-	tags = calloc (tag_count+1, sizeof (char*));
-
-	for(x = 0, tag_idx = 0; resp[x]; ++x) {
-		char * pbeg = strstr(resp[x], "<name>"), * pend;
-		if(pbeg) {
-			pbeg += 6;
-			pend = strstr(pbeg, "</name>");
-			if(pend) {
-				tags[tag_idx] = malloc (pend - pbeg + 1);
-				memcpy (tags[tag_idx], pbeg, pend - pbeg);
-				tags[tag_idx][pend - pbeg] = 0;
-				tag_idx++;
-
-				if (tag_idx >= tag_count)
-					break;
-			}
-		}
-		free(resp[x]);
-	}
-	free(resp);
-
-	tags[tag_idx] = NULL;
-
-	return tags;
-}
-
-static char * getExistingTags(char key, struct hash track) {
+static char * oldtags(char key, struct hash track) {
 	unsigned length, x;
 	char * tags = NULL, * url = calloc(512, sizeof(char)),
 			 * user = NULL, * artist = NULL, * arg = NULL,
@@ -298,7 +218,7 @@ static char * getExistingTags(char key, struct hash track) {
 		case 'a':
 			file = "artisttags.xml";
 			break;
-		case 'A':
+		case 'l':
 			file = "albumtags.xml";
 			break;
 		case 't':
@@ -306,24 +226,24 @@ static char * getExistingTags(char key, struct hash track) {
 			file = "tracktags.xml";
 	}
 
-	encode(value(& track, "artist"), & artist);
+	encode(value(& track, "creator"), & artist);
 	stripslashes(artist);
 
 	encode(value(& rc, "username"), & user);
 
 	length = snprintf(
-			url, 512, "http://wsdev.audioscrobbler.com/1.0/user/%s/%s?artist=%s",
+			url, 512, "http://ws.audioscrobbler.com/1.0/user/%s/%s?artist=%s",
 			user, file, artist);
 
 	free(user);
 	free(artist);
 
-	if(key == 'A') {
+	if(key == 'l') {
 		encode(value(& track, "album"), & arg);
 		stripslashes(arg);
 		length += snprintf(url + length, 512 - length, "&album=%s", arg);
 	} else if(key == 't') {
-		encode(value(& track, "track"), & arg);
+		encode(value(& track, "title"), & arg);
 		stripslashes(arg);
 		length += snprintf(url + length, 512 - length, "&track=%s", arg);
 	}
@@ -331,7 +251,7 @@ static char * getExistingTags(char key, struct hash track) {
 	if(arg)
 		free(arg);
 
-	resp = fetch(url, NULL, NULL, NULL);
+	resp = fetch(url, NULL, NULL, "application/x-www-form-urlencoded");
 	free(url);
 
 	if(!resp)
@@ -360,38 +280,6 @@ static char * getExistingTags(char key, struct hash track) {
 	return tags;
 }
 
-static char * __tag_match_generator (const char *text, int state) {
-	static int index, tlen;
-	char *tag;
-
-	if (!state) {
-		/* first time */
-		index = 0;
-		tlen = strlen (text);
-	}
-
-	while ((tag = popular_tags[index])) {
-		index ++;
-		if (strncmp (tag, text, tlen) == 0)
-			return strdup(tag);
-	}
-
-	return NULL;
-}
-
-static char** rlcompletion(const char *text, int start __attribute__((unused)), int end __attribute__((unused))) {
-	char ** ret;
-
-	ret = rl_completion_matches (text, __tag_match_generator);
-
-	return ret;
-}
-
-static int rlstartup(void) {
-	if(current_tags)
-		rl_insert_text(current_tags);
-	return 0;
-}
 
 void stripslashes(char * string) {
 	unsigned x = 0;
@@ -402,3 +290,53 @@ void stripslashes(char * string) {
 			++x;
 	}
 }
+
+
+static int tagcomplete(char * line, const unsigned max, int changed) {
+	unsigned length, nres = 0;
+	int retval = 0;
+	char * ptr = NULL;
+	const char * match = NULL;
+
+	assert(line != NULL);
+
+	length = strlen(line);
+
+	/* Remove spaces at the beginning of the string. */
+	while(isspace(line[0])) {
+		retval = !0;
+		memmove(line, line + 1, strlen(line + 1));
+		line[--length] = 0;
+	}
+
+	/* Remove spaces at the end of the string. */
+	while(isspace(line[(length = strlen(line)) - 1])) {
+		retval = !0;
+		line[--length] = 0;
+	}
+
+	/* No need for tab completion if there are no popular tags. */
+	if(!popular || !popular[0])
+		return retval;
+
+	/* Get pointer to the beginning of the last tag in tag string. */
+	if((ptr = strrchr(line, ',')) == NULL)
+		ptr = line;
+	else
+		++ptr;
+
+	length = strlen(ptr);
+	if(!length)
+		changed = !0;
+
+	/* Get next match in list of popular tags. */
+	if((match = nextmatch(popular, changed ? ptr : NULL, & nres)) != NULL) {
+		snprintf(ptr, max - (ptr - line) - 1, "%s%s", match, nres < 2 ? "," : "");
+		retval = !0;
+	}
+
+	return retval;
+}
+
+
+/* http://ws.audioscrobbler.com/1.0/tag/toptags.xml */
