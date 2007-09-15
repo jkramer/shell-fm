@@ -85,9 +85,7 @@ void playback(FILE * streamfd) {
 		data.parent = getppid();
 
 #ifdef __HAVE_LIBAO__
-		data.driver_id = haskey(& rc, "device")
-			? ao_driver_id(value(& rc, "device"))
-			: ao_default_driver_id();
+		data.driver_id = ao_default_driver_id();
 
 		if(-1 == data.driver_id) {
 			fputs("Unable to find any usable output device!\n", stderr);
