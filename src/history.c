@@ -19,6 +19,7 @@
 #include "getln.h"
 #include "strary.h"
 
+int grep(char **, char *);
 
 void histapp(const char * radio) {
 	FILE * fd;
@@ -101,25 +102,45 @@ char ** slurp(const char * path) {
 
 
 char ** uniq(char ** list) {
+	char ** uniqlist = NULL;
+
 	if(list != NULL) {
-		int size = count(list), n = size;
+		int size = 0, n = 0;
 
-		while(--n) {
-			int x = n;
-
-			while(x-- > 0) {
-				if(!strcmp(list[n], list[x])) {
-					free(list[x]);
-					memmove(& list[x], & list[x + 1], sizeof(char *) * (size - x));
-					list[--size] = NULL;
-					--n;
-				}
+		while(list[n] != NULL) {
+			if(grep(uniqlist, list[n])) {
+				free(list[n]);
+				list[n] = NULL;
+			} else {
+				uniqlist = realloc(uniqlist, (sizeof(char *)) * (size + 2));
+				assert(uniqlist != NULL);
+				uniqlist[size++] = list[n];
+				uniqlist[size] = NULL;
 			}
+
+			++n;
 		}
 
-		list = realloc(list, sizeof(char *) * (size + 1));
-		assert(list != NULL);
+		free(list);
 	}
 
-	return list;
+	return uniqlist;
+}
+
+
+int grep(char ** list, char * needle) {
+	register unsigned x = 0;
+	
+	if(!needle)
+		return 0;
+
+	if(list != NULL) {
+		while(list[x] != NULL) {
+			if(!strcmp(list[x], needle))
+				return !0;
+			++x;
+		}
+	}
+
+	return 0;
 }

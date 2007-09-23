@@ -27,7 +27,7 @@
 unsigned count(char ** list) {
 	unsigned n = 0;
 
-	if(list)
+	if(list != NULL)
 		while(list[n] != NULL)
 			++n;
 

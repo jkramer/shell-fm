@@ -116,7 +116,6 @@ int main(int argc, char ** argv) {
 		help(argv[0], EXIT_FAILURE);
 
 
-	/* The -D / device option is only used if have libao support. */
 #ifndef __HAVE_LIBAO__ 
 	if(!haskey(& rc, "device"))
 		set(& rc, "device", "/dev/audio");

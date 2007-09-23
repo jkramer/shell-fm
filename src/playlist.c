@@ -23,19 +23,23 @@
 #include "globals.h"
 
 
-
 int expand(struct playlist * list) {
 	char url[512], ** response, * xml = NULL;
 	unsigned n, length = 0;
 	const char * fmt =
-		"http://ws.audioscrobbler.com/radio/xspf.php?sk=%s&discovery=%d&desktop=0";
+		"http://ws.audioscrobbler.com/radio/xspf.php"
+		"?sk=%s&discovery=%d&desktop=0";
 
 	assert(list != NULL);
 
 	memset(url, 0, sizeof(url));
-	snprintf(url, sizeof(url), fmt, value(& data, "session"), !!enabled(DISCOVERY));
+	snprintf(
+		url, sizeof(url), fmt,
+		value(& data, "session"), !!enabled(DISCOVERY)
+	);
 
-	if((response = fetch(url, NULL, NULL, "application/x-www-form-urlencoded"))) {
+	response = fetch(url, NULL, NULL, "application/x-www-form-urlencoded");
+	if(response != NULL) {
 		int retval;
 
 		for(n = 0; response[n]; ++n) {
@@ -55,6 +59,7 @@ int expand(struct playlist * list) {
 
 	return 0;
 }
+
 
 int parsexspf(struct playlist * list, const char * xml) {
 	char * ptr;
@@ -154,6 +159,7 @@ void push(struct playlist * list, struct tracknode * node) {
 
 	++list->left;
 }
+
 
 void shift(struct playlist * list) {
 	if(list->track) {
