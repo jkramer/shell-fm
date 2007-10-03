@@ -146,6 +146,11 @@ int radiocomplete(char * line, const unsigned max, int changed) {
 				match = nextmatch(artists, changed ? (slash ? "" : splt[1]) : NULL, & nres);
 				if(match)
 					snprintf(line, max, "%s/%s%s", splt[0], match, nres == 1 ? "/" : "");
+			} else if(!strcmp(splt[0], "globaltags")) {
+				char * lastchunk = strrchr(line, '/') + 1;
+				popular = overalltags();
+				tagcomplete(lastchunk, max - (lastchunk - line), changed);
+				purge(popular);
 			}
 			break;
 
@@ -171,11 +176,8 @@ int radiocomplete(char * line, const unsigned max, int changed) {
 				snprintf(line, max, "%s/%s/%s", splt[0], splt[1], match ? match : splt[2]);
 			} else if(!strcmp(splt[0], "usertags")) {
 				char * lastchunk = strrchr(line, '/') + 1;
-
 				popular = overalltags();
-
 				tagcomplete(lastchunk, max - (lastchunk - line), changed);
-
 				purge(popular);
 			}
 			break;
