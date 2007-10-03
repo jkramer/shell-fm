@@ -32,9 +32,11 @@
 #include "hash.h"
 #include "submit.h"
 #include "getln.h"
+#include "tag.h"
 
 #include "globals.h"
 
+struct hash track;
 
 static int ssck = -1;
 static int waitread(int, unsigned, unsigned);
@@ -129,6 +131,11 @@ void execcmd(const char * cmd, FILE * fd) {
 		"skip",
 		"quit",
 		"info",
+		"pause",
+		"discovery",
+		"tag-artist",
+		"tag-album",
+		"tag-track",
 	};
 
 	memset(arg, sizeof(arg), 0);
@@ -152,15 +159,15 @@ void execcmd(const char * cmd, FILE * fd) {
 			break;
 
 		case 1:
+			rate("L");
+			break;
+
 		case 2:
-			control(known[ncmd]);
+			rate("B");
 			break;
 
 		case 3:
-			if(playfork) {
-				rate("S");
-				kill(playfork, SIGUSR1);
-			}
+			rate("S");
 			break;
 
 		case 4:
@@ -171,6 +178,30 @@ void execcmd(const char * cmd, FILE * fd) {
 			if(!strlen(arg) && haskey(& rc, "np-file-format"))
 				snprintf(arg, sizeof(arg), "%s", meta(value(& rc, "np-file-format"), 0));
 			fprintf(fd, "%s\n", arg);
+			break;
+
+		case 6:
+			if(playfork)
+				kill(playfork, pausetime ? SIGCONT : SIGSTOP);
+			break;
+
+		case 7:
+			toggle(DISCOVERY);
+			break;
+
+		case 8:
+			if(sscanf(cmd, "tag-artist %128s", arg) == 1)
+				sendtag('a', arg, track);
+			break;
+
+		case 9:
+			if(sscanf(cmd, "tag-album %128s", arg) == 1)
+				sendtag('l', arg, track);
+			break;
+
+		case 10:
+			if(sscanf(cmd, "tag-track %128s", arg) == 1)
+				sendtag('t', arg, track);
 			break;
 	}
 	fflush(fd);

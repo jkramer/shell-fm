@@ -57,24 +57,15 @@ void interface(int interactive) {
 
 		switch(key) {
 			case 'l':
-				if(playfork) {
-					rate("L");
-					puts(control("love") ? "Loved." : "Sorry, failed.");
-				}
+				puts(rate("L") ? "Loved." : "Sorry, failed.");
 				break;
 
 			case 'B':
-				if(playfork) {
-					rate("B");
-					puts(control("ban") ? "Banned." : "Sorry, failed.");
-				}
+				puts(rate("B") ? "Banned." : "Sorry, failed.");
 				break;
 
 			case 'n':
-				if(playfork) {
-					rate("S");
-					kill(playfork, SIGUSR1);
-				}
+				rate("S");
 				break;
 
 			case 'Q':
@@ -306,7 +297,22 @@ void run(const char * cmd) {
 }
 
 
-void rate(const char * rating) {
-	if(rating != NULL)
+int rate(const char * rating) {
+	if(playfork && rating != NULL) {
 		set(& track, "rating", rating);
+
+		switch(rating[0]) {
+			case 'B':
+				return control("ban");
+
+			case 'L':
+				return control("love");
+
+			case 'S':
+				kill(playfork, SIGUSR1);
+				return !0;
+		}
+	}
+
+	return 0;
 }

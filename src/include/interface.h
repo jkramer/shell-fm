@@ -14,6 +14,6 @@ extern void canon(int);
 extern int fetchkey(unsigned);
 extern void shownp(void);
 extern void tag(struct hash);
-extern void rate(const char *);
+extern int rate(const char *);
 
 #endif
