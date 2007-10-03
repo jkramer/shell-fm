@@ -29,9 +29,8 @@
 #include "tag.h"
 
 static char * oldtags(char, struct hash);
-static char ** popular = NULL;
+char ** popular = NULL;
 
-static int tagcomplete(char *, const unsigned, int);
 
 void tag(struct hash data) {
 	char key, * tagstring;
@@ -124,7 +123,7 @@ static char * oldtags(char key, struct hash track) {
 	if(arg)
 		free(arg);
 
-	resp = fetch(url, NULL, NULL, "application/x-www-form-urlencoded");
+	resp = fetch(url, NULL, NULL, NULL);
 	free(url);
 
 	if(!resp)
@@ -165,7 +164,7 @@ void stripslashes(char * string) {
 }
 
 
-static int tagcomplete(char * line, const unsigned max, int changed) {
+int tagcomplete(char * line, const unsigned max, int changed) {
 	unsigned length, nres = 0;
 	int retval = 0;
 	char * ptr = NULL;
@@ -210,6 +209,7 @@ static int tagcomplete(char * line, const unsigned max, int changed) {
 
 	return retval;
 }
+
 
 void sendtag(char key, char * tagstring, struct hash data) {
 	unsigned tslen;

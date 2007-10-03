@@ -8,7 +8,7 @@
 
 #define _GNU_SOURCE
 
-
+#include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -19,8 +19,10 @@
 #include <stdarg.h>
 
 #include <sys/socket.h>
+#include <sys/stat.h>
 
 #include "hash.h"
+#include "history.h"
 #include "settings.h"
 #include "getln.h"
 #include "http.h"
@@ -33,7 +35,7 @@
 #endif
 
 
-char ** fetch(const char * url, FILE ** pHandle, const char * data, const char * content_type) {
+char ** fetch(const char * url, FILE ** pHandle, const char * data, const char * type) {
 	char ** resp = NULL, * host, * file, * port, * status = NULL, * line = NULL;
 	char * connhost;
 	char urlcpy[512 + 1];
@@ -57,6 +59,8 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data, const char *
 	fputs("...\r", stderr);
 
 	useproxy = haskey(& rc, "proxy");
+	if(type == NULL)
+		type = "application/x-www-form-urlencoded";
 
 	if(pHandle)
 		* pHandle = NULL;
@@ -98,7 +102,7 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data, const char *
 		fprintf(fd, headFormat, data ? "POST" : "GET", file ? file : "", host);
 
 	if(data != NULL) {
-		fprintf(fd, "Content-Type: %s\r\n", content_type);
+		fprintf(fd, "Content-Type: %s\r\n", type);
 		fprintf(fd, "Content-Length: %ld\r\n\r\n%s\r\n", (long) strlen(data), data);
 	}
 
@@ -137,7 +141,7 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data, const char *
 			sscanf(line, "Location: %512[^\r\n]", newurl);
 			fshutdown(& fd);
 
-			return fetch(newurl, pHandle, data, content_type);
+			return fetch(newurl, pHandle, data, type);
 		}
 	}
 
@@ -309,3 +313,46 @@ const char * makeurl(const char * fmt, ...) {
 	return url;
 }
 
+
+char ** cache(const char * url, const char * name, int refresh) {
+	time_t expiry = 60 * 60 * 24;
+	char path[4096];
+
+	if(haskey(& rc, "expiry"))
+		expiry = atoi(value(& rc, "expiry"));
+
+	memset(path, (char) 0, sizeof(path));
+	snprintf(path, sizeof(path), "%s/.shell-fm/cache/%s", getenv("HOME"), name);
+
+	if(!refresh) {
+		if(access(path, R_OK | W_OK))
+			refresh = !0;
+		else {
+			time_t now = time(NULL);
+			struct stat status;
+
+			stat(path, & status);
+			if(status.st_mtime < now - expiry)
+				refresh = !0;
+		}
+	}
+
+	if(!refresh)
+		return slurp(path);
+	else {
+		char ** data = fetch(url, NULL, NULL, NULL);
+		if(data) {
+			FILE * fd = fopen(path, "w");
+			if(fd != NULL) {
+				unsigned line = 0;
+				while(data[line])
+					fprintf(fd, "%s\n", data[line++]);
+				fclose(fd);
+			} else {
+				fputs("Couldn't write cache.\n", stderr);
+			}
+		}
+
+		return data;
+	}
+}

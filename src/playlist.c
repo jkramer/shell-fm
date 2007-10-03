@@ -38,7 +38,7 @@ int expand(struct playlist * list) {
 		value(& data, "session"), !!enabled(DISCOVERY)
 	);
 
-	response = fetch(url, NULL, NULL, "application/x-www-form-urlencoded");
+	response = fetch(url, NULL, NULL, NULL);
 	if(response != NULL) {
 		int retval;
 

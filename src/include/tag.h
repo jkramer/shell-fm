@@ -5,5 +5,6 @@
 extern void tag(struct hash);
 extern void stripslashes(char *);
 extern void sendtag(char, char *, struct hash);
+extern int tagcomplete(char *, const unsigned, int);
 
 #endif

@@ -31,8 +31,10 @@
 #include "feeds.h"
 #include "strary.h"
 #include "service.h"
+#include "tag.h"
 
 
+extern char ** popular;
 static int radiocomplete(char *, const unsigned, int);
 
 static char ** users = NULL, ** artists = NULL, ** overall = NULL;
@@ -167,6 +169,14 @@ int radiocomplete(char * line, const unsigned max, int changed) {
 				};
 				match = nextmatch(radios, changed ? (slash ? "" : splt[2]) : NULL, NULL);
 				snprintf(line, max, "%s/%s/%s", splt[0], splt[1], match ? match : splt[2]);
+			} else if(!strcmp(splt[0], "usertags")) {
+				char * lastchunk = strrchr(line, '/') + 1;
+
+				popular = overalltags();
+
+				tagcomplete(lastchunk, max - (lastchunk - line), changed);
+
+				purge(popular);
 			}
 			break;
 	}

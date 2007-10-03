@@ -133,7 +133,7 @@ int submit(const char * user, const char * password) {
 
 	sliceq(qlength);
 
-	resp = fetch(value(& submission, "submissions"), NULL, body, "application/x-www-form-urlencoded");
+	resp = fetch(value(& submission, "submissions"), NULL, body, NULL);
 
 	if(resp) {
 		unsigned i;
@@ -218,7 +218,7 @@ static int handshake(const char * user, const char * password) {
 		hex /* The authentication MD5 token calculated above. */
 	);
 
-	if((resp = fetch(url, NULL, NULL, "application/x-www-form-urlencoded")) != NULL) {
+	if((resp = fetch(url, NULL, NULL, NULL)) != NULL) {
 		if(resp[0] != NULL && !strncmp("OK", resp[0], 2)) {
 			set(& submission, "session", resp[1]);
 			set(& submission, "now-playing", resp[2]);
