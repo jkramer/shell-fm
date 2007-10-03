@@ -181,7 +181,7 @@ int tagcomplete(char * line, const unsigned max, int changed) {
 	}
 
 	/* Remove spaces at the end of the string. */
-	while(isspace(line[(length = strlen(line)) - 1])) {
+	while((length = strlen(line)) > 0 && isspace(line[length - 1])) {
 		retval = !0;
 		line[--length] = 0;
 	}
