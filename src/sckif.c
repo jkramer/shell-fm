@@ -122,7 +122,7 @@ void sckif(int timeout) {
 }
 
 void execcmd(const char * cmd, FILE * fd) {
-	char arg[1024];
+	char arg[1024], * ptr;
 	register unsigned ncmd;
 	const char * known [] = {
 		"play",
@@ -136,6 +136,9 @@ void execcmd(const char * cmd, FILE * fd) {
 		"tag-artist",
 		"tag-album",
 		"tag-track",
+		"artist-tags",
+		"album-tags",
+		"track-tags",
 	};
 
 	memset(arg, sizeof(arg), 0);
@@ -202,6 +205,24 @@ void execcmd(const char * cmd, FILE * fd) {
 		case 10:
 			if(sscanf(cmd, "tag-track %128s", arg) == 1)
 				sendtag('t', arg, track);
+			break;
+
+		case 11:
+			ptr = oldtags('a', track);
+			fprintf(fd, "%s\n", ptr);
+			free(ptr);
+			break;
+
+		case 12:
+			ptr = oldtags('l', track);
+			fprintf(fd, "%s\n", ptr);
+			free(ptr);
+			break;
+
+		case 13:
+			ptr = oldtags('t', track);
+			fprintf(fd, "%s\n", ptr);
+			free(ptr);
 			break;
 	}
 	fflush(fd);

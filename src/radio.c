@@ -119,7 +119,7 @@ int radiocomplete(char * line, const unsigned max, int changed) {
 		memset(line + 9, 0, max - (length -= 9));
 	}
 
-	if(line[length - 1] == '/') {
+	if(length > 0 && line[length - 1] == '/') {
 		slash = !0;
 		changed = !0;
 	}

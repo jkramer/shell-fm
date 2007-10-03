@@ -28,7 +28,6 @@
 #include "readline.h"
 #include "tag.h"
 
-static char * oldtags(char, struct hash);
 char ** popular = NULL;
 
 
@@ -80,7 +79,7 @@ void tag(struct hash data) {
 }
 
 
-static char * oldtags(char key, struct hash track) {
+char * oldtags(char key, struct hash track) {
 	unsigned length, x;
 	char * tags = NULL, * url = calloc(512, sizeof(char)),
 			 * user = NULL, * artist = NULL, * arg = NULL,

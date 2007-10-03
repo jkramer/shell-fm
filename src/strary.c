@@ -68,7 +68,6 @@ char ** merge(char ** list, char ** appendix, int keep) {
 	return list;
 }
 
-
 /* Free a NULL-terminated array of strings. */
 void purge(char ** list) {
 	unsigned i = 0;

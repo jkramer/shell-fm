@@ -99,3 +99,7 @@ bind = localhost
 # to port 54311. With this option, you can specify
 # an other port, if you don't like the default.
 #port = 1234
+
+# Sets the expiry time of the caches in seconds. Default is 24h (86400
+# seconds).
+expiry = 3600
