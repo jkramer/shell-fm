@@ -30,7 +30,8 @@ history.c \
 playlist.c \
 submit.c \
 readline.c \
-feeds.c
+feeds.c \
+xmlrpc.c
 
 
 ## vim: noet ts=8 sw=8

@@ -32,6 +32,7 @@
 #include "md5.h"
 #include "submit.h"
 #include "readline.h"
+#include "xmlrpc.h"
 
 #include "globals.h"
 
@@ -41,7 +42,7 @@ struct hash track;
 
 void interface(int interactive) {
 	if(interactive) {
-		int key;
+		int key, result;
 		char customkey[8] = { 0 }, * marked = NULL;
 		
 		canon(0);
@@ -62,6 +63,7 @@ void interface(int interactive) {
 
 			case 'B':
 				puts(rate("B") ? "Banned." : "Sorry, failed.");
+				kill(playfork, SIGUSR1);
 				break;
 
 			case 'n':
@@ -103,9 +105,18 @@ void interface(int interactive) {
 					puts("\nAbort.");
 				else if(autoban(value(& track, "creator"))) {
 					printf("\n%s banned.\n", meta("%a", !0));
-					control("ban");
+					rate("B");
 				}
 				fflush(stdout);
+				break;
+
+			case 'a':
+				result = xmlrpc(
+					"addTrackToUserPlaylist", "ss",
+					value(& track, "creator"),
+					value(& track, "title"));
+				
+				puts(result ? "Added to playlist." : "Sorry, failed.");
 				break;
 
 			case 'R':
@@ -303,10 +314,20 @@ int rate(const char * rating) {
 
 		switch(rating[0]) {
 			case 'B':
-				return control("ban");
+				return xmlrpc(
+					"loveTrack",
+					"ss",
+					value(& track, "creator"),
+					value(& track, "title")
+				);
 
 			case 'L':
-				return control("love");
+				return xmlrpc(
+					"loveTrack",
+					"ss",
+					value(& track, "creator"),
+					value(& track, "title")
+				);
 
 			case 'S':
 				kill(playfork, SIGUSR1);

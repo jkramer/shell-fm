@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <signal.h>
+#include <stdarg.h>
 
 #include "hash.h"
 #include "http.h"
@@ -184,43 +185,6 @@ int station(const char * stationURL) {
 		enable(STOPPED);
 		kill(playfork, SIGUSR1);
 	}
-
-	return retval;
-}
-
-
-/*
-	Send control command to last.fm to love/ban the currently played track.
-	$0 = (const char *) one of "love" or "ban"
-	return value: non-zero on success, zero on error
-
-	THIS WILL BECOME OBSOLETE AS SOON AS THE LAST.FM PEOPLE
-	FULLY IMPLEMENT THEIR OWN STUPID PROTOCOL.
-*/
-int control(const char * cmd) {
-	char url[512] = { 0 }, ** response;
-	unsigned i = 0, retval = 0;
-	const char * fmt =
-		"http://ws.audioscrobbler.com/radio/control.php"
-		"?session=%s"
-		"&command=%s"
-		"&debug=0";
-
-	snprintf(url, sizeof(url), fmt, value(& data, "session"), cmd);
-	if(!(response = fetch(url, NULL, NULL, NULL)))
-		return 0;
-
-	while(response[i]) {
-		if(!strncmp(response[i], "response=OK", 11))
-			retval = !0;
-
-		free(response[i++]);
-	}
-
-	free(response);
-
-	if(!strncmp("ban", cmd, 3) && retval && playfork)
-		kill(playfork, SIGUSR1);
 
 	return retval;
 }

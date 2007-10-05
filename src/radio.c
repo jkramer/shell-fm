@@ -132,11 +132,13 @@ int radiocomplete(char * line, const unsigned max, int changed) {
 	}
 
 	switch(nsplt + slash) {
+		/* First level completions (user, usertags, artists, ...) */
 		case 1:
 			if((match = nextmatch(types, changed ? splt[0] : NULL, & nres)) != NULL)
 				snprintf(line, max, "%s%s", match, nres == 1 ? "/" : "");
 			break;
 
+		/* Second level completions (user/$USER, globaltags/$TAG, ...) */
 		case 2:
 			if(!strcmp(splt[0], "user") || !strcmp(splt[0], "usertags")) {
 				match = nextmatch(users, changed ? (slash ? "" : splt[1]) : NULL, & nres);
@@ -154,6 +156,7 @@ int radiocomplete(char * line, const unsigned max, int changed) {
 			}
 			break;
 
+		/* Third level completions (artist/$ARTIST/fans, ...) */
 		case 3:
 			if(!strcmp(splt[0], "user")) {
 				char * radios [] = {

@@ -11,8 +11,8 @@
 extern int authenticate(const char *, const char *);
 extern int station(const char *);
 extern int update(struct hash *);
-extern int control(const char *);
 
 extern int play(struct playlist *);
+
 
 #endif
