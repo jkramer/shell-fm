@@ -114,7 +114,8 @@ void interface(int interactive) {
 				result = xmlrpc(
 					"addTrackToUserPlaylist", "ss",
 					value(& track, "creator"),
-					value(& track, "title"));
+					value(& track, "title")
+				);
 				
 				puts(result ? "Added to playlist." : "Sorry, failed.");
 				break;
@@ -164,6 +165,7 @@ void interface(int interactive) {
 				break;
 
       case '?':
+				puts("a = Add the track to the playlist");
         puts("A = Autoban Artist");
         puts("B = Ban Track");
         puts("d = Discovery Mode");
@@ -245,13 +247,10 @@ const char * meta(const char * fmt, int colored) {
 			const char * keys [] = {
 				"acreator",
 				"ttitle",
-				"Aalbum",
-				"dtrackduration",
+				"lalbum",
+				"dduration",
 				"sstation",
-				"ustation_url",
-				"Uartist_url",
-				"Xalbum_url",
-				"Ttrack_url",
+				"SstationURL",
 				"Rremain"
 			};
 

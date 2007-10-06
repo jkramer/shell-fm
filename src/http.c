@@ -313,7 +313,6 @@ const char * makeurl(const char * fmt, ...) {
 	return url;
 }
 
-
 char ** cache(const char * url, const char * name, int refresh) {
 	time_t expiry = 60 * 60 * 24;
 	char path[4096];
@@ -322,6 +321,10 @@ char ** cache(const char * url, const char * name, int refresh) {
 		expiry = atoi(value(& rc, "expiry"));
 
 	memset(path, (char) 0, sizeof(path));
+	snprintf(path, sizeof(path), "%s/.shell-fm/cache", getenv("HOME"));
+	if(access(path, W_OK | X_OK))
+		mkdir(path, 0700);
+	
 	snprintf(path, sizeof(path), "%s/.shell-fm/cache/%s", getenv("HOME"), name);
 
 	if(!refresh) {

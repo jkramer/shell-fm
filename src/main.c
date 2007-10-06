@@ -283,6 +283,8 @@ int main(int argc, char ** argv) {
 				if(play(& playlist)) {
 					time(& changeTime);
 
+					set(& track, "stationURL", currentStation);
+
 					/* Print what's currently played. (Ondrej Novy) */
 					if(!background) {
 						if(enabled(CHANGED) && playlist.left > 0)
