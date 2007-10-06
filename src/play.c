@@ -77,6 +77,7 @@ void playback(FILE * streamfd) {
 		}
 #else
 		unsigned arg;
+		int fd;
 #endif
 
 		memset(& data, 0, sizeof(struct stream));
@@ -103,7 +104,7 @@ void playback(FILE * streamfd) {
 			return;
 		}
 #else
-		data.audiofd = open(value(& rc, "device"), O_WRONLY);
+		data.audiofd = fd = open(value(& rc, "device"), O_WRONLY);
 
 		if(-1 == data.audiofd) {
 			fprintf(
@@ -119,6 +120,9 @@ void playback(FILE * streamfd) {
 
 		mad_decoder_init(& dec, & data, input, NULL, NULL, output, NULL, NULL);
 		mad_decoder_run(& dec, MAD_DECODER_MODE_SYNC);
+#ifndef __HAVE_LIBAO__
+		close(fd);
+#endif
 		mad_decoder_finish(& dec);
 	} else {
 		pid_t ppid = getppid(), cpid = 0;
@@ -189,9 +193,6 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 
 	if(kill(ptr->parent, 0) == -1 && errno == ESRCH) {
 		fclose(ptr->streamfd);
-#ifndef __HAVE_LIBAO__
-		close(ptr->audiofd);
-#endif
 		return MAD_FLOW_STOP;
 	}
 
@@ -234,13 +235,24 @@ static enum mad_flow output(
 		signed int sample;
 
 		sample = scale(* left++);
+		/* to byteswap or not to byteswap? */
+#ifdef WORDS_BIGENDIAN
+		*stream_ptr++ = (sample >> 8) & 0xFF;
+		*stream_ptr++ = (sample & 0xFF);
+#else
 		*stream_ptr++ = (sample & 0xFF);
 		*stream_ptr++ = (sample >> 8) & 0xFF;
+#endif
 
 		if(nchan == 2) {
 			sample = scale(* right++);
+#ifdef WORDS_BIGENDIAN
+			*stream_ptr++ = (sample >> 8) & 0xFF;
+			*stream_ptr++ = (sample & 0xFF);
+#else
 			*stream_ptr++ = (sample & 0xFF);
 			*stream_ptr++ = (sample >> 8) & 0xFF;
+#endif
 		}
 	}
 	ao_play(ptr->device, stream, pcm->length * (pcm->channels == 2 ? 4 : 2));

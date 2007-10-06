@@ -40,6 +40,9 @@ AC_C_CONST
 AC_TYPE_PID_T
 AC_HEADER_TIME
 
+# Check for endinanness
+AC_C_BIGENDIAN
+
 # Checks for library functions.
 AC_FUNC_FORK
 AC_PROG_GCC_TRADITIONAL

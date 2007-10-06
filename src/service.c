@@ -182,7 +182,7 @@ int station(const char * stationURL) {
 	currentStation = strdup(stationURL);
 
 	if(retval && playfork) {
-		enable(STOPPED);
+		/* enable(STOPPED); */
 		kill(playfork, SIGUSR1);
 	}
 

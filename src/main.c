@@ -230,27 +230,19 @@ int main(int argc, char ** argv) {
 						pauselength += time(NULL) - pausetime;
 					else
 						playnext = !0;
-					pausetime = 0;
+					pausetime = 0;		
 				}
 			}
 		}
-
-
-		/* Check if the user stopped the stream. */
-		if(enabled(STOPPED)) {
-			freelist(& playlist);
-			empty(& track);
-			playnext = playfork = 0;
-			disable(STOPPED);
-			continue;
-		}
-
 
 		/*
 			Check if the playback process died. If so, submit the data
 			of the last played track. Then check if there are tracks left
 			in the playlist; if not, try to refresh the list and stop the
 			stream if there are no new tracks to fetch.
+			Also handle user stopping the stream here.  We need to check for
+			playnext != 0 before handling enabled(STOPPED) anyway, otherwise
+			playfork would still be running.
 		*/
 		if(playnext) {
 			unsigned
@@ -264,6 +256,14 @@ int main(int argc, char ** argv) {
 
 			submit(value(& rc, "username"), value(& rc, "password"));
 
+			/* Check if the user stopped the stream. */
+			if(enabled(STOPPED)) {
+				freelist(& playlist);
+				empty(& track);
+				disable(STOPPED);
+				continue;
+			}
+			
 			shift(& playlist);
 		}
 
