@@ -31,7 +31,8 @@ playlist.c \
 submit.c \
 readline.c \
 feeds.c \
-xmlrpc.c
+xmlrpc.c \
+recommend.c
 
 
 ## vim: noet ts=8 sw=8

@@ -320,9 +320,10 @@ int main(int argc, char ** argv) {
 				} else
 					changeTime = 0;
 			}
+
+			disable(CHANGED);
 		}
 
-		disable(CHANGED);
 		playnext = 0;
 
 		if(playfork && changeTime && haskey(& track, "duration") && !pausetime) {

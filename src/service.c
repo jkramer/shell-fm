@@ -148,6 +148,7 @@ int station(const char * stationURL) {
 					retval = 0;
 			free(response[i]);
 		}
+
 		free(response);
 		
 		if(!retval) {
@@ -170,6 +171,7 @@ int station(const char * stationURL) {
 		freelist(& playlist);
 		if(!parsexspf(& playlist, xml))
 			retval = 0;
+
 		free(xml);
 	}
 	

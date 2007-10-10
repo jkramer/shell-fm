@@ -33,6 +33,7 @@
 #include "submit.h"
 #include "readline.h"
 #include "xmlrpc.h"
+#include "recommend.h"
 
 #include "globals.h"
 
@@ -120,7 +121,7 @@ void interface(int interactive) {
 				puts(result ? "Added to playlist." : "Sorry, failed.");
 				break;
 
-			case 'R':
+			case 'P':
 				toggle(RTP);
 				printf("%s RTP.\n", enabled(RTP) ? "Enabled" : "Disabled");
 				break;
@@ -164,24 +165,31 @@ void interface(int interactive) {
 					kill(playfork, pausetime ? SIGCONT : SIGSTOP);
 				break;
 
+			case 'R':
+				if(playfork) {
+					recommend(track);
+				}
+				break;
+
       case '?':
-				puts("a = Add the track to the playlist");
-        puts("A = Autoban Artist");
-        puts("B = Ban Track");
-        puts("d = Discovery Mode");
-        puts("f = Fan Station");
-				puts("h = List Bookmarks");
-				puts("H = Bookmark Current Radio");
-        puts("i = Current Track Information");
-        puts("l = Love Track");
-        puts("n = Skip Track");
-				puts("p = Pause");
-        puts("Q = Quit Shell-FM");
-        puts("R = Enable/Disable RTP");
+				puts("a = add the track to the playlist");
+        puts("A = autoban artist");
+        puts("B = ban Track");
+        puts("d = discovery mode");
+        puts("f = fan Station");
+				puts("h = list bookmarks");
+				puts("H = bookmark current radio");
+        puts("i = current track information");
+        puts("l = love track");
+        puts("n = skip track");
+				puts("p = pause");
+        puts("P = enable/disable RTP");
+        puts("Q = quit");
         puts("r = change radio station");
-        puts("S = Stop");
-        puts("s = Similiar Artist");
-        puts("T = Tag Track/Artist/Album");
+				puts("R = recommend track/artist/album");
+        puts("S = stop");
+        puts("s = similiar Artist");
+        puts("T = tag track/artist/album");
         break;
 
 			case '0':

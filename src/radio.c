@@ -164,6 +164,7 @@ int radiocomplete(char * line, const unsigned max, int changed) {
 					"neighbours",
 					"loved",
 					"recommended",
+					"playlist",
 					NULL
 				};
 
