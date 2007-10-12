@@ -305,7 +305,7 @@ int main(int argc, char ** argv) {
 							* fmt = value(& rc, "np-file-format");
 
 						unlink(file);
-						if(-1 != (np = open(file, O_WRONLY | O_CREAT, 0600))) {
+						if(-1 != (np = open(file, O_WRONLY | O_CREAT, 0644))) {
 							const char * output = meta(fmt, 0);
 							if(output)
 								write(np, output, strlen(output));
