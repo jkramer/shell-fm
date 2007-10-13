@@ -1,0 +1,419 @@
+                Audioscrobbler Realtime Submission Protocol v1.2
+
+   This protocol is now in beta, and the system is mostly stable. 1.1 is the
+   current stable version, see [12]this wiki page
+
+Introduction and Scope
+
+   The Audioscrobbler Realtime Protocol is designed for the submission of
+   now-playing and recent historical data to Last.fm. Submission of bulk
+   historical data is not catered for by this protocol - this will be
+   possible with the (currently unimplemented) bootstrap protocol.
+
+   The protocol is designed to be as simple and lightweight as possible. It
+   is a REST-style interface based on HTTP, so a working knowledge of HTTP
+   1.1 is assumed.
+
+Protocol Stages
+
+   The protocol consists of three stages:
+
+   Handshake
+           The initial negotiation with the Audioscrobbler server to
+           establish authentication and connection details for the session.
+
+   Now-Playing
+           Optional lightweight notification of now-playing data at the start
+           of the track for realtime information purposes.
+
+   Submission
+           Submission of full track data at the end of the track for
+           statistical purposes.
+
+The Handshake
+
+   A handshake must occur each time the client is started, and additionally
+   if a BADSESSION response is returned at any time by the Now-Playing or
+   Submission stages.
+
+   The handshake consists of an HTTP/1.1 GET request to
+   http://post.audioscrobbler.com:80/. Note that the request must be HTTP/1.1
+   -- specifically the Host: header should be present.
+
+   The request string is as follows:
+
+   http://post.audioscrobbler.com/?hs=true&p=1.2&
+   c=<client-id>&v=<client-ver>&u=<user>&t=<timestamp>&a=<auth>
+
+   Where:
+
+   hs=true
+           Indicates that a handshake is requested. Hits to
+           post.audioscrobbler.com without this variable set will return a
+           human-readable informational message.
+
+   p=1.2
+
+           Is the version of the Audioscrobbler protocol to which the client
+           conforms.
+
+   client-id
+           Is an identifier for the client.
+
+   client-ver
+           Is the version of the client being used.
+
+   user
+           Is the name of the user.
+
+   timestamp
+           Is the current UNIX Timestamp.
+
+   auth
+           Is the authentication token, as described below.
+
+  Client Identifiers
+
+   Client identifiers are used to provide a centrally managed database of the
+   client versions, allowing clients to be banned if they are found to be
+   behaving undesirably. The client ID is associated with a version number on
+   the server, however these are only incremented if a client is banned and
+   do not have to reflect the version of the actual client application.
+
+   Clients which have not been allocated an identifier should use the
+   identifier tst, with a version number of 1.0. Do not distribute code which
+   uses the experimental identifier. Do not use the identifiers for other
+   clients. Client authors should use the tst identifier for clients which
+   are not publicly distributed.
+
+   Contact the Audioscrobbler administrators in order to obtain a valid
+   client ID. !!insert email address here!!.
+
+  Authentication Token
+
+   The algorithm for generating this token is as follows:
+
+   token := md5(md5(password) + timestamp)
+
+   Where timestamp is the same timestamp sent in cleartext in the handshake
+   request.
+
+   The md5() function takes a string and returns the 32-byte ASCII
+   hexadecimal representation of the MD5 hash, using lower case characters
+   for the hex values. The '+' operator represents concatenation of the two
+   strings.
+
+  Handshake Response
+
+   The body of the server response consists of a series of \n (ASCII 10)
+   terminated lines. A typical server response will be as follows:
+
+   OK
+   17E61E13454CDD8B68E8D7DEEEDF6170
+   http://62.216.251.205:80/protocol_1.2
+   http://62.216.251.203:80/nowplaying
+
+   If the HTTP status code is not 200 OK (indicating a successful transfer),
+   then this constitutes a hard failure. The server is not responding to the
+   request as expected and the client should handle this. Such events may
+   occur during network outages or when the server is heavily loaded. In
+   addition, 'transparent' proxies may obscure the connection attempt.
+
+   The client should consider the first line of the response to determine the
+   action it should take:
+
+   OK
+           This indicates that the handshake was successful. Three lines will
+           follow the OK response:
+
+             1. Session ID
+             2. Submission URL
+             3. Now-Playing URL
+
+   BANNED
+           This indicates that this client version has been banned from the
+           server. This usually happens if the client is violating the
+           protocol in a destructive way. Users should be asked to upgrade
+           their client application.
+
+   BADAUTH
+
+           This indicates that the authentication details provided were
+           incorrect. The client should not retry the handshake until the
+           user has changed their details.
+
+   BADTIME
+           The timestamp provided was not close enough to the current time.
+           The system clock must be corrected before re-handshaking.
+
+   FAILED <reason>
+           This indicates a temporary server failure. The reason indicates
+           the cause of the failure. The client should proceed as directed in
+           the Hard Failures section.
+
+   All other responses should be treated as a hard failure.
+           An error may be reported to the user, but as with other messages
+           this should be kept to a minimum.
+
+The Now-Playing Notification
+
+   The Now-Playing notification is a lightweight mechanism for notifying the
+   Audioscrobbler server that a track has started playing. This is used for
+   realtime display of a user's currently playing track, and does not affect
+   a user's musical profile.
+
+   The Now-Playing notification is optional, but recommended.
+
+   The submission takes place as a HTTP/1.1 POST transaction with the server,
+   using the URL provided during the handshake phase of the protocol.
+
+   s=<sessionID>
+           The Session ID string as returned by the handshake. Required.
+
+   a=<artist>
+           The artist name. Required.
+
+   t=<track>
+           The track name. Required.
+
+   b=<album>
+           The album title, or empty if not known.
+
+   l=<secs>
+           The length of the track in seconds, or empty if not known.
+
+   n=<tracknumber>
+           The position of the track on the album, or empty if not known.
+
+   m=<mb-trackid>
+           The MusicBrainz Track ID, or empty if not known.
+
+   The body of the server response will consist of a single \n (ASCII 10)
+   terminated line. The client should process the first line of the body to
+   determine the action it should take
+
+   OK
+           This indicates that the Now-Playing notification was successful.
+
+   BADSESSION
+           This indicates that the Session ID sent was somehow invalid,
+           possibly because another client has performed a handshake for this
+           user. On receiving this, the client should re-handshake with the
+           server before continuing.
+
+The Submission
+
+  When to Submit
+
+   The client should monitor the user's interaction with the music playing
+   service to whatever extent the service allows. In order to qualify for
+   submission all of the following criteria must be met:
+
+    1. The track must be submitted once it has finished playing. Whether it
+       has finished playing naturally or has been manually stopped by the
+       user is irrelevant.
+    2. The track must have been played for a duration of at least 240 seconds
+       or half the track's total length, whichever comes first. Skipping or
+       pausing the track is irrelevant as long as the appropriate amount has
+       been played.
+    3. The total playback time for the track must be more than 30 seconds. Do
+       not submit tracks shorter than this.
+    4. Unless the client has been specially configured, it should not attempt
+       to interpret filename information to obtain metadata instead of tags
+       (ID3, etc).
+
+  Submission Stage
+
+   The submission takes place as a HTTP/1.1 POST transaction with the server,
+   using the URL provided during the handshake phase of the protocol. The
+   submission body may contain the details for up to 50 tracks which are
+   being submitted. Under normal circumstances only a single track will be
+   submitted, however, clients should cache submissions in case of failure.
+
+   The request takes the form of a group of form encoded key-value pairs
+   which are submitted to the server as the body of the HTTP POST request.
+   The key-value pairs are:
+
+   s=<sessionID>
+           The Session ID string as returned by the handshake. Required.
+
+   a[0]=<artist>
+           The artist name. Required.
+
+   t[0]=<track>
+           The track title. Required.
+
+   i[0]=<time>
+           The time the track started playing, in UNIX timestamp format
+           (integer number of seconds since 00:00:00, January 1st 1970 UTC).
+           This must be in the UTC time zone, and is required.
+
+   o[0]=<source>
+           The source of the track. Required, must be one of the following
+           codes:
+
+                P
+                        Chosen by the user
+
+                R
+                        Non-personalised broadcast (e.g. Shoutcast, BBC Radio
+                        1)
+
+                E
+                        Personalised recommendation except Last.fm (e.g.
+                        Pandora, Launchcast)
+
+                L
+                        Last.fm (any mode). In this case, the 5-digit Last.fm
+                        recommendation key must be appended to this source ID
+                        to prove the validity of the submission.
+
+                U
+                        Source unknown
+
+   r[0]=<rating>
+
+                L
+                        Love
+
+                B
+                        Ban
+
+                S
+                        Skip (only if source=L)
+
+           Note: Currently, a web-service must also be called to set love/ban
+           status. We anticipate that this will be phased out soon, and the
+           submission service will handle the whole process.
+
+   l[0]=<secs>
+           The length of the track in seconds. Required when the source is P,
+           optional otherwise.
+
+   b[0]=<album>
+           The album title, or empty if not known.
+
+   n[0]=<tracknumber>
+           The position of the track on the album, or empty if not known.
+
+   m[0]=<mb-trackid>
+           The MusicBrainz Track ID, or empty if not known.
+
+   Key-value pairs are separated by an '&' character, in the usual manner for
+   form submissions in HTTP. The values given to the keys must be converted
+   to UTF-8 first, and must be URL encoded. Multiple submissions may be
+   specified by repeating the a[], t[], b[], m[], l[], and i[] key-value
+   pairs with increasing indices.
+
+  Submission Response
+
+   The body of the server response will consist of a single \n (ASCII 10)
+   terminated line. The client should process the first line of the body to
+   determine the action it should take
+
+   OK
+           This indicates that the submission request was accepted for
+           processing. It does not mean that the submission was valid, but
+           only that the authentication and the form of the submission was
+           validated. The client should remove the submitted tracks from its
+           queue.
+
+   BADSESSION
+           This indicates that the Session ID sent was somehow invalid,
+           possibly because another client has performed a handshake for this
+           user. On receiving this, the client should re-handshake with the
+           server before continuing. The client should not remove submitted
+           tracks from its queue.
+
+   FAILED <reason>
+           This indicates that a failure has occurred somewhere. The reason
+           indicates the cause of the failure. Clients should treat this as a
+           hard failure, and should proceed as directed in the Hard Failures
+           section. The client should not remove submitted tracks from its
+           queue.
+
+   All other responses should be treated as a hard failure.
+
+           An error may be reported to the user, but as with other messages
+           this should be kept to a minimum.
+
+   The server may, at its discretion ignore track details submitted by the
+   user. Typical reasons for submissions being dropped include (but are not
+   limited to):
+
+     * Submissions with inaccurate dates, eg in the far future, or before the
+       last submitted entry.
+     * Spam filtering, such as submissions of tracks with impossible timings
+       (eg tracks played within a few seconds of one another).
+     * Known incorrect tags (eg artist of 'artist')
+     * Incorrectly encoded UTF-8 sequences.
+
+   In these cases, the client will receive an OK response, however the tracks
+   will not be registered
+
+Failure Handling
+
+   A hard failure at any stage should be counted by the client. If three hard
+   failure events occur consecutively, the client should fall back to the
+   handshake phase.
+
+   If a hard failure occurs at the handshake phase, the client should
+   initially pause for 1 minute before handshaking again. Subsequent failed
+   handshakes should double this delay up to a maximum delay of 120mins.
+
+   Upon a successful handshake, the client should reset the hard failure
+   counter.
+
+Caching
+
+   It is recommended that the client cache submissions if the submission
+   process fails. Because the server connectivity may be variable (either
+   because of network outage, or server failure), the client should record
+   the details about tracks in a local cache for later submission. The cache
+   should be retained over client invocation, allowing the user to close the
+   client and restart later without losing their submission details.
+
+Proxy Servers
+
+   It is recommended that the client use whatever system-configured proxy is
+   in force for the HTTP scheme. The server requests will need to be modified
+   to be proxy requests, rather than direct server requests. This usually
+   involves using the full URL in the GET or POST request, rather than the
+   components after the '/'.
+
+Application Guidelines
+
+   There are a few things that the client should do to improve the user
+   experience and to reduce the impact on the Audioscrobbler servers.
+
+     * It is important to remember that the behaviour of the client should,
+       above everything else, be non-intrusive to the end user in use.
+     * The client should not display pop-up error messages unless absolutely
+       necessary. Notifications should be reported once when first identified
+       and should not be re-displayed unless the cause is resolved in the
+       meantime.
+     * Clients should be able to cope with long (multiples hours) downtime
+       from the server. This may be caused by either server failure or a lack
+       of network connectivity by the client (e.g. a portable system such as
+       a laptop with only brief connectivity).
+
+Changelog
+
+  Changes Since v1.1
+
+     * "Now Playing" notification added.
+     * New authentication scheme to increase flexibility and prevent session
+       invalidation by malicious users.
+     * Submission point moved to end of track.
+     * Rating/Recommendation source variables added.
+     * "No skipping" rule removed (50%/240 seconds must still be played).
+     * Documentation changed to indicate relaxation of spam checking to
+       better support portable media players.
+     * INTERVAL protocol feature removed as it was never used.
+     * Timestamps changed to UNIX format for easier development and less
+       ambiguity in URL-encoding.
+
+   © 2002â**2007 Audioscrobbler Ltd.
+
+   [13]Data available under a Creative Commons license. [14]Our main site,
+   www.Last.fm
