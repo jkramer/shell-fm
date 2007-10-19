@@ -242,7 +242,7 @@ void sendtag(char key, char * tagstring, struct hash data) {
 
 			case 't':
 				result = xmlrpc(
-					"tagAlbum", "ssas",
+					"tagTrack", "ssas",
 					value(& data, "creator"),
 					value(& data, "title"),
 					splt, "set"

@@ -74,11 +74,10 @@ int xmlrpc(const char * method, const char * fmt, ...) {
 
 		free(resp);
 	}
-	
+
 	free(xml);
 
 	return result;
-
 }
 
 
