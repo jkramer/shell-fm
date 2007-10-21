@@ -79,7 +79,7 @@ void interface(int interactive) {
 				if(playfork) {
 					puts(meta("Track:    \"%t\"", !0));
 					puts(meta("Artist:   \"%a\"", !0));
-					puts(meta("Album:    \"%A\"", !0));
+					puts(meta("Album:    \"%l\"", !0));
 					puts(meta("Station:  %s", !0));
 				}
 				break;
