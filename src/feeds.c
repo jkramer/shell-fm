@@ -101,7 +101,9 @@ char ** friends(const char * user) {
 char ** toptags(char key, struct hash track) {
 	unsigned length, x, count, idx;
 	char ** tags = NULL, url[256], * type = NULL, * artist = NULL,
-		 ** resp;
+		 ** resp, cachename[512];
+
+	memset(cachename, (char) 0, sizeof(cache));
 
 	/* Get artist, album or track tags? */
 	type = strchr("al", key) ? "artist" : "track";
@@ -124,15 +126,18 @@ char ** toptags(char key, struct hash track) {
 	if(key == 't') {
 		char * title = NULL;
 		encode(value(& track, "title"), & title);
+		snprintf(cachename, sizeof(cachename), "tags-t-%s--%s", artist, title);
 		stripslashes(title);
 		length += snprintf(url + length, sizeof(url) - length, "%s/", title);
 		free(title);
+	} else {
+		snprintf(cachename, sizeof(cachename), "tags-a-%s", artist);
 	}
 
 	strncpy(url + length, "toptags.xml", sizeof(url) - length - 1);
 
 	/* Fetch XML document. */
-	if((resp = cache(url, "top-tags", 0)) == NULL)
+	if((resp = cache(url, cachename, 0)) == NULL)
 		return NULL;
 
 	/* Count tags in XML. */
