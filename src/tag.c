@@ -31,7 +31,6 @@
 
 char ** popular = NULL;
 
-
 void tag(struct hash data) {
 	char key, * tagstring;
 	struct prompt setup = {
@@ -51,11 +50,7 @@ void tag(struct hash data) {
 	if(key == 'c')
 		return;
 
-	if((popular = toptags(key, data))) {
-		unsigned items = 0;
-		while(popular[items])
-			++items;
-	}
+	popular = merge(toptags(key, data), usertags(value(& rc, "username")), 0);
 
 	setup.line = oldtags(key, data);
 
@@ -66,16 +61,10 @@ void tag(struct hash data) {
 		setup.line = NULL;
 	}
 
-	if(popular) {
-		unsigned x;
-		for(x = 0; popular[x]; ++x)
-			free(popular[x]);
-		free(popular);
-		popular = NULL;
-	}
+	purge(popular);
+	popular = NULL;
 
 	sendtag(key, tagstring, data);
-
 	free(tagstring);
 }
 

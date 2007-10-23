@@ -196,3 +196,43 @@ char ** overalltags(void) {
 
 	return tags;
 }
+
+
+char ** usertags(const char * user) {
+	char ** tags = NULL, ** resp, * encoded = NULL, url[256], cachename[64];
+	const char * fmt = "http://ws.audioscrobbler.com/1.0/user/%s/tags.txt";
+	unsigned n = 0;
+
+	memset(url, (char) 0, sizeof(url));
+	memset(cachename, (char) 0, sizeof(cachename));
+
+	encode(user, & encoded);
+
+	snprintf(url, sizeof(url), fmt, encoded);
+	snprintf(cachename, sizeof(cachename), "usertags-%s", encoded);
+
+	free(encoded);
+	encoded = NULL;
+
+	if((resp = cache(url, cachename, 0)) != NULL) {
+		unsigned ntag = 0;
+		while(resp[n] != NULL) {
+			char * begin = strchr(resp[n], ',') + 1;
+			char * end = strchr(begin, ',');
+
+			* end = 0;
+
+			tags = realloc(tags, sizeof(char *) * (ntag + 2));
+			tags[ntag++] = strdup(begin);
+			tags[ntag] = NULL;
+
+			free(resp[n]);
+
+			++n;
+		}
+
+		free(resp);
+	}
+
+	return tags;
+}
