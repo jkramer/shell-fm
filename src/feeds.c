@@ -217,14 +217,17 @@ char ** usertags(const char * user) {
 	if((resp = cache(url, cachename, 0)) != NULL) {
 		unsigned ntag = 0;
 		while(resp[n] != NULL) {
-			char * begin = strchr(resp[n], ',') + 1;
-			char * end = strchr(begin, ',');
+			char * begin = strchr(resp[n], ',');
+			if(begin) {
+				char * end = strchr(begin, ',');
+				if(end) {
+					* end = 0;
 
-			* end = 0;
-
-			tags = realloc(tags, sizeof(char *) * (ntag + 2));
-			tags[ntag++] = strdup(begin);
-			tags[ntag] = NULL;
+					tags = realloc(tags, sizeof(char *) * (ntag + 2));
+					tags[ntag++] = strdup(begin);
+					tags[ntag] = NULL;
+				}
+			}
 
 			free(resp[n]);
 

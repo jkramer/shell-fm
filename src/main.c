@@ -287,8 +287,10 @@ int main(int argc, char ** argv) {
 
 					/* Print what's currently played. (Ondrej Novy) */
 					if(!background) {
-						if(enabled(CHANGED) && playlist.left > 0)
+						if(enabled(CHANGED) && playlist.left > 0) {
 							puts(meta("Receiving %s.", !0));
+							disable(CHANGED);
+						}
 
 						if(haskey(& rc, "title-format"))
 							printf("%s\n", meta(value(& rc, "title-format"), !0));
@@ -320,8 +322,6 @@ int main(int argc, char ** argv) {
 				} else
 					changeTime = 0;
 			}
-
-			disable(CHANGED);
 		}
 
 		playnext = 0;
