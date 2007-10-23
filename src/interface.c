@@ -321,8 +321,9 @@ int rate(const char * rating) {
 
 		switch(rating[0]) {
 			case 'B':
+				kill(playfork, SIGUSR1);
 				return xmlrpc(
-					"loveTrack",
+					"banTrack",
 					"ss",
 					value(& track, "creator"),
 					value(& track, "title")
