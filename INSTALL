@@ -1,0 +1,8 @@
+Shell.FM 0.4 Installation
+
+1. Run the "reconfig" script to generate the "configure" script.
+2. Run the "configure" script (e.g. './configure --prefix=/usr')
+3. Build the binary ('make').
+4. Install the binary ('su -c "make install-strip"').
+5. Create the directories ~/.shell-fm/ and ~/.shell-fm/cache.
+6. Place your configuration file in ~/.shell-fm/shell-fm.rc.

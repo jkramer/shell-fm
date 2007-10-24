@@ -1,0 +1,15 @@
+Release "Shell.FM 0.4":
+
+* Support for the new protocol.
+* Builtin scrobbling (part of the new protocol).
+* Replaced libreadline and libncurses with an own readline function.
+* Better tab completion for radio URLs, tags etc.
+* Made more functions available over the network interface.
+* Many HTTP requests are now cached for being more speedy.
+* Love and bans are now done via XMLRPC, not the old web interface.
+* Added support for recommendations.
+* Cleaned up code.
+* LOTS OF BUGS FIXED!
+  Many big thanks to the "#shell-fm staff" strogg, pioto, chipi, onovy and
+  madewokherd for testing, reporting and partially fixing!  Also big thanks to
+  the patch contributors stripwax, wisq and strogg!
