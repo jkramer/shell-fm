@@ -322,6 +322,12 @@ int main(int argc, char ** argv) {
 				} else
 					changeTime = 0;
 			}
+
+			if(banned(value(& track, "creator"))) {
+				puts(meta("%a is banned.", !0));
+				rate("B");
+				fflush(stdout);
+			}
 		}
 
 		playnext = 0;
@@ -343,30 +349,30 @@ int main(int argc, char ** argv) {
 				fflush(stdout);
 			}
 		}
-		
+
 		interface(!background);
 		if(haveSocket)
 			sckif(background ? 2 : 0);
 	}
-	
+
 	return 0;
 }
 
 
 static void help(const char * argv0, int errorCode) {
 	fprintf(stderr,
-		"shell-fm - Copyright (C) 2007 by Jonas Kramer\n"
-		"\n"
-		"%s [options] [lastfm://url]\n"
-		"\n"
-		"  -d        daemon mode.\n"
-		"  -i        address to listen on.\n"
-		"  -p        port to listen on.\n"
-		"  -D        device to play on.\n"
-		"  -y        proxy url to connect through.\n"
-		"  -h        this help.\n",
-		argv0
-	);
+			"shell-fm - Copyright (C) 2007 by Jonas Kramer\n"
+			"\n"
+			"%s [options] [lastfm://url]\n"
+			"\n"
+			"  -d        daemon mode.\n"
+			"  -i        address to listen on.\n"
+			"  -p        port to listen on.\n"
+			"  -D        device to play on.\n"
+			"  -y        proxy url to connect through.\n"
+			"  -h        this help.\n",
+			argv0
+			);
 
 	exit(errorCode);
 }
@@ -391,7 +397,7 @@ static void cleanup(void) {
 		waitpid(subfork, NULL, 0);
 
 	dumpqueue(!0);
-	
+
 	if(playfork)
 		kill(playfork, SIGUSR1);
 }
