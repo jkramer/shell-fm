@@ -31,7 +31,7 @@
 
 
 #ifndef USERAGENT
-#define USERAGENT "Shell.FM/0.3"
+#define USERAGENT "Shell.FM/0.4"
 #endif
 
 

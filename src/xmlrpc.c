@@ -109,12 +109,12 @@ static void sparam(char ** xml, unsigned * size, const char * param) {
 
 
 static void aparam(char ** xml, unsigned * size, const char ** param) {
-	if(xml && size && param) {
+	if(xml && size) {
 		unsigned n;
 
 		append(xml, size, "\t\t<param><value><array><data>");
 
-		for(n = 0; param[n] != NULL; ++n) {
+		for(n = 0; param && param[n] != NULL; ++n) {
 			append(xml, size, "<value><string>");
 			append(xml, size, param[n]);
 			append(xml, size, "</string></value>");

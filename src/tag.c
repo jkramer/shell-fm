@@ -201,45 +201,44 @@ int tagcomplete(char * line, const unsigned max, int changed) {
 
 
 void sendtag(char key, char * tagstring, struct hash data) {
-	unsigned tslen;
+	unsigned nsplt = 0;
+	int result = 0;
+	char ** splt = NULL;
 
-	if(tagstring && (tslen = strlen(tagstring))) {
-		unsigned nsplt = 0;
-		int result = 0;
-		char ** splt;
-
+	if(tagstring) {
+		unsigned length = strlen(tagstring);
 		/* remove trailing commas */
-		while (tagstring[tslen-1] == ',')
-			tagstring[--tslen] = 0;
+		while(tagstring[length-1] == ',')
+			tagstring[--length] = 0;
 
 		splt = split(tagstring, ",\n", & nsplt);
+	}
 
-		switch(key) {
-			case 'a':
-				result =
-					xmlrpc("tagArtist", "sas", value(& data, "creator"), splt, "set");
-				break;
+	switch(key) {
+		case 'a':
+			result =
+				xmlrpc("tagArtist", "sas", value(& data, "creator"), splt, "set");
+			break;
 
-			case 'l':
-				result = xmlrpc(
+		case 'l':
+			result = xmlrpc(
 					"tagAlbum", "ssas",
 					value(& data, "creator"),
 					value(& data, "album"),
 					splt, "set"
-				);
-				break;
+					);
+			break;
 
-			case 't':
-				result = xmlrpc(
+		case 't':
+			result = xmlrpc(
 					"tagTrack", "ssas",
 					value(& data, "creator"),
 					value(& data, "title"),
 					splt, "set"
-				);
-				break;
-		}
-
-		purge(splt);
-		splt = NULL;
+					);
+			break;
 	}
+
+	purge(splt);
+	splt = NULL;
 }
