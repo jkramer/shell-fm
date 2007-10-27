@@ -12,8 +12,6 @@ TODO
   * configure script to detect the system capabilities & quirks
   * write own implementations of GNU only functions etc.
 
-* INSTALLATION, README and (complete) AUTHORS files
-
 * complete documentation (man page and/or website)
 
 * tab completion

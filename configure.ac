@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.50)
-AC_INIT([shell-fm], [0.3], [jonas.kramer@gmx.net])
+AC_INIT([shell-fm], [0.4], [jonas.kramer@gmx.net])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([src/settings.c])
 AM_CONFIG_HEADER(config.h)
