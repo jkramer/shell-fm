@@ -85,10 +85,14 @@ int parsexspf(struct playlist * list, const char * xml) {
 		while((track = strcasestr(ptr, "<track>")) != NULL) {
 			struct tracknode * node = NULL;
 			char * next = strcasestr(track + 7, "<track>");
+
 			const char * tags [] = {
 				"location", "title", "album", "creator", "duration",
 				"lastfm:trackauth",
 			};
+
+			const char * links [] = { "artistpage", "albumpage", "trackpage" };
+
 
 			if(next)
 				* (next - 1) = 0;
@@ -114,6 +118,24 @@ int parsexspf(struct playlist * list, const char * xml) {
 
 					unhtml(text);
 					set(& node->track, tags[i], text);
+					free(text);
+				}
+			}
+
+			for(i = 0; i < (sizeof(links) / sizeof(char *)); ++i) {
+				char begin[64] = { 0 };
+
+				sprintf(begin, "<link rel=\"http://www.last.fm/%s\">", links[i]);
+
+				if((ptr = strcasestr(track, begin)) != NULL) {
+					char * text = strndup(
+						ptr + strlen(begin),
+						(strcasestr(ptr, "</link>")) - (ptr + strlen(begin))
+					);
+
+					assert(text != NULL);
+
+					set(& node->track, links[i], text);
 					free(text);
 				}
 			}

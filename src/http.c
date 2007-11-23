@@ -27,6 +27,7 @@
 #include "getln.h"
 #include "http.h"
 #include "ropen.h"
+#include "util.h"
 #include "globals.h"
 
 

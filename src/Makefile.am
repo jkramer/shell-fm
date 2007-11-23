@@ -32,7 +32,8 @@ submit.c \
 readline.c \
 feeds.c \
 xmlrpc.c \
-recommend.c
+recommend.c \
+util.c
 
 
 ## vim: noet ts=8 sw=8

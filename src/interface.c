@@ -34,6 +34,7 @@
 #include "readline.h"
 #include "xmlrpc.h"
 #include "recommend.h"
+#include "util.h"
 
 #include "globals.h"
 
@@ -77,10 +78,24 @@ void interface(int interactive) {
 
 			case 'i':
 				if(playfork) {
-					puts(meta("Track:    \"%t\"", !0));
-					puts(meta("Artist:   \"%a\"", !0));
-					puts(meta("Album:    \"%l\"", !0));
-					puts(meta("Station:  %s", !0));
+					const char * path = rcpath("i-template");
+					if(path && !access(path, R_OK)) {
+						char ** template = slurp(path);
+						if(template != NULL) {
+							unsigned n = 0;
+							while(template[n]) {
+								puts(meta(template[n], !0));
+								free(template[n++]);
+							}
+							free(template);
+						}
+					}
+					else {
+						puts(meta("Track:    \"%t\" (%T)", !0));
+						puts(meta("Artist:   \"%a\" (%A)", !0));
+						puts(meta("Album:    \"%l\" (%L)", !0));
+						puts(meta("Station:  %s", !0));
+					}
 				}
 				break;
 
@@ -256,6 +271,9 @@ const char * meta(const char * fmt, int colored) {
 				"acreator",
 				"ttitle",
 				"lalbum",
+				"Aartistpage",
+				"Ttrackpage",
+				"Lalbumpage",
 				"dduration",
 				"sstation",
 				"SstationURL",

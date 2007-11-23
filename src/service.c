@@ -211,8 +211,8 @@ int play(struct playlist * list) {
 	if(playfork) {
 		unsigned i;
 		char * keys [] = {
-			"creator", "title", "album", "duration",
-			"station", "lastfm:trackauth"
+			"creator", "title", "album", "duration", "station",
+			"lastfm:trackauth", "trackpage", "artistpage", "albumpage"
 		};
 
 		for(i = 0; i < (sizeof(keys) / sizeof(char *)); ++i)
