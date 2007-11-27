@@ -39,6 +39,17 @@ char * readline(struct prompt * setup) {
 	while(!eoln) {
 		int key = fgetc(stdin);
 		switch(key) {
+			case 8: /* Backspace. */
+			case 127: /* Delete. */
+				/* We don't support moving the cursor from the end of the line
+				 * so handle these the same. */
+				if(length > 0) {
+					delete(1);
+					line[--length] = 0;
+					changed = !0;
+				}
+				break;
+
 			case 9: /* Tab. */
 				/* Call the callback function for completion if present. */
 				if(setup->callback != NULL) {
@@ -73,14 +84,6 @@ char * readline(struct prompt * setup) {
 			case 27: /* Escape. */
 				++seq;
 				changed = !0;
-				break;
-
-			case 127: /* Backspace. */
-				if(length > 0) {
-					delete(1);
-					line[--length] = 0;
-					changed = !0;
-				}
 				break;
 
 			default:
