@@ -139,6 +139,7 @@ void execcmd(const char * cmd, FILE * fd) {
 		"artist-tags",
 		"album-tags",
 		"track-tags",
+		"stop",
 	};
 
 	memset(arg, sizeof(arg), 0);
@@ -223,6 +224,13 @@ void execcmd(const char * cmd, FILE * fd) {
 			ptr = oldtags('t', track);
 			fprintf(fd, "%s\n", ptr);
 			free(ptr);
+			break;
+
+		case 14:
+			if(playfork) {
+				enable(STOPPED);
+				kill(playfork, SIGUSR1);
+			}
 			break;
 	}
 	fflush(fd);
