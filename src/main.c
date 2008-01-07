@@ -36,6 +36,8 @@
 unsigned flags = RTP;
 time_t changeTime = 0, pausetime = 0;
 
+int batch = 0;
+
 static void cleanup(void);
 static void forcequit(int);
 static void help(const char *, int);
@@ -56,7 +58,7 @@ int main(int argc, char ** argv) {
 
 
 	/* Parse through command line options. */
-	while(-1 != (option = getopt(argc, argv, ":dhi:p:D:y:")))
+	while(-1 != (option = getopt(argc, argv, ":dbhi:p:D:y:")))
 		switch(option) {
 			case 'd': /* Daemonize. */
 				background = !0;
@@ -74,7 +76,9 @@ int main(int argc, char ** argv) {
 					++nerror;
 				}
 				break;
-
+                        case 'b': /* Batch mode */
+                                batch = !0;
+                                break;
 			case 'D': /* Path to audio device file. */
 				set(& rc, "device", optarg);
 				break;
@@ -345,7 +349,7 @@ int main(int argc, char ** argv) {
 			set(& track, "remain", remstr);
 
 			if(!background) {
-				printf("%c%02d:%02d\r", remain < 0 ? '-' : ' ', remain / 60, remain % 60);
+                        	printf("%c%02d:%02d%c", remain < 0 ? '-' : ' ', remain / 60, remain % 60, batch ? '\n' : '\r');
 				fflush(stdout);
 			}
 		}
@@ -368,6 +372,7 @@ static void help(const char * argv0, int errorCode) {
 			"  -d        daemon mode.\n"
 			"  -i        address to listen on.\n"
 			"  -p        port to listen on.\n"
+			"  -b        batch mode.\n"
 			"  -D        device to play on.\n"
 			"  -y        proxy url to connect through.\n"
 			"  -h        this help.\n",

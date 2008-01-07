@@ -57,7 +57,8 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data, const char *
 		"Host: %s\r\n"
 		"User-Agent: " USERAGENT "\r\n";
 
-	fputs("...\r", stderr);
+	if (!batch)
+		fputs("...\r", stderr);
 
 	useproxy = haskey(& rc, "proxy");
 	if(type == NULL)

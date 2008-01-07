@@ -50,7 +50,7 @@ struct stream {
 	pid_t parent;
 };
 
-#define BUFSIZE 8192
+#define BUFSIZE (32*1024)
 
 static enum mad_flow input(void *, struct mad_stream *);
 static enum mad_flow output(void *, const struct mad_header *, struct mad_pcm *);
@@ -144,8 +144,10 @@ void playback(FILE * streamfd) {
 		while(!feof(streamfd)) {
 			signed nbyte = fread(buf, sizeof(unsigned char), BUFSIZE, streamfd);
 
-			if(nbyte > 0)
+			if(nbyte > 0) {
 				fwrite(buf, sizeof(unsigned char), nbyte, ext);
+				fflush(ext);
+			}
 
 			if(kill(ppid, 0) == -1 && errno == ESRCH)
 				break;

@@ -10,6 +10,10 @@ extern struct hash data, track;
 extern struct playlist playlist;
 extern struct hash rc;
 
+/* Batch mode: no coloring, every line of output gets uncoditionally
+   terminated by newline. */
+extern int batch;
+
 /* Forks. */
 extern pid_t playfork, subfork;
 

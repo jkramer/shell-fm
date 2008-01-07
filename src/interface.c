@@ -257,7 +257,10 @@ int fetchkey(unsigned nsec) {
 const char * meta(const char * fmt, int colored) {
 	static char string[4096];
 	unsigned length = 0, x = 0;
-	
+
+        /* Switch off coloring when in batch mode */
+        colored = (colored && !(batch));
+
 	if(!fmt)
 		return NULL;
 	
