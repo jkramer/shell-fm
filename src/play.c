@@ -151,6 +151,9 @@ void playback(FILE * streamfd) {
 
 			if(kill(ppid, 0) == -1 && errno == ESRCH)
 				break;
+
+			if(killed)
+				break;
 		}
 
 		free(buf);
