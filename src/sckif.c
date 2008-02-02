@@ -64,15 +64,15 @@ int mksckif(const char * ip, unsigned short port) {
 	host.sin_port = htons(port);
 	host.sin_addr.s_addr = * (unsigned *) hostent->h_addr;
 
-	if (-1 == setsockopt(ssck, SOL_SOCKET, SO_REUSEADDR, &one, sizeof one))
-		fprintf(stderr, "Failed to set SO_REUSEADDR socket option. %s\n", strerror(errno));
+	if(-1 == setsockopt(ssck, SOL_SOCKET, SO_REUSEADDR, & one, sizeof one))
+		fprintf(stderr, "Couldn't make socket re-usable. %s\n", strerror(errno));
 
 	if(bind(ssck, (struct sockaddr *) & host, sizeof(struct sockaddr_in))) {
 		fprintf(stderr, "Failed to bind socket. %s.\n", strerror(errno));
 		return 0;
 	}
 
-	listen(ssck, 0x2);
+	listen(ssck, 2);
 
 	return !0;
 }
@@ -99,7 +99,7 @@ void sckif(int timeout) {
 					unsigned size = 0;
 					getln(& line, & size, fd);
 
-					if(line && size > 0) {
+					if(line && size > 0 && !ferror(fd)) {
 						if((ptr = strchr(line, 13)) != NULL)
 							* ptr = 0;
 
@@ -150,7 +150,7 @@ void execcmd(const char * cmd, FILE * fd) {
 
 	switch(ncmd) {
 		case (sizeof(known) / sizeof(char *)):
-			fprintf(fd, "Unknown command!\n");
+			fprintf(fd, "ERROR\n");
 			break;
 
 		case 0:
@@ -209,21 +209,27 @@ void execcmd(const char * cmd, FILE * fd) {
 			break;
 
 		case 11:
-			ptr = oldtags('a', track);
-			fprintf(fd, "%s\n", ptr);
-			free(ptr);
+			if((ptr = oldtags('a', track)) != NULL) {
+				fprintf(fd, "%s\n", ptr);
+				free(ptr);
+				ptr = NULL;
+			}
 			break;
 
 		case 12:
-			ptr = oldtags('l', track);
-			fprintf(fd, "%s\n", ptr);
-			free(ptr);
+			if((ptr = oldtags('l', track)) != NULL) {
+				fprintf(fd, "%s\n", ptr);
+				free(ptr);
+				ptr = NULL;
+			}
 			break;
 
 		case 13:
-			ptr = oldtags('t', track);
-			fprintf(fd, "%s\n", ptr);
-			free(ptr);
+			if((ptr = oldtags('t', track)) != NULL) {
+				fprintf(fd, "%s\n", ptr);
+				free(ptr);
+				ptr = NULL;
+			}
 			break;
 
 		case 14:
@@ -233,7 +239,6 @@ void execcmd(const char * cmd, FILE * fd) {
 			}
 			break;
 	}
-	fflush(fd);
 }
 
 static int waitread(int fd, unsigned sec, unsigned usec) {
