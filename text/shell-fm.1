@@ -1,0 +1,355 @@
+.TH "shell-fm" 1
+.SH NAME
+Shell.FM \- Lightweight, console-based player for Last.FM radio streams.
+.SH SYNOPSIS
+.B shell-fm
+[-d] [-i address] [-p port] [-b] [-D device] [-y proxy] [-h] lastfm://...
+.SH DESCRIPTION
+Shell.FM is a lightweight, console-based player for radio streams provided by
+Last.FM.
+.SH OPTIONS
+.TP
+.B \-d
+Fork to background (requires a socket interface to be set up so it can still be
+controlled somehow).
+.TP
+.B \-i <address>
+Enable the socket interface and bind it to the given host address (should be
+the host name or IP address of the host shell-fm is running on).
+.TP
+.B \-p <port>
+Make the socket interface listen for incoming connections on the given port.
+Default is 54311.
+.TP
+.B \-b
+Enable batch mode (some freaky mode that makes shell-fm easier to handle from
+inside emacs). This was not my idea.
+.TP
+.B \-D <device>
+Use the given device file as audio device. This is only used if libao support
+is disabled. Default is /dev/audio.
+.TP
+.B \-y <proxy>
+Make shell-fm use the given host as proxy server for HTTP requests.
+.TP
+.B \-h
+Print help text and exit.
+.TP
+.B lastfm://...
+URI of a Last.FM radio stream to play after startup.
+.SH USAGE
+On startup, shell-fm will ask you for your Last.FM login and password
+(if not
+provided in your ~/.shell-fm/shell-fm.rc). If you've given a stream URI on the
+command line or there is a default radio defined in the configuration file,
+shell-fm will now try to play it. When the startup is done, there are lots of
+keys to control shell-fm. Here is a alphabetically sorted list.
+.TP
+.B a
+Add the currently played track to your Last.FM playlist.
+.TP
+.B A
+Ban the artist of the currently played track. Whenever a track of that artist
+is played from now on, it is automatically banned.
+.TP
+.B B
+Ban the currently played track.
+.TP
+.B d
+Enabled/disable discovery mode. I'm not sure if this has any effect, and it
+looks like even the Last.FM guys don't really know what it does, but I think it
+is meant to ensure that you get only tracks that you don't know yet.
+.TP
+.B f
+Jump to the fan radio station of the artist of the currently played track.
+.TP
+.B h
+List bookmarks.
+.TP
+.B H
+Bookmark the currently played radio station. You'll be asked to hit a digit
+key. Whenever you hit that key again from now on, shell-fm will jump to that
+radio station.
+.TP
+.B i
+Print some more information about the currently played track.
+.TP
+.B l
+Love the currently played track.
+.TP
+.B n
+Skip the currently played track.
+.TP
+.B p
+Pause. If you pause too long, the stream will break, which has the same effect
+as stopping the stream (see below).
+.TP
+.B P
+Enable/disable reporting played tracks to your Last.FM profile. Enabled by default.
+.TP
+.B Q
+Quit.
+.TP
+.B r
+Change radio station. This will prompt you for an Last.FM radio station URI.
+The tabulator key helps if you don't know what to type.
+.TP
+.B R
+Recommend the currently played track/artist/album to another Last.FM user.
+.TP
+.B S
+Stop playing.
+.TP
+.B s
+Jump to the similar artists radio stream of the currently played tracks artist.
+.TP
+.B T
+Tag the currently played track/artist/album. Tabulator key completes known
+tags.
+.SH SETUP
+Before you start, you should have created the directories
+.B ~/.shell-fm
+and
+.B ~/.shell-fm/cache
+or you will get a lot of warnings, the tab-completion will be extremely
+slow and you can't make use of some features (auto-ban, history, bookmarks).
+You might also want to place a configuration file in
+.B ~/.shell-fm
+for a faster startup.
+.SH CONFIGURATION
+This section describes the syntax an options for the shell-fm configuration
+file. The file should be placed in
+.B ~/.shell-fm/shell-fm.rc
+and should consist of simple
+.B key = value
+assignments.
+See (far) below for a sample configuration. These are the available options.
+.TP
+.B username = your-login
+This is your login on Last.FM. If this is provided, shell-fm won't ask you for
+it on startup anymore.
+.TP
+.B password = your-password
+This is your (clear text) Last.FM password. If this and your login is provided
+in the configuration, shell-fm won't ask you on startup.
+.TP
+.B default-radio = lastfm://...
+If this is provided (and valid), shell-fm will play this station by default
+after startup. If there's another station URI given on the command line, it
+will override this setting.
+.TP
+.B np-file = path-to-file
+If this is defined, shell-fm will print information about the currently played
+track into the given file, whenever a new track is played.
+.TP
+.B np-file-format = format-string
+This defines how the information written to your now-playing file will look
+like. There are several format flags available. Have a look at the
+.B FORMAT FLAGS
+section for the details.
+.TP
+.B np-cmd = shell command
+If this is defined, the given command will be execute whenever a new track
+starts. The value may contain format flags.
+.TP
+.B ?-color = color
+This allows you to color format elements. The
+.B ?
+may be the letter of any format flag (without percent). The color is just a
+normal shell color code matching "[01];3[0-7]". Whenever the format element is
+printed to the console, it will have the given color. Have a look at the
+.B COLORS
+section for a list.
+.TP
+.B key0x?? = shell command
+This allows you to bind shell commands to free keys (keys that are not used by
+shell-fm, check the
+.B USAGE
+section above for a list).
+.B ??
+should be the hex code of the ASCII code of the key. The command you assign
+will be evaluated (check the
+.B FORMAT FLAGS
+section) and executed then. This "feature" allows you to implement own
+features, like fetching and printing the lyrics of the currently played track,
+etc. If you have a cool idea or even a working script, I'd be happy if you let
+me know.
+.TP
+.B bind = host
+This specifies the network interface you want shell-fm to bind to.
+.B host
+should be the host name or an IP address of host shell-fm is running on.
+shell-fm will open a port (see the
+.B port
+option below) on the specified interface which you can connect to to control
+shell-fm remotely (or from local scripts, see
+.B key0x??
+above). Check the
+.B NETWORK INTERFACE COMMANDS
+section below for a list of known commands.
+.TP
+.B port = port-number
+With this option you can change the port shell-fm will listen on (if
+.B bind
+is specified). Default is 54311.
+.TP
+.B extern = shell command
+This allows you to specify an external program or script as player for the
+streams. If given, shell-fm will run the command and pipe the MP3 stream into
+it, instead of playing the stream itself. For example,
+.B extern = madplay -Q -
+works very fine. This option is meant as a work-around for architectures that
+shell-fm doesn't work completly profectly on.
+.TP
+.B proxy = proxy server
+This allows you to specify a proxy server for the HTTP requests.
+.TP
+.B expiry = some-number
+This defines the number of seconds until a cached page expires. The default is
+86400 seconds (24 hours). You shouldn't set a very low value here, since the
+Last.FM server often are very slow. This mostly affects the prompts (radio
+prompt, tag prompt, ...), since shell-fm fetches some feeds to get values for
+the tab-completion.
+.SH FORMAT FLAGS
+There are several format flags allowed for some options. Here is the list.
+.TP
+.B %a
+Artist name.
+.TP
+.B %t
+Track title.
+.TP
+.B %A
+Album name.
+.TP
+.B %d
+Track duration in seconds.
+.TP
+.B %s
+Station name.
+.TP
+.B %u
+Station URL.
+.TP
+.B %U
+URL of the artists page on Last.FM.
+.TP
+.B %X
+URL of the albums page on Last.FM.
+.TP
+.B %T
+URL of the tracks page on Last.FM.
+.TP
+.B %R
+Remaining seconds of the played track.
+.SH COLORS
+.TP
+.B 0;30
+Black (not very useful).
+.TP
+.B 1;30
+Dark gray.
+.TP
+.B 0;31
+Red.
+.TP
+.B 1;31
+Light red.
+.TP
+.B 0;32
+Green.
+.TP
+.B 1;32
+Light green.
+.TP
+.B 0;33
+Dark yellow/brown.
+.TP
+.B 1;33
+Yellow.
+.TP
+.B 0;34
+Blue.
+.TP
+.B 1;34
+Light blue.
+.TP
+.B 0;35
+Violet.
+.TP
+.B 1;35
+Pink.
+.TP
+.B 0;36
+Turquoise.
+.TP
+.B 1;36
+Cyan.
+.TP
+.B 0;37
+Gray.
+.TP
+.B 1;37
+White.
+.SH NETWORK INTERFACE COMMANDS
+This section describes the commands shell-fm's network interface knows. To use
+the interface, you must provide a valid value to the
+.B bind
+option in your configuration or use the
+.B -i
+option on the command line. Then you can connect the specified port (54311 by
+default) and send one of the commands at one time. You also have to hurry,
+since there is a very short timeout. Best thing would be if you used a script
+for accessing this interface. This is a list of the known commands.
+.TP
+.B play lastfm://...
+Play the given stream.
+.TP
+.B love
+Love the currently played track.
+.TP
+.B ban
+Ban the currently played track.
+.TP
+.B skip
+Skip the currently played track.
+.TP
+.B quit
+Quit.
+.TP
+.B info some-format-string
+Evaluate the given format string (check the
+.B FORMAT FLAGS
+section) and return the formatted information.
+.TP
+.B pause
+Pause.
+.TP
+.B discovery
+Toggle discovery mode on/off.
+.TP
+.B tag-artist some-comma-separated-tags
+Tag the artist of the currently played track.
+.TP
+.B tag-album some-comma-separated-tags
+Tag the album of the currently played track.
+.TP
+.B tag-track some-comma-separated-tags
+Tag the currently played track.
+.TP
+.B artist-tags
+Returns the tags of the currently played tracks artist.
+.TP
+.B album-tags
+Returns the tags of the currently played tracks album.
+.TP
+.B track-tags
+Returns the tags of the currently played track.
+.TP
+.B stop
+Stop stream.
+.SH BUGS
+No bugs known at the moment. Please send bug reports to <shell-fm@nex.scrapping.cc>.
+.SH COPYRIGHT
+Copyright (C) 2006-2008 by Jonas Kramer.
+Published under the terms of the GNU General Public License.

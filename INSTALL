@@ -1,0 +1,5 @@
+Shell.FM 0.4 Installation
+
+1. Run "make".
+2. Run "make install" as root.
+3. Read the manual for per-user setup information.
