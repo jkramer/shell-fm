@@ -210,6 +210,15 @@ This defines the number of seconds until a cached page expires. The default is
 Last.FM server often are very slow. This mostly affects the prompts (radio
 prompt, tag prompt, ...), since shell-fm fetches some feeds to get values for
 the tab-completion.
+.TP
+.B device = path
+Path to the audio device to use (see
+.B -D
+command line option).
+.TP
+.B title-format = format-string
+This is the format of the track string that is printed to the console for every
+track played. Default is 'Now playing "%t" by %a.'.
 .SH FORMAT FLAGS
 There are several format flags allowed for some options. Here is the list.
 .TP

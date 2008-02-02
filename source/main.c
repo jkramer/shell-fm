@@ -2,7 +2,7 @@
 	vim:syntax=c tabstop=2 shiftwidth=2 noexpandtab
 	
 	Shell.FM - main.c
-	Copyright (C) 2006 by Jonas Kramer
+	Copyright (C) 2006-2008 by Jonas Kramer
 	Published under the terms of the GNU General Public License (GPL).
 */
 
@@ -76,9 +76,11 @@ int main(int argc, char ** argv) {
 					++nerror;
 				}
 				break;
-                        case 'b': /* Batch mode */
-                                batch = !0;
-                                break;
+
+			case 'b': /* Batch mode */
+				batch = !0;
+				break;
+
 			case 'D': /* Path to audio device file. */
 				set(& rc, "device", optarg);
 				break;
