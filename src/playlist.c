@@ -18,6 +18,7 @@
 #include "http.h"
 #include "settings.h"
 #include "service.h"
+#include "strary.h"
 
 #include "playlist.h"
 #include "globals.h"
@@ -25,7 +26,6 @@
 
 int expand(struct playlist * list) {
 	char url[512], ** response, * xml = NULL;
-	unsigned n, length = 0;
 	const char * fmt =
 		"http://ws.audioscrobbler.com/radio/xspf.php"
 		"?sk=%s&discovery=%d&desktop=0";
@@ -42,18 +42,10 @@ int expand(struct playlist * list) {
 	if(response != NULL) {
 		int retval;
 
-		for(n = 0; response[n]; ++n) {
-			xml = realloc(xml, sizeof(char) * (length + strlen(response[n]) + 1));
-			strcpy(xml + length, response[n]);
-			length += strlen(response[n]);
-			xml[length] = 0;
-			free(response[n]);
-		}
-
-		free(response);
+		xml = join(response, 0);
+		response = NULL;
 
 		retval = parsexspf(list, xml);
-		free(xml);
 		return retval;
 	}
 

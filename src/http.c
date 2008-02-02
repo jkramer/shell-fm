@@ -36,7 +36,7 @@
 #endif
 
 
-char ** fetch(const char * url, FILE ** pHandle, const char * data, const char * type) {
+char ** fetch(const char * url, FILE ** pHandle, const char * post, const char * type) {
 	char ** resp = NULL, * host, * file, * port, * status = NULL, * line = NULL;
 	char * connhost;
 	char urlcpy[512 + 1];
@@ -50,12 +50,14 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data, const char *
 		"%s /%s HTTP/1.1\r\n"
 		"Host: %s\r\n"
 		"User-Agent: " USERAGENT "\r\n"
+		"Cookie: Session=%s\r\n"
 		"Connection: close\r\n";
 
 	const char * proxiedheadFormat =
 		"%s http://%s/%s HTTP/1.1\r\n"
 		"Host: %s\r\n"
-		"User-Agent: " USERAGENT "\r\n";
+		"User-Agent: " USERAGENT "\r\n"
+		"Cookie: Session=%s\r\n";
 
 	if (!batch)
 		fputs("...\r", stderr);
@@ -98,14 +100,14 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data, const char *
 		return NULL;
 
 	if(useproxy)
-		fprintf(fd, proxiedheadFormat, data ? "POST" : "GET", host,
-				file ? file : "", host);
+		fprintf(fd, proxiedheadFormat, post ? "POST" : "GET", host,
+				file ? file : "", host, value(& data, "session"));
 	else
-		fprintf(fd, headFormat, data ? "POST" : "GET", file ? file : "", host);
+		fprintf(fd, headFormat, post ? "POST" : "GET", file ? file : "", host, value(& data, "session"));
 
-	if(data != NULL) {
+	if(post != NULL) {
 		fprintf(fd, "Content-Type: %s\r\n", type);
-		fprintf(fd, "Content-Length: %ld\r\n\r\n%s\r\n", (long) strlen(data), data);
+		fprintf(fd, "Content-Length: %ld\r\n\r\n%s\r\n", (long) strlen(post), post);
 	}
 
 	fputs("\r\n", fd);
@@ -143,7 +145,7 @@ char ** fetch(const char * url, FILE ** pHandle, const char * data, const char *
 			sscanf(line, "Location: %512[^\r\n]", newurl);
 			fshutdown(& fd);
 
-			return fetch(newurl, pHandle, data, type);
+			return fetch(newurl, pHandle, post, type);
 		}
 	}
 

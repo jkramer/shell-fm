@@ -25,6 +25,7 @@
 #include "service.h"
 #include "playlist.h"
 #include "ropen.h"
+#include "strary.h"
 
 #include "globals.h"
 
@@ -124,10 +125,8 @@ int station(const char * stationURL) {
 		a XSPF playlist we have to parse.
 	*/
 	if(regular) {
-		playlist.continuous = !0;
 		fmt = "http://ws.audioscrobbler.com/radio/adjust.php?session=%s&url=%s";
 	} else {
-		playlist.continuous = 0;
 		fmt =
 			"http://ws.audioscrobbler.com/1.0/webclient/getresourceplaylist.php"
 			"?sk=%s&url=%s&desktop=1";
@@ -146,10 +145,10 @@ int station(const char * stationURL) {
 			if(sscanf(response[i], "response=%63[^\r\n]", status) > 0)
 				if(!strncmp(status, "FAILED", 6))
 					retval = 0;
-			free(response[i]);
 		}
 
-		free(response);
+		purge(response);
+		response = NULL;
 		
 		if(!retval) {
 			printf("Sorry, couldn't set station to %s.\n", stationURL);
@@ -158,17 +157,12 @@ int station(const char * stationURL) {
 
 		expand(& playlist);
 	} else {
-		char * xml = NULL;
-		unsigned length = 0;
+		char * xml = join(response, 0);
 
-		for(i = 0; response[i]; ++i) {
-			xml = realloc(xml, sizeof(char) * (length + strlen(response[i]) + 1));
-			strcpy(xml + length, response[i]);
-			length += strlen(response[i]);
-			xml[length] = 0;
-		}
+		response = NULL;
 
 		freelist(& playlist);
+
 		if(!parsexspf(& playlist, xml))
 			retval = 0;
 

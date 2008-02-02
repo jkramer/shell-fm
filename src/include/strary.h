@@ -12,6 +12,7 @@ extern unsigned count(char **);
 extern char ** append(char **, const char *);
 extern char ** merge(char **, char **, int);
 extern void purge(char **);
+extern char * join(char **, int);
 
 #endif
 

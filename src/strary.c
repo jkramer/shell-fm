@@ -79,3 +79,28 @@ void purge(char ** list) {
 		free(list);
 	}
 }
+
+/*
+	Merge strings of an array to one big string. If the second argument is
+  false, the list is purged.
+*/
+char * join(char ** list, int keep) {
+	unsigned i = 0, length = 0;
+	char * result = NULL;
+
+	if(list != NULL) {
+		while(list[i]) {
+			result = realloc(result, sizeof(char) * (length + strlen(list[i]) + 1));
+			strcpy(result + length, list[i]);
+			length += strlen(list[i]);
+			result[length] = 0;
+
+			++i;
+		}
+
+		if(!keep)
+			purge(list);
+	}
+
+	return result;
+}
