@@ -129,7 +129,7 @@ int main(int argc, char ** argv) {
 
 
 	puts("Shell.FM v" PACKAGE_VERSION ", (C) 2006-2008 by Jonas Kramer");
-	puts("Published under the terms of the GNU General Public License (GPL)\n");
+	puts("Published under the terms of the GNU General Public License (GPL).\n");
 
 
 	if(!background)
@@ -367,19 +367,20 @@ int main(int argc, char ** argv) {
 
 static void help(const char * argv0, int errorCode) {
 	fprintf(stderr,
-			"shell-fm - Copyright (C) 2006-2008 by Jonas Kramer\n"
-			"\n"
-			"%s [options] [lastfm://url]\n"
-			"\n"
-			"  -d        daemon mode.\n"
-			"  -i        address to listen on.\n"
-			"  -p        port to listen on.\n"
-			"  -b        batch mode.\n"
-			"  -D        device to play on.\n"
-			"  -y        proxy url to connect through.\n"
-			"  -h        this help.\n",
-			argv0
-			);
+		"Shell.FM v" PACKAGE_VERSION ", (C) 2006-2008 by Jonas Kramer\n"
+		"Published under the terms of the GNU General Public License (GPL).\n"
+		"\n"
+		"%s [options] [lastfm://url]\n"
+		"\n"
+		"  -d        daemon mode.\n"
+		"  -i        address to listen on.\n"
+		"  -p        port to listen on.\n"
+		"  -b        batch mode.\n"
+		"  -D        device to play on.\n"
+		"  -y        proxy url to connect through.\n"
+		"  -h        this help.\n",
+		argv0
+	);
 
 	exit(errorCode);
 }

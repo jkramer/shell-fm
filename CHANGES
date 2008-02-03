@@ -1,4 +1,8 @@
 * 2008-02-02, jkramer
+	- fixed Makefile
+	- changed copyright message
+
+* 2008-02-02, jkramer
 	- added two missing options to the manual
 	- extended INSTALL file
 	- fixed indentation in main.c

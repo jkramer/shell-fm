@@ -1,14 +1,15 @@
 
-CFLAGS	:= -Os -Wall -W -I./include/
 SOURCE	:= $(wildcard *.c)
 OBJECT	:= $(shell ls *.c | sed -e 's/\.c/.o/')
 BINARY	:= shell-fm
-LIBAO	:= $(shell [ -f /usr/lib/pkgconfig/ao.pc ] && pkg-config ao --libs)
+LIBAO	:= $(shell [ -f /usr/lib/pkgconfig/ao.pc ] && pkg-config ao --cflags && echo "-DLIBAO" )
+LDFLAGS	:= $(shell [ -f /usr/lib/pkgconfig/ao.pc ] && pkg-config ao --libs)
+CFLAGS	:= -Os -Wall -W -I./include/ $(LIBAO)
 
 .PHONY:		clean
 
 shell-fm	: $(OBJECT)
-	gcc -o $(BINARY) $(CFLAGS) $(OBJECT) -l mad $(LIBAO)
+	gcc -o $(BINARY) $(CFLAGS) $(OBJECT) $(shell pkg-config mad --libs) $(LDFLAGS)
 
 clean	:
 	rm -f $(OBJECT) $(BINARY)
