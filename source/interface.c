@@ -35,6 +35,7 @@
 #include "xmlrpc.h"
 #include "recommend.h"
 #include "util.h"
+#include "mix.h"
 
 #include "globals.h"
 
@@ -184,6 +185,14 @@ void interface(int interactive) {
 				if(playfork) {
 					recommend(track);
 				}
+				break;
+
+			case '+':
+				adjust(+STEP);
+				break;
+
+			case '-':
+				adjust(-STEP);
 				break;
 
       case '?':
