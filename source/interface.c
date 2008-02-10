@@ -188,11 +188,19 @@ void interface(int interactive) {
 				break;
 
 			case '+':
-				adjust(+STEP);
+				adjust(+STEP, VOL);
 				break;
 
 			case '-':
-				adjust(-STEP);
+				adjust(-STEP, VOL);
+				break;
+
+			case '*':
+				adjust(+STEP, PCM);
+				break;
+
+			case '/':
+				adjust(-STEP, PCM);
 				break;
 
       case '?':
@@ -214,6 +222,10 @@ void interface(int interactive) {
         puts("S = stop");
         puts("s = similiar Artist");
         puts("T = tag track/artist/album");
+				puts("+ = increase volume (vol)");
+				puts("- = decrease volume (vol)");
+				puts("* = increase volume (pcm)");
+				puts("/ = decrease volume (pcm)");
         break;
 
 			case '0':

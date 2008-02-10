@@ -11,6 +11,9 @@
 */
 #define STEP 0x0202
 
-extern signed adjust(signed);
+#define VOL 0
+#define PCM 4
+
+extern signed adjust(signed, int);
 
 #endif

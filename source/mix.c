@@ -6,10 +6,6 @@
 
 #include "mix.h"
 
-#define VOL 0
-#define PCM 4
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
@@ -17,7 +13,7 @@
 #include <errno.h>
 #include <string.h>
 
-signed adjust(signed deviation) {
+signed adjust(signed deviation, int device) {
 	signed fd = open("/dev/mixer", O_RDONLY | O_NONBLOCK), volume;
 
 	if(fd == -1) {
@@ -26,7 +22,7 @@ signed adjust(signed deviation) {
 	}
 	else {
 		/* Read volume. */
-		ioctl(fd, MIXER_READ(PCM), & volume);
+		ioctl(fd, MIXER_READ(device), & volume);
 
 		volume += deviation;
 		
@@ -36,7 +32,7 @@ signed adjust(signed deviation) {
 			volume = 0xFFFF;
 
 		/* Write volume. */
-		ioctl(fd, MIXER_WRITE(PCM), & volume);
+		ioctl(fd, MIXER_WRITE(device), & volume);
 
 		return volume;
 	}
