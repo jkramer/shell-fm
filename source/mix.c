@@ -2,16 +2,22 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
-#include <linux/soundcard.h>
-
-#include "mix.h"
-
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/ioctl.h>
-#include <fcntl.h>
 #include <errno.h>
 #include <string.h>
+
+#ifdef __NetBSD__
+#include <soundcard.h>
+#endif
+#ifdef __FreeBSD__
+#include <machine/soundcard.h>
+#endif
+#ifdef __linux__
+#include <linux/soundcard.h>
+#endif
+
+#include "mix.h"
 
 signed adjust(signed deviation, int device) {
 	signed fd = open("/dev/mixer", O_RDONLY | O_NONBLOCK), volume;
