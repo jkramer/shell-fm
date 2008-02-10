@@ -1,15 +1,31 @@
 
-.PHONY		: shell-fm manual all
+DESTDIR	:= /usr
+
+.PHONY		: shell-fm manual all clean
 
 all			: shell-fm manual
 
 shell-fm	:
-	cd source && make && cd ..
+	make -C source
 
 manual		:
-	cd manual && make && cd ..
+	make -C manual
 
 install		:
-	install source/shell-fm /usr/bin/shell-fm
-	strip /usr/bin/shell-fm
-	install manual/shell-fm.1.gz /usr/man/man1
+	mkdir -p $(DESTDIR)/bin $(DESTDIR)/man/man1
+	install source/shell-fm $(DESTDIR)/bin/shell-fm
+	strip $(DESTDIR)/bin/shell-fm
+	install manual/shell-fm.1.gz $(DESTDIR)/man/man1
+
+uninstall	:
+	rm -f $(DESTDIR)/bin/shell-fm
+	rm -f $(DESTDIR)/man/man1/shell-fm.1.gz
+	rmdir --ignore-fail-on-non-empty $(DESTDIR)/bin
+	rmdir --ignore-fail-on-non-empty $(DESTDIR)/man/man1
+	rmdir --ignore-fail-on-non-empty $(DESTDIR)/man
+	rmdir --ignore-fail-on-non-empty $(DESTDIR)
+
+
+clean		:
+	make -C source clean
+	make -C manual clean
