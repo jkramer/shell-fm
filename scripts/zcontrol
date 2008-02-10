@@ -1,0 +1,29 @@
+#!/usr/bin/zsh
+# zcontrol, shell-fm remote control script. Copyright (C) 2006 by Jonas Kramer.
+# Published under the terms of the GNU General Public License (GPL).
+
+setopt extendedglob
+export BIND="127.0.0.1" PORT="54311"
+
+if [[ $# -eq 0 || "$1" != (skip|love|ban|quit|play) ]]; then
+	print "Usage: $0 (skip|love|ban|quit|play) [argument]" >&2
+	exit -1
+fi
+
+if [[ -r "$HOME/.shell-fm/shell-fm.rc" ]]; then
+	for LINE in ${(f)"$(<$HOME/.shell-fm/shell-fm.rc)"}; do
+		LINE="${LINE%%\#*}"
+		if [[ "$LINE" == (#b)(bind|port)[\ ]#"="[\ ]#(#b)([^\ ]##)* ]]; then
+			export ${(U)match[1]}="$match[2]"
+		fi
+	done
+fi
+
+zmodload zsh/net/tcp
+if ! ztcp "$BIND" "$PORT"; then
+	print "Couldn't connect to [$BIND:$PORT]." >&2
+	exit -1
+fi
+
+print -u $REPLY "$1" $@[2,-1]
+ztcp -c $REPLY
