@@ -2,7 +2,7 @@
 SOURCE	:= $(wildcard *.c)
 OBJECT	:= $(subst .c,.o,$(SOURCE))
 BINARY	:= shell-fm
-LIBAO	:= $(shell [ -f /usr/lib/pkgconfig/ao.pc ] && pkg-config ao --cflags && echo "-DLIBAO" )
+LDFLAGS := $(shell pkg-config --exists ao && pkg-config ao --libs)
 LDFLAGS	:= $(shell [ -f /usr/lib/pkgconfig/ao.pc ] && pkg-config ao --libs)
 CFLAGS	:= -Os -Wall -W -I./include/ $(LIBAO)
 
