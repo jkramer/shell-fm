@@ -124,8 +124,9 @@ char ** fetch(const char * url, FILE ** pHandle, const char * post, const char *
 			else
 				fprintf(stderr, "HTTP Response: %s", status);
 
-			free(status);
 		}
+
+		freeln(& status, & size);
 
 		return NULL;
 	}

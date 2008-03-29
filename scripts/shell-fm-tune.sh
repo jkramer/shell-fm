@@ -1,8 +1,5 @@
 #!/bin/bash
-# vim:syntax=sh tabstop=4
-#
 # Published under the terms of the GNU General Public License (GPL).
-#
 
 extract ()
 {
@@ -38,7 +35,7 @@ elif [ -r "$HOME/.shell-fm/shell-fm.rc" ]; then
 fi
 
 
-if [ -n "`which nc`" ]; then
+if [ -n "`which nc 2>/dev/null`" ]; then
 	CMD="nc"
 elif [ -n "`which telnet`" ]; then
 	CMD="telnet"

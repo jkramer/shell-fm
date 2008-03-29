@@ -126,7 +126,8 @@ int station(const char * stationURL) {
 	*/
 	if(regular) {
 		fmt = "http://ws.audioscrobbler.com/radio/adjust.php?session=%s&url=%s";
-	} else {
+	}
+	else {
 		fmt =
 			"http://ws.audioscrobbler.com/1.0/webclient/getresourceplaylist.php"
 			"?sk=%s&url=%s&desktop=1";

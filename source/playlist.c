@@ -39,6 +39,7 @@ int expand(struct playlist * list) {
 	);
 
 	response = fetch(url, NULL, NULL, NULL);
+
 	if(response != NULL) {
 		int retval;
 

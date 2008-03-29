@@ -1,0 +1,24 @@
+* 2008-02-10, jkramer
+	- added helper scripts
+
+* 2008-02-10, jkramer
+	- added DESTDIR variable and "uninstall" target to Makefile.
+
+* 2008-02-10, jkramer
+	- added more volume control (+, - changes "vol", *, / changes "pcm")
+
+* 2008-02-10, jkramer
+	- added volume control (keys +/-)
+
+* 2008-02-02, jkramer
+	- fixed Makefile
+	- changed copyright message
+
+* 2008-02-02, jkramer
+	- added two missing options to the manual
+	- extended INSTALL file
+	- fixed indentation in main.c
+
+* 2008-02-02, jkramer
+	Everything from the past 'til now is forgotten. I hope not to forget to add
+	future changes to this file.

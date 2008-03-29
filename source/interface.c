@@ -35,6 +35,7 @@
 #include "xmlrpc.h"
 #include "recommend.h"
 #include "util.h"
+#include "mix.h"
 
 #include "globals.h"
 
@@ -61,6 +62,10 @@ void interface(int interactive) {
 		switch(key) {
 			case 'l':
 				puts(rate("L") ? "Loved." : "Sorry, failed.");
+				break;
+
+			case 'U':
+				puts(rate("U") ? "Unloved." : "Sorry, failed.");
 				break;
 
 			case 'B':
@@ -186,6 +191,22 @@ void interface(int interactive) {
 				}
 				break;
 
+			case '+':
+				adjust(+STEP, VOL);
+				break;
+
+			case '-':
+				adjust(-STEP, VOL);
+				break;
+
+			case '*':
+				adjust(+STEP, PCM);
+				break;
+
+			case '/':
+				adjust(-STEP, PCM);
+				break;
+
       case '?':
 				puts("a = add the track to the playlist");
         puts("A = autoban artist");
@@ -203,8 +224,13 @@ void interface(int interactive) {
         puts("r = change radio station");
 				puts("R = recommend track/artist/album");
         puts("S = stop");
-        puts("s = similiar Artist");
+        puts("s = similiar artist");
         puts("T = tag track/artist/album");
+        puts("U = unlock track");
+				puts("+ = increase volume (vol)");
+				puts("- = decrease volume (vol)");
+				puts("* = increase volume (pcm)");
+				puts("/ = decrease volume (pcm)");
         break;
 
 			case '0':
@@ -353,6 +379,14 @@ int rate(const char * rating) {
 			case 'L':
 				return xmlrpc(
 					"loveTrack",
+					"ss",
+					value(& track, "creator"),
+					value(& track, "title")
+				);
+
+			case 'U':
+				return xmlrpc(
+					"unLoveTrack",
 					"ss",
 					value(& track, "creator"),
 					value(& track, "title")

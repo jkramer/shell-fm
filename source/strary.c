@@ -89,8 +89,9 @@ char * join(char ** list, int keep) {
 	char * result = NULL;
 
 	if(list != NULL) {
-		while(list[i]) {
+		while(list[i] != NULL) {
 			result = realloc(result, sizeof(char) * (length + strlen(list[i]) + 1));
+
 			strcpy(result + length, list[i]);
 			length += strlen(list[i]);
 			result[length] = 0;

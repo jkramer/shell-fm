@@ -12,7 +12,6 @@
 
 #define _GNU_SOURCE
 
-
 #include <mad.h>
 
 #include <stdio.h>
@@ -22,13 +21,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <signal.h>
-
 #include <sys/wait.h>
-
-#include "config.h"
-
 #include <sys/ioctl.h>
-#ifdef __HAVE_LIBAO__
+
+#ifdef LIBAO
 #include <ao/ao.h>
 #else
 #include <linux/soundcard.h>
@@ -40,7 +36,7 @@
 
 struct stream {
 	FILE * streamfd;
-#ifdef __HAVE_LIBAO__
+#ifdef LIBAO
 	int driver_id;
 	ao_device *device;
 	ao_sample_format fmt;
@@ -68,7 +64,7 @@ void playback(FILE * streamfd) {
 		struct stream data;
 		struct mad_decoder dec;
 
-#ifdef __HAVE_LIBAO__
+#ifdef LIBAO
 		static int ao_initialized = 0;
 
 		if(!ao_initialized) {
@@ -85,7 +81,7 @@ void playback(FILE * streamfd) {
 		data.streamfd = streamfd;
 		data.parent = getppid();
 
-#ifdef __HAVE_LIBAO__
+#ifdef LIBAO
 		data.driver_id = ao_default_driver_id();
 
 		if(-1 == data.driver_id) {
@@ -120,7 +116,7 @@ void playback(FILE * streamfd) {
 
 		mad_decoder_init(& dec, & data, input, NULL, NULL, output, NULL, NULL);
 		mad_decoder_run(& dec, MAD_DECODER_MODE_SYNC);
-#ifndef __HAVE_LIBAO__
+#ifndef LIBAO
 		close(fd);
 #endif
 		mad_decoder_finish(& dec);
@@ -207,7 +203,7 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 	return MAD_FLOW_CONTINUE;
 }
 
-#ifdef __HAVE_LIBAO__
+#ifdef LIBAO
 static enum mad_flow output(
 		void * data,
 		const struct mad_header * head,
