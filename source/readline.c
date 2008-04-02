@@ -1,3 +1,7 @@
+/*
+	Copyright (C) 2006 by Jonas Kramer
+	Published under the terms of the GNU General Public License (GPL).
+*/
 
 #define _GNU_SOURCE
 
@@ -122,13 +126,12 @@ char * readline(struct prompt * setup) {
 								break;
 						}
 					}
-				} else if(isprint(key)) {
+				}
+				else {
 					if(length < sizeof(line)) {
 						line[length++] = key;
 						fputc(key, stderr);
 					}
-				} else {
-					fprintf(stderr, "<%d>", key);
 				}
 		}
 	}

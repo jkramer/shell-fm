@@ -1,7 +1,4 @@
 /*
-	vim:syntax=c tabstop=2 shiftwidth=2 noexpandtab
-	
-	Shell.FM - main.c
 	Copyright (C) 2006-2008 by Jonas Kramer
 	Published under the terms of the GNU General Public License (GPL).
 */
@@ -251,14 +248,28 @@ int main(int argc, char ** argv) {
 			playfork would still be running.
 		*/
 		if(playnext) {
-			unsigned
-				duration = atoi(value(& track, "duration")) / 1000,
-				played = time(NULL) - changeTime - pauselength;
-
 			playfork = 0;
 
-			if(enabled(RTP) && duration > 29 && (played >= 240 || played > (duration / 2)))
-				enqueue(& track);
+			if(enabled(RTP)) {
+				unsigned duration, played, minimum;
+
+				duration = atoi(value(& track, "duration")) / 1000;
+				played = time(NULL) - changeTime - pauselength;
+
+				/* Allow user to specify minimum playback length (min. 50%). */
+				if(haskey(& rc, "minimum")) {
+					unsigned percent = atoi(value(& rc, "minimum"));
+					if(percent < 50)
+						percent = 50;
+					minimum = duration * percent / 100;
+				}
+				else {
+					minimum = duration / 2;
+				}
+
+				if(duration >= 30 && (played >= 240 || played > minimum))
+					enqueue(& track);
+			}
 
 			submit(value(& rc, "username"), value(& rc, "password"));
 
@@ -288,6 +299,7 @@ int main(int argc, char ** argv) {
 			if(!playfork) {
 				if(play(& playlist)) {
 					time(& changeTime);
+					pauselength = 0;
 
 					set(& track, "stationURL", currentStation);
 

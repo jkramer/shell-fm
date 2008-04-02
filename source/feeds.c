@@ -1,3 +1,7 @@
+/*
+	Copyright (C) 2006 by Jonas Kramer
+	Published under the terms of the GNU General Public License (GPL).
+*/
 
 #define _GNU_SOURCE
 

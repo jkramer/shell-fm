@@ -1,10 +1,5 @@
 /*
-	vim:syntax=c tabstop=2 shiftwidth=2 noexpandtab
-
-	Shell.FM - interface.c
 	Copyright (C) 2006 by Jonas Kramer
-	Copyright (C) 2006 by Bart Trojanowski <bart@jukie.net>
-
 	Published under the terms of the GNU General Public License (GPLv2).
 */
 
@@ -39,24 +34,6 @@ static int radiocomplete(char *, const unsigned, int);
 
 static char ** users = NULL, ** artists = NULL, ** overall = NULL;
 
-/*
- * This function is called to change the station
- * the user is prompted for the new radio station.
- *
- * Something like:
- *
- * lastfm://user/BartTrojanowski/loved
- * lastfm://user/BartTrojanowski/personal
- * lastfm://user/BartTrojanowski/neighbour
- * lastfm://user/BartTrojanowski/recommended/100
- * lastfm://usertags/BartTrojanowski/trance
- * lastfm://artist/QED/similarartists
- * lastfm://artist/QED/fans
- * lastfm://globaltags/goa
- * lastfm://globaltags/classical,miles davis,whatever
- * lastfm://multipleartists/QED,Chicane
- * lastfm://play/tracks/########[,#####, ...]
- */
 void radioprompt(const char * prompt) {
 	char * url, * decoded = NULL;
 

@@ -1,28 +1,17 @@
-Jonas Kramer (shell-monkey)
- * everything else that's not listed below :)
+* Jonas Kramer
+* Bart Trojanowski
+* Jacek Nitkiewicz
+* Helmut Maierthaler
+* Nguyen Thai Ngoc Duy
+* Ondrej Novy
+* Csaba Henk
 
-Bart Trojanowski (bartman)
- * radio station URI completion
- * several bugfixes
- * command line help
- * Makefile fixes / improvements
+NOTE: I've removed the information about who did what, since during the
+development almost everything anyone added has been changed/replaced at some
+time by me or others and it's impossible to track everything. So I'll just list
+all the names of the people who contributed something at some time here. Of
+course the details are still in the subversion commit log.
 
-Jacek Nitkiewicz (jacek)
- * several bugfixes and improvements
- * configure / Makefile stuff
-
-Helmut Maierthaler (b1u3)
- * pause and stop keys
-
-Nguyen Thai Ngoc Duy (pclouds)
- * libao support
-
-Ondrej Novy 
- * improvements on shell-fm bevaviour when last.fm lags
-
-Csaba Henk
- * proxy support
-
-Please mail me (jonas.kramer@gmx.net) if your name is missing here.
+Please mail me (jonas.kramer@gmail.com) if your name is missing here.
 If you want to praise or blame a developer for something particular,
 search the SVN log.

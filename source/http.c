@@ -1,7 +1,4 @@
 /*
-	vim:syntax=c tabstop=2 shiftwidth=2 noexpandtab
-
-	Shell.FM - http.c
 	Copyright (C) 2006 by Jonas Kramer
 	Published under the terms of the GNU General Public License (GPL).
 */
@@ -32,7 +29,7 @@
 
 
 #ifndef USERAGENT
-#define USERAGENT "Shell.FM/0.4"
+#define USERAGENT "Shell.FM/" PACKAGE_VERSION
 #endif
 
 

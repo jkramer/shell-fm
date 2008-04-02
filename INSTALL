@@ -1,5 +1,5 @@
 
-Shell.FM 0.4 Installation
+Shell.FM 0.5 Installation
 
 
 Requirements:
@@ -12,3 +12,15 @@ Installation:
 1. Run "make".
 2. Run "make install" as root.
 3. Read the manual for per-user setup information.
+
+NOTE: The Makefile uses /usr as destdir and $DESTDIR/man as MANDIR by default.
+You can override those on the command line. For example, Debian/Ubuntu users
+usually have their manuals in /usr/share/man, so they would install shell-fm
+like this:
+
+$ make install DESTDIR=/usr MANDIR=/usr/share/man
+
+NOTE: To install a stripped version of shell-fm (about 10K smaller), use
+"install-strip" instead of "install":
+
+$ make install-strip

@@ -92,7 +92,8 @@ Quit.
 .TP
 .B r
 Change radio station. This will prompt you for an Last.FM radio station URI.
-The tabulator key helps if you don't know what to type.
+The tabulator key helps if you don't know what to type. Arrow-Up and Arrow-Down
+allow you to browse your radio history.
 .TP
 .B R
 Recommend the currently played track/artist/album to another Last.FM user.
@@ -232,6 +233,14 @@ command line option).
 .B title-format = format-string
 This is the format of the track string that is printed to the console for every
 track played. Default is 'Now playing "%t" by %a.'.
+.TP
+.B minimum = percentage
+With this option you can change the minimum duration a track must have been
+played to be scrobbled (in percent, but without the % sign). For example, if
+this option is set to 75, the track will not be scrobbled if it has not been
+played for at least 75% of its total duration. If you skip or stop the track
+before it has been played for 75%, it will not be scrobbled. Default is 50%, as
+specified in the scrobbling protocol version 1.2.
 .SH FORMAT FLAGS
 There are several format flags allowed for some options. Here is the list.
 .TP
@@ -370,6 +379,32 @@ Returns the tags of the currently played track.
 .TP
 .B stop
 Stop stream.
+.SH FILES
+This section describes the meanings of the files in $HOME/.shell-fm/.
+.TP
+.B autoban
+This file contains the auto-banned artists.
+.TP
+.B bookmarks
+This file contains the bookmarked stations in the format "[digit] = [url]".
+.TP
+.B cache/
+This directory contains cached sites fetched from Last.FM for faster tab-completion etc.
+.TP
+.B i-template
+If this file exists, it will be used as a template for the output of 'i'. It
+may contain usual format flags.
+.TP
+.B radio-history
+The radio stations you have listened to. The history is used for the radio prompt.
+.TP
+.B scrobble-cache
+If Shell.FM can't scrobble the data of a track for any reason before you quit,
+it stores the track data in here and it will try to submit the tracks the next
+time it is run.
+.TP
+.B shell-fm.rc
+Your configuration file as described above.
 .SH BUGS
 No bugs known at the moment. Please send bug reports to <shell-fm@nex.scrapping.cc>.
 .SH COPYRIGHT
