@@ -23,6 +23,7 @@
 #include "sckif.h"
 #include "playlist.h"
 #include "submit.h"
+#include "readline.h"
 
 #include "globals.h"
 
@@ -158,9 +159,13 @@ int main(int argc, char ** argv) {
 		
 		if(!haskey(& rc, "username")) {
 			char username[256] = { 0 };
-			fputs("Login: ", stderr);
-			if(!scanf("%255s", username))
-				exit(EXIT_FAILURE);
+
+			struct prompt prompt = {
+				.prompt = "Login: ",
+				.line = getenv("USER"), .history = NULL, .callback = NULL,
+			};
+
+			strncpy(username, readline(& prompt), 255);
 
 			set(& rc, "username", username);
 		}

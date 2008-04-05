@@ -12,6 +12,7 @@
 #include <assert.h>
 
 #include "readline.h"
+#include "interface.h"
 
 static void delete(unsigned);
 
@@ -42,6 +43,7 @@ char * readline(struct prompt * setup) {
 
 	while(!eoln) {
 		int key = fgetc(stdin);
+
 		switch(key) {
 			case 8: /* Backspace. */
 			case 127: /* Delete. */
