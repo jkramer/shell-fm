@@ -1,4 +1,7 @@
 * 2008-04-06, jkramer
+	- "delay-change" now also affects normal radio change ('r')
+
+* 2008-04-06, jkramer
 	- added option "delay-change" for delaying station change ('s', 'f') until
 	  after the track finishes
 

@@ -27,6 +27,7 @@
 #include "strary.h"
 #include "service.h"
 #include "tag.h"
+#include "globals.h"
 
 
 extern char ** popular;
@@ -71,7 +72,13 @@ void radioprompt(const char * prompt) {
 
 	if(strlen(url)) {
 		decode(url, & decoded);
-		station(decoded);
+		if(playfork && haskey(& rc, "delay-change")) {
+			nextstation = strdup(decoded);
+			puts("\rDelayed.");
+		}
+		else {
+			station(decoded);
+		}
 		free(decoded);
 	}
 }
