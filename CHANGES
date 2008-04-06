@@ -1,4 +1,8 @@
 * 2008-04-06, jkramer
+	- added option "delay-change" for delaying station change ('s', 'f') until
+	  after the track finishes
+
+* 2008-04-06, jkramer
 	- un-html'ing &quot; now in unhtml()
 	- cleaning cache on exit
 

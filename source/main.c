@@ -35,6 +35,7 @@
 
 unsigned flags = RTP;
 time_t changeTime = 0, pausetime = 0;
+char * nextstation = NULL;
 
 int batch = 0;
 
@@ -293,6 +294,16 @@ int main(int argc, char ** argv) {
 
 
 		if(playnext || enabled(CHANGED)) {
+			if(nextstation != NULL) {
+				playnext = 0;
+				disable(CHANGED);
+
+				station(nextstation);
+
+				free(nextstation);
+				nextstation = NULL;
+			}
+
 			if(!playlist.left) {
 				expand(& playlist);
 				if(!playlist.left) {

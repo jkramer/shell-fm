@@ -36,5 +36,6 @@ extern unsigned flags;
 #define disable(n) (flags &= ~n)
 #define toggle(n) (flags ^= n)
 
+extern char * nextstation;
 
 #endif

@@ -39,7 +39,6 @@
 
 struct hash track;
 
-
 void interface(int interactive) {
 	if(interactive) {
 		int key, result;
@@ -144,13 +143,29 @@ void interface(int interactive) {
 				break;
 
 			case 'f':
-				if(playfork)
-					station(meta("lastfm://artist/%a/fans", 0));
+				if(playfork) {
+					const char * uri = meta("lastfm://artist/%a/fans", 0);
+					if(haskey(& rc, "delay-change")) {
+						puts("\rDelayed.");
+						nextstation = strdup(uri);
+					}
+					else {
+						station(uri);
+					}
+				}
 				break;
 				
 			case 's':
-				if(playfork)
-					station(meta("lastfm://artist/%a/similarartists", 0));
+				if(playfork) {
+					const char * uri = meta("lastfm://artist/%a/similarartists", 0);
+					if(haskey(& rc, "delay-change")) {
+						puts("\rDelayed.");
+						nextstation = strdup(uri);
+					}
+					else {
+						station(uri);
+					}
+				}
 				break;
 
 			case 'h':
