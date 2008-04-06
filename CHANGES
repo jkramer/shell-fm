@@ -1,3 +1,7 @@
+* 2008-04-06, jkramer
+	- un-html'ing &quot; now in unhtml()
+	- cleaning cache on exit
+
 * 2008-04-05, jkramer
 	- now using own readline for login prompt
 

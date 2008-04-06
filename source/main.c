@@ -15,6 +15,8 @@
 #include <sys/wait.h>
 #include <time.h>
 
+#include <dirent.h>
+
 #include "hash.h"
 #include "service.h"
 #include "interface.h"
@@ -422,6 +424,34 @@ static void cleanup(void) {
 		waitpid(subfork, NULL, 0);
 
 	dumpqueue(!0);
+
+	/* Clean cache. */
+	if(!access(rcpath("cache"), R_OK | W_OK | X_OK)) {
+		const char * cache = rcpath("cache");
+		DIR * directory = opendir(cache);
+
+		if(directory != NULL) {
+			time_t expiry = 24 * 60 * 60;
+			struct dirent * entry;
+			struct stat status;
+			char path[PATH_MAX];
+
+			if(haskey(& rc, "expiry"))
+				expiry = atoi(value(& rc, "expiry"));
+
+			while((entry = readdir(directory)) != NULL) {
+				snprintf(path, sizeof(path), "%s/%s", cache, entry->d_name);
+
+				if(!stat(path, & status)) {
+					if(status.st_mtime < (time(NULL) - expiry)) {
+						unlink(path);
+					}
+				}
+			}
+
+			closedir(directory);
+		}
+	}
 
 	if(playfork)
 		kill(playfork, SIGUSR1);
