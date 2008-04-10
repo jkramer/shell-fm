@@ -123,7 +123,7 @@ int main(int argc, char ** argv) {
 		help(argv[0], EXIT_FAILURE);
 
 
-#ifndef __HAVE_LIBAO__ 
+#ifndef LIBAO
 	if(!haskey(& rc, "device"))
 		set(& rc, "device", "/dev/audio");
 #endif

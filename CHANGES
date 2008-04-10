@@ -1,3 +1,7 @@
+* 2008-04-10, jkramer
+	- fixed Makefile (libao detection was broken)
+	- fixed -D option (wrong macro for libao support was used)
+
 * 2008-04-06, jkramer
 	- "delay-change" now also affects normal radio change ('r')
 
