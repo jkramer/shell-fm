@@ -219,7 +219,8 @@ int play(struct playlist * list) {
 			fetch(location, & fd, NULL, NULL);
 
 			if(fd != NULL) {
-				playback(fd);
+				if(!playback(fd))
+					kill(getppid(), SIGUSR2);
 				fshutdown(& fd);
 			}
 		}

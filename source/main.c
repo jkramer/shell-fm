@@ -37,11 +37,12 @@ unsigned flags = RTP;
 time_t changeTime = 0, pausetime = 0;
 char * nextstation = NULL;
 
-int batch = 0;
+int batch = 0, error = 0;
 
 static void cleanup(void);
 static void forcequit(int);
 static void help(const char *, int);
+static void playsig(int);
 
 int main(int argc, char ** argv) {
 	int option, nerror = 0, background = 0, haveSocket = 0;
@@ -190,6 +191,9 @@ int main(int argc, char ** argv) {
 	/* Set up signal handlers for communication with the playback process. */
 	signal(SIGINT, forcequit);
 
+	/* SIGUSR2 from playfork means, it detected an error. */
+	signal(SIGUSR2, playsig);
+
 
 	/* Authenticate to the Last.FM server. */
 	if(!authenticate(value(& rc, "username"), value(& rc, "password")))
@@ -282,10 +286,17 @@ int main(int argc, char ** argv) {
 			submit(value(& rc, "username"), value(& rc, "password"));
 
 			/* Check if the user stopped the stream. */
-			if(enabled(STOPPED)) {
+			if(enabled(STOPPED) || error) {
 				freelist(& playlist);
 				empty(& track);
+
+				if(error) {
+					fputs("Playback stopped with an error.\n", stderr);
+					error = 0;
+				}
+
 				disable(STOPPED);
+
 				continue;
 			}
 			
@@ -474,4 +485,10 @@ static void forcequit(int sig) {
 		fputs("Try to press Q next time you want to quit.\n", stderr);
 		exit(-1);
 	}
+}
+
+
+static void playsig(int sig) {
+	if(sig == SIGUSR2)
+		error = !0;
 }

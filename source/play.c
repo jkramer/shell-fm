@@ -52,7 +52,7 @@ int killed = 0;
 
 static void sighand(int);
 
-void playback(FILE * streamfd) {
+int playback(FILE * streamfd) {
 	killed = 0;
 	signal(SIGUSR1, sighand);
 
@@ -82,7 +82,7 @@ void playback(FILE * streamfd) {
 
 		if(-1 == data.driver_id) {
 			fputs("Unable to find any usable output device!\n", stderr);
-			return;
+			return 0;
 		}
 
 		data.fmt.bits = 16;
@@ -93,7 +93,7 @@ void playback(FILE * streamfd) {
 
 		if(NULL == data.device) {
 			fprintf(stderr, "Unable to open device. %s.\n", strerror(errno));
-			return;
+			return 0;
 		}
 #else
 		data.audiofd = fd = open(value(& rc, "device"), O_WRONLY);
@@ -103,7 +103,7 @@ void playback(FILE * streamfd) {
 					stderr, "Couldn't open %s! %s.\n",
 					value(& rc, "device"), strerror(errno)
 			);
-			return;
+			return 0;
 		}
 
 		arg = 16; /* 16 bits */
@@ -124,13 +124,13 @@ void playback(FILE * streamfd) {
 		if(!ext) {
 			fprintf(stderr, "Failed to execute external player (%s). %s.\n",
 					value(& rc, "extern"), strerror(errno));
-			return;
+			return 0;
 		}
 
 		if(!(buf = calloc(BUFSIZE + 1, sizeof(unsigned char)))) {
 			fputs("Couldn't allocate enough memory for input buffer.\n", stderr);
 			fclose(ext);
-			return;
+			return 0;
 		}
 
 		while(!feof(streamfd)) {
@@ -151,6 +151,8 @@ void playback(FILE * streamfd) {
 		free(buf);
 		fclose(ext);
 	}
+
+	return !0;
 }
 
 static enum mad_flow input(void * data, struct mad_stream * stream) {

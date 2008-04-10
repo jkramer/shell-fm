@@ -1,4 +1,7 @@
 * 2008-04-10, jkramer
+	- now using SIGUSR2 in playfork to tell UI about errors
+
+* 2008-04-10, jkramer
 	- fixed Makefile (libao detection was broken)
 	- fixed -D option (wrong macro for libao support was used)
 
