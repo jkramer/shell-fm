@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #include "md5.h"
 #include "settings.h"
@@ -15,6 +16,7 @@
 static void append(char **, unsigned *, const char *);
 static void sparam(char **, unsigned *, const char *);
 static void aparam(char **, unsigned *, const char **);
+char * xmlize(const char *);
 
 int xmlrpc(const char * method, const char * fmt, ...) {
 	unsigned size = 1024, narg, x;
@@ -105,9 +107,11 @@ static void append(char ** string, unsigned * size, const char * appendix) {
 
 static void sparam(char ** xml, unsigned * size, const char * param) {
 	if(xml && size && param) {
+		char * encoded = xmlize(param);
 		append(xml, size, "\t\t<param><value><string>");
-		append(xml, size, param);
+		append(xml, size, encoded);
 		append(xml, size, "</string></value></param>\n");
+		free(encoded);
 	}
 }
 
@@ -119,11 +123,35 @@ static void aparam(char ** xml, unsigned * size, const char ** param) {
 		append(xml, size, "\t\t<param><value><array><data>");
 
 		for(n = 0; param && param[n] != NULL; ++n) {
+			char * encoded = xmlize(param[n]);
 			append(xml, size, "<value><string>");
-			append(xml, size, param[n]);
+			append(xml, size, encoded);
 			append(xml, size, "</string></value>");
+			free(encoded);
 		}
 
 		append(xml, size, "</data></array></value></param>\n");
 	}
+}
+
+char * xmlize(const char * orig) {
+	register unsigned i = 0, x = 0;
+	char * encoded = calloc((strlen(orig) * 6) + 1, sizeof(char));
+	while(i < strlen(orig)) {
+		if(strchr("&<>'\"", orig[i])) {
+			snprintf(
+					encoded + x,
+					strlen(orig) * 6 - strlen(encoded) + 1,
+					"&#x%02X;",
+					(uint8_t) orig[i]
+			);
+			x += 6;
+		}
+		else {
+			encoded[x++] = orig[i];
+		}
+		++i;
+	}
+
+	return encoded;
 }

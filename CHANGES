@@ -1,3 +1,6 @@
+* 2008-04-11, jkramer
+	- now escaping XML entities properly in xmlrpc.c (thanks to Lars-Dominik)
+
 * 2008-04-10, jkramer
 	- now using SIGUSR2 in playfork to tell UI about errors
 
