@@ -175,9 +175,9 @@ void execcmd(const char * cmd, FILE * fd) {
 			exit(EXIT_SUCCESS);
 
 		case 5:
-			snprintf(arg, sizeof(arg), "%s", meta(cmd + 5, 0));
+			snprintf(arg, sizeof(arg), "%s", meta(cmd + 5, 0, & track));
 			if(!strlen(arg) && haskey(& rc, "np-file-format"))
-				snprintf(arg, sizeof(arg), "%s", meta(value(& rc, "np-file-format"), 0));
+				snprintf(arg, sizeof(arg), "%s", meta(value(& rc, "np-file-format"), 0, & track));
 			fprintf(fd, "%s\n", arg);
 			break;
 

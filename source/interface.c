@@ -85,17 +85,17 @@ void interface(int interactive) {
 						if(template != NULL) {
 							unsigned n = 0;
 							while(template[n]) {
-								puts(meta(template[n], !0));
+								puts(meta(template[n], !0, & track));
 								free(template[n++]);
 							}
 							free(template);
 						}
 					}
 					else {
-						puts(meta("Track:    \"%t\" (%T)", !0));
-						puts(meta("Artist:   \"%a\" (%A)", !0));
-						puts(meta("Album:    \"%l\" (%L)", !0));
-						puts(meta("Station:  %s", !0));
+						puts(meta("Track:    \"%t\" (%T)", !0, & track));
+						puts(meta("Artist:   \"%a\" (%A)", !0, & track));
+						puts(meta("Album:    \"%l\" (%L)", !0, & track));
+						puts(meta("Station:  %s", !0, & track));
 					}
 				}
 				break;
@@ -116,12 +116,12 @@ void interface(int interactive) {
 				break;
 
 			case 'A':
-				printf(meta("Really ban all tracks by artist %a? [yN]", !0));
+				printf(meta("Really ban all tracks by artist %a? [yN]", !0, & track));
 				fflush(stdout);
 				if(fetchkey(5000000) != 'y')
 					puts("\nAbort.");
 				else if(autoban(value(& track, "creator"))) {
-					printf("\n%s banned.\n", meta("%a", !0));
+					printf("\n%s banned.\n", meta("%a", !0, & track));
 					rate("B");
 				}
 				fflush(stdout);
@@ -144,7 +144,7 @@ void interface(int interactive) {
 
 			case 'f':
 				if(playfork) {
-					const char * uri = meta("lastfm://artist/%a/fans", 0);
+					const char * uri = meta("lastfm://artist/%a/fans", 0, & track);
 					if(haskey(& rc, "delay-change")) {
 						puts("\rDelayed.");
 						nextstation = strdup(uri);
@@ -157,7 +157,7 @@ void interface(int interactive) {
 				
 			case 's':
 				if(playfork) {
-					const char * uri = meta("lastfm://artist/%a/similarartists", 0);
+					const char * uri = meta("lastfm://artist/%a/similarartists", 0, & track);
 					if(haskey(& rc, "delay-change")) {
 						puts("\rDelayed.");
 						nextstation = strdup(uri);
@@ -219,31 +219,44 @@ void interface(int interactive) {
 				adjust(-STEP, PCM);
 				break;
 
-      case '?':
-				puts("a = add the track to the playlist");
-        puts("A = autoban artist");
-        puts("B = ban Track");
-        puts("d = discovery mode");
-        puts("f = fan Station");
-				puts("h = list bookmarks");
-				puts("H = bookmark current radio");
-        puts("i = current track information");
-        puts("l = love track");
-        puts("n = skip track");
-				puts("p = pause");
-        puts("P = enable/disable RTP");
-        puts("Q = quit");
-        puts("r = change radio station");
-				puts("R = recommend track/artist/album");
-        puts("S = stop");
-        puts("s = similiar artist");
-        puts("T = tag track/artist/album");
-        puts("U = unlock track");
-				puts("+ = increase volume (vol)");
-				puts("- = decrease volume (vol)");
-				puts("* = increase volume (pcm)");
-				puts("/ = decrease volume (pcm)");
-        break;
+			case 'u':
+				preview(playlist);
+				break;
+
+			case 'E':
+				expand(& playlist);
+				break;
+
+			case '?':
+				fputs(
+					"a = add the track to the playlist\n"
+					"A = autoban artist\n"
+					"B = ban Track\n"
+					"d = discovery mode\n"
+					"e = manually expand playlist\n"
+					"f = fan Station\n"
+					"h = list bookmarks\n"
+					"H = bookmark current radio\n"
+					"i = current track information\n"
+					"l = love track\n"
+					"n = skip track\n"
+					"p = pause\n"
+					"P = enable/disable RTP\n"
+					"Q = quit\n"
+					"r = change radio station\n"
+					"R = recommend track/artist/album\n"
+					"S = stop\n"
+					"s = similiar artist\n"
+					"T = tag track/artist/album\n"
+					"u = show upcoming tracks in playlist\n"
+					"U = unlove track\n"
+					"+ = increase volume (vol)\n"
+					"- = decrease volume (vol)\n"
+					"* = increase volume (pcm)\n"
+					"/ = decrease volume (pcm)\n"
+					, stderr
+				);
+				break;
 
 			case '0':
 			case '1':
@@ -266,7 +279,7 @@ void interface(int interactive) {
 			default:
 				snprintf(customkey, sizeof(customkey), "key0x%02X", key & 0xFF);
 				if(haskey(& rc, customkey))
-					run(meta(value(& rc, customkey), 0));
+					run(meta(value(& rc, customkey), 0, & track));
 		}
 	}
 }
@@ -292,18 +305,18 @@ int fetchkey(unsigned nsec) {
 
 
 #define remn (sizeof(string) - length - 1)
-const char * meta(const char * fmt, int colored) {
+const char * meta(const char * fmt, int colored, struct hash * track) {
 	static char string[4096];
 	unsigned length = 0, x = 0;
 
-        /* Switch off coloring when in batch mode */
-        colored = (colored && !(batch));
+	/* Switch off coloring when in batch mode */
+	colored = (colored && !(batch));
 
 	if(!fmt)
 		return NULL;
-	
+
 	memset(string, 0, sizeof(string));
-	
+
 	while(fmt[x] && remn > 0) {
 		if(fmt[x] != 0x25)
 			string[length++] = fmt[x++];
@@ -322,16 +335,16 @@ const char * meta(const char * fmt, int colored) {
 			};
 
 			register unsigned i = sizeof(keys) / sizeof(char *);
-			
-			while(i--)
+
+			while(i--) {
 				if(fmt[x] == keys[i][0]) {
-					const char * val = value(& track, keys[i] + 1), * color = NULL;
+					const char * val = value(track, keys[i] + 1), * color = NULL;
 					if(colored) {
 						char colorkey[64] = { 0 };
 						snprintf(colorkey, sizeof(colorkey), "%c-color", keys[i][0]);
 						color = value(& rc, colorkey);
 						if(color) {
-							// Strip leading spaces from end of color (Author: Ondrej Novy)
+							/* Strip leading spaces from end of color (Author: Ondrej Novy) */
 							char * color_st = strdup(color);
 							size_t len = strlen(color_st) - 1;
 							while(isspace(color_st[len]) && len > 0) {
@@ -342,12 +355,16 @@ const char * meta(const char * fmt, int colored) {
 							free(color_st);
 						}
 					}
+
 					length = strlen(strncat(string, val ? val : "(unknown)", remn));
-					if(color) {
+
+					if(color)
 						length = strlen(strncat(string, "\x1B[0m", remn));
-					}
+
 					break;
 				}
+			}
+
 			++x;
 		}
 	}
@@ -363,7 +380,7 @@ void run(const char * cmd) {
 			exit(EXIT_FAILURE);
 		else {
 			int ch;
-			
+
 			while((ch = fgetc(fd)) != EOF)
 				fputc(ch, stdout);
 
@@ -382,27 +399,27 @@ int rate(const char * rating) {
 			case 'B':
 				kill(playfork, SIGUSR1);
 				return xmlrpc(
-					"banTrack",
-					"ss",
-					value(& track, "creator"),
-					value(& track, "title")
-				);
+						"banTrack",
+						"ss",
+						value(& track, "creator"),
+						value(& track, "title")
+						);
 
 			case 'L':
 				return xmlrpc(
-					"loveTrack",
-					"ss",
-					value(& track, "creator"),
-					value(& track, "title")
-				);
+						"loveTrack",
+						"ss",
+						value(& track, "creator"),
+						value(& track, "title")
+						);
 
 			case 'U':
 				return xmlrpc(
-					"unLoveTrack",
-					"ss",
-					value(& track, "creator"),
-					value(& track, "title")
-				);
+						"unLoveTrack",
+						"ss",
+						value(& track, "creator"),
+						value(& track, "title")
+						);
 
 			case 'S':
 				kill(playfork, SIGUSR1);

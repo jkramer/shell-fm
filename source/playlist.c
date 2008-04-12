@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 
+
 #include "hash.h"
 #include "http.h"
 #include "settings.h"
@@ -21,6 +22,8 @@
 
 #include "playlist.h"
 #include "globals.h"
+
+#include "interface.h"
 
 
 int expand(struct playlist * list) {
@@ -182,5 +185,28 @@ void shift(struct playlist * list) {
 		empty(& node->track);
 		free(node);
 		--(list->left);
+	}
+}
+
+void preview(struct playlist list) {
+	struct tracknode * node = list.track->next;
+	unsigned n = 0;
+
+	if(node == NULL) {
+		puts("No tracks in queue.");
+	}
+	else {
+		puts("Upcoming tracks:");
+		while(node != NULL) {
+			const char * format;
+
+			format = haskey(& rc, "preview-format")
+				? value(& rc, "preview-format")
+				: "%a - %t";
+
+			printf("%2d %s\n", n++, meta(format, !0, & node->track));
+
+			node = node->next;
+		}
 	}
 }

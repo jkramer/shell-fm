@@ -1,3 +1,11 @@
+* 2008-04-12, jkramer
+	- added option "discovery" to enable discovery mode by default
+	- added playlist preview (print tracks in queue):
+		- 'u' prints upcoming tracks
+		- 'E' tries to expand the playlist (if the queue is empty and you
+		  really want to know what's coming next)
+		- 'preview-format' option changes the format of the preview
+
 * 2008-04-11, jkramer
 	- now escaping XML entities properly in xmlrpc.c (thanks to Lars-Dominik)
 

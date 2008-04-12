@@ -7,7 +7,7 @@
 
 #include "hash.h"
 
-extern const char * meta(const char *, int);
+extern const char * meta(const char *, int, struct hash *);
 extern void interface(int);
 extern void run(const char *);
 extern void canon(int);

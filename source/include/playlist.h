@@ -27,4 +27,6 @@ extern void freenode(struct tracknode **);
 extern void push(struct playlist *, struct tracknode *);
 extern void shift(struct playlist *);
 
+extern void preview(struct playlist);
+
 #endif

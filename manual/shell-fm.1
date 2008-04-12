@@ -108,6 +108,12 @@ Jump to the similar artists radio stream of the currently played tracks artist.
 Tag the currently played track/artist/album. Tabulator key completes known
 tags.
 .TP
+.B U
+Unlove the currently played track.
+.TP
+.B u
+Print upcoming tracks in playlist.
+.TP
 .B +
 Increase volume (vol).
 .TP
@@ -159,6 +165,9 @@ track into the given file, whenever a new track is played.
 .B np-file-format = format-string
 This defines how the information written to your now-playing file will look
 like. There are several format flags available. Have a look at the
+.TP
+.B preview-format = format-string
+Format of the track information in the playlist preview (key 'u').
 .B FORMAT FLAGS
 section for the details.
 .TP
@@ -246,6 +255,9 @@ specified in the scrobbling protocol version 1.2.
 If this is set to anything, and you change the station with 'r', 's' or 'f',
 the station-change will be delayed until the currently played track finishes or
 is skipped.
+.TP
+.B discovery = something
+If this is set, discovery mode will be automatically activated on startup.
 .SH FORMAT FLAGS
 There are several format flags allowed for some options. Here is the list.
 .TP

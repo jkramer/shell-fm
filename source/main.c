@@ -53,6 +53,9 @@ int main(int argc, char ** argv) {
 	/* Load settings from ~/.shell-fm/shell-fm.rc. */
 	settings(rcpath("shell-fm.rc"), !0);
 
+	/* Enable discovery by default if it is set in configuration. */
+	if(haskey(& rc, "discovery"))
+		enable(DISCOVERY);
 
 	/* Get proxy environment variable. */
 	if((proxy = getenv("http_proxy")) != NULL)
@@ -335,14 +338,14 @@ int main(int argc, char ** argv) {
 					/* Print what's currently played. (Ondrej Novy) */
 					if(!background) {
 						if(enabled(CHANGED) && playlist.left > 0) {
-							puts(meta("Receiving %s.", !0));
+							puts(meta("Receiving %s.", !0, & track));
 							disable(CHANGED);
 						}
 
 						if(haskey(& rc, "title-format"))
-							printf("%s\n", meta(value(& rc, "title-format"), !0));
+							printf("%s\n", meta(value(& rc, "title-format"), !0, & track));
 						else
-							printf("%s\n", meta("Now playing \"%t\" by %a.", !0));
+							printf("%s\n", meta("Now playing \"%t\" by %a.", !0, & track));
 					}
 
 
@@ -355,7 +358,7 @@ int main(int argc, char ** argv) {
 
 						unlink(file);
 						if(-1 != (np = open(file, O_WRONLY | O_CREAT, 0644))) {
-							const char * output = meta(fmt, 0);
+							const char * output = meta(fmt, 0, & track);
 							if(output)
 								write(np, output, strlen(output));
 							close(np);
@@ -365,13 +368,13 @@ int main(int argc, char ** argv) {
 
 					/* Run a command with our track data. */
 					if(haskey(& rc, "np-cmd"))
-						run(meta(value(& rc, "np-cmd"), 0));
+						run(meta(value(& rc, "np-cmd"), 0, & track));
 				} else
 					changeTime = 0;
 			}
 
 			if(banned(value(& track, "creator"))) {
-				puts(meta("%a is banned.", !0));
+				puts(meta("%a is banned.", !0, & track));
 				rate("B");
 				fflush(stdout);
 			}
