@@ -12,6 +12,7 @@
 #include "http.h"
 #include "feeds.h"
 #include "tag.h"
+#include "util.h"
 
 char ** neighbors(const char * user) {
 	char * encoded = NULL, feed[128], ** names = NULL;

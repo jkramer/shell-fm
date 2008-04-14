@@ -92,3 +92,17 @@ int grep(char ** list, char * needle) {
 
 	return 0;
 }
+
+
+#ifdef __STRNDUP__
+
+char * strndup(const char * src, size_t len) {
+	char * tmp = (char *) malloc(len + 1);
+	if(tmp != NULL) {
+		strncpy(tmp, src, len);
+		tmp[len] = 0;
+	}
+	return tmp;
+}
+
+#endif

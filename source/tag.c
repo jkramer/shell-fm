@@ -25,6 +25,7 @@
 #include "readline.h"
 #include "tag.h"
 #include "xmlrpc.h"
+#include "util.h"
 
 char ** popular = NULL;
 

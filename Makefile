@@ -7,10 +7,10 @@ MANDIR	:= $(DESTDIR)/man
 all				: shell-fm manual
 
 shell-fm		:
-	make -C source
+	${MAKE} -C source
 
 manual			:
-	make -C manual
+	${MAKE} -C manual
 
 install			:
 	mkdir -p $(DESTDIR)/bin $(MANDIR)/man1
@@ -30,5 +30,5 @@ uninstall		:
 
 
 clean			:
-	make -C source clean
-	make -C manual clean
+	${MAKE} -C source clean
+	${MAKE} -C manual clean

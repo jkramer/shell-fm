@@ -2,9 +2,9 @@
 SOURCE	:= $(wildcard *.c)
 OBJECT	:= $(subst .c,.o,$(SOURCE))
 BINARY	:= shell-fm
-LDFLAGS := $(shell pkg-config --exists ao && pkg-config ao --libs)
+override LDFLAGS += $(shell pkg-config --exists ao && pkg-config ao --libs)
 LIBAO	:= $(shell pkg-config --exists ao && echo -DLIBAO)
-CFLAGS	:= -Os -Wall -W -I./include/ $(LIBAO)
+override CFLAGS += -Os -Wall -W -I./include/ $(LIBAO)
 
 .PHONY: clean
 

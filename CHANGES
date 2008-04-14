@@ -1,3 +1,7 @@
+* 2008-04-14, jkramer
+	- applied patches from Guillaume Pinot to make shell-fm run on OpenBSD
+	  (thanks!)
+
 * 2008-04-12, jkramer
 	- added option "discovery" to enable discovery mode by default
 	- added playlist preview (print tracks in queue):

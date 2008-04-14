@@ -19,6 +19,7 @@
 #include "settings.h"
 #include "service.h"
 #include "strary.h"
+#include "util.h"
 
 #include "playlist.h"
 #include "globals.h"

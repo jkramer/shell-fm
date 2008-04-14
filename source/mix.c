@@ -11,7 +11,7 @@
 #include <errno.h>
 #include <string.h>
 
-#ifdef __NetBSD__
+#if (defined(__NetBSD__) || defined(__OpenBSD__))
 #include <soundcard.h>
 #endif
 #ifdef __FreeBSD__
