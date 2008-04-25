@@ -397,7 +397,13 @@ int main(int argc, char ** argv) {
 			set(& track, "remain", remstr);
 
 			if(!background) {
-                        	printf("%c%02d:%02d%c", remain < 0 ? '-' : ' ', remain / 60, remain % 60, batch ? '\n' : '\r');
+				printf(
+					"%c%02d:%02d%c",
+					remain < 0 ? '-' : ' ',
+					(remain >= 0) ? (remain / 60) : (-remain / 60),
+					(remain >= 0) ? (remain % 60) : (-remain % 60),
+					batch ? '\n' : '\r'
+				);
 				fflush(stdout);
 			}
 		}
