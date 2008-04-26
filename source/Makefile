@@ -6,10 +6,13 @@ override LDFLAGS += $(shell pkg-config --exists ao && pkg-config ao --libs)
 LIBAO	:= $(shell pkg-config --exists ao && echo -DLIBAO)
 override CFLAGS += -Os -Wall -W -I./include/ $(LIBAO)
 
-.PHONY: clean
+.PHONY: clean tags cscope
 
 shell-fm	: $(OBJECT)
 	gcc -o $(BINARY) $(CFLAGS) $(OBJECT) $(shell pkg-config mad --libs) $(LDFLAGS)
 
 clean		:
 	rm -f $(OBJECT) $(BINARY)
+
+tags cscope	:
+	${MAKE} -C .. $@

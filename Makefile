@@ -2,7 +2,7 @@
 DESTDIR	:= /usr
 MANDIR	:= $(DESTDIR)/man
 
-.PHONY			: shell-fm manual all clean
+.PHONY			: shell-fm manual all clean tags cscope
 
 all				: shell-fm manual
 
@@ -32,3 +32,15 @@ uninstall		:
 clean			:
 	${MAKE} -C source clean
 	${MAKE} -C manual clean
+
+
+tags		: cscope.files
+	@rm -f tags
+	xargs -n50 ctags -a < cscope.files
+
+cscope		: cscope.files
+	cscope -b
+
+cscope.files	:
+	find source -name '*.[ch]' > cscope.files
+
