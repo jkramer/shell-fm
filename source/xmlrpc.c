@@ -13,6 +13,8 @@
 #include "settings.h"
 #include "http.h"
 
+extern void purge(char **);
+
 static void append(char **, unsigned *, const char *);
 static void sparam(char **, unsigned *, const char *);
 static void aparam(char **, unsigned *, const char **);
@@ -75,10 +77,9 @@ int xmlrpc(const char * method, const char * fmt, ...) {
 		for(x = 0; resp[x]; ++x) {
 			if(strstr(resp[x], ">OK<") != NULL)
 				result = !0;
-			free(resp[x]);
 		}
 
-		free(resp);
+		purge(resp);
 	}
 
 	free(xml);

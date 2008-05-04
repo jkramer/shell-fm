@@ -132,9 +132,9 @@ char * oldtags(char key, struct hash track) {
 				length = nlength;
 			}
 		}
-		free(resp[x]);
 	}
-	free(resp);
+
+	purge(resp);
 
 	return tags;
 }

@@ -20,6 +20,7 @@
 #include "settings.h"
 #include "split.h"
 #include "getln.h"
+#include "strary.h"
 
 #include "submit.h"
 #include "globals.h"
@@ -140,15 +141,10 @@ int submit(const char * user, const char * password) {
 	resp = fetch(value(& submission, "submissions"), NULL, body, NULL);
 
 	if(resp) {
-		unsigned i;
-
 		if(resp[0] && !strncmp(resp[0], "OK", 2))
 			retval = 0;
 
-		for(i = 0; resp[i] != NULL; ++i)
-			free(resp[i]);
-
-		free(resp);
+		purge(resp);
 	}
 
 	free(body);
@@ -231,10 +227,7 @@ static int handshake(const char * user, const char * password) {
 			retval = handshaked = !0;
 		}
 
-		for(i = 0; resp[i] != NULL; ++i)
-			free(resp[i]);
-
-		free(resp);
+		purge(resp);
 	}
 
 	return retval;

@@ -13,6 +13,7 @@
 #include "feeds.h"
 #include "tag.h"
 #include "util.h"
+#include "strary.h"
 
 char ** neighbors(const char * user) {
 	char * encoded = NULL, feed[128], ** names = NULL;
@@ -194,10 +195,9 @@ char ** overalltags(void) {
 				tags[idx++] = strndup(pbeg, pend - pbeg);
 		}
 
-		free(resp[x]);
 	}
 
-	free(resp);
+	purge(resp);
 
 	return tags;
 }
