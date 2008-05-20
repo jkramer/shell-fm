@@ -56,7 +56,7 @@ char ** fetch(const char * url, FILE ** pHandle, const char * post, const char *
 		"User-Agent: " USERAGENT "\r\n"
 		"Cookie: Session=%s\r\n";
 
-	if (!batch)
+	if(!batch && !enabled(QUIET))
 		fputs("...\r", stderr);
 
 	useproxy = haskey(& rc, "proxy");

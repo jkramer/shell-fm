@@ -135,12 +135,14 @@ int main(int argc, char ** argv) {
 #endif
 
 
-	puts("Shell.FM v" PACKAGE_VERSION ", (C) 2006-2008 by Jonas Kramer");
-	puts("Published under the terms of the GNU General Public License (GPL).\n");
 
 
-	if(!background)
-		puts("Press ? for help.\n");
+	if(!background) {
+		puts("Shell.FM v" PACKAGE_VERSION ", (C) 2006-2008 by Jonas Kramer");
+		puts("Published under the terms of the GNU General Public License (GPL).");
+
+		puts("\nPress ? for help.\n");
+	}
 	
 
 	/* Open a port so Shell.FM can be controlled over network. */
@@ -162,7 +164,7 @@ int main(int argc, char ** argv) {
 
 	/* We can't daemonize if there's no possibility left to control Shell.FM. */
 	if(background && !haveSocket) {
-		fputs("Can't daemonize without control socket.", stderr);
+		fputs("Can't daemonize without control socket.\n", stderr);
 		exit(EXIT_FAILURE);
 	}
 
@@ -194,6 +196,18 @@ int main(int argc, char ** argv) {
 	memset(& data, 0, sizeof(struct hash));
 	memset(& track, 0, sizeof(struct hash));
 	memset(& playlist, 0, sizeof(struct playlist));
+
+	/* Fork to background. */
+	if(background) {
+		pid_t pid = fork();
+		if(pid == -1) {
+			fputs("Failed to daemonize.\n", stderr);
+			exit(EXIT_FAILURE);
+		} else if(pid) {
+			exit(EXIT_SUCCESS);
+		}
+		enable(QUIET);
+	}
 	
 	atexit(cleanup);
 	loadqueue(!0);
@@ -216,19 +230,6 @@ int main(int argc, char ** argv) {
 			fprintf(fd, "%s\n", value(& data, "session"));
 			fclose(fd);
 		}
-	}
-
-
-	/* Fork to background. */
-	if(background) {
-		pid_t pid = fork();
-		if(pid == -1) {
-			fputs("Failed to daemonize.\n", stderr);
-			exit(EXIT_FAILURE);
-		} else if(pid) {
-			exit(EXIT_SUCCESS);
-		}
-		enable(QUIET);
 	}
 
 
