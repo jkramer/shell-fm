@@ -1,3 +1,6 @@
+* 2008-05-20, jkramer
+	- added support for remote control via UNIX sockets
+
 * 2008-04-14, jkramer
 	- applied patches from Guillaume Pinot to make shell-fm run on OpenBSD
 	  (thanks!)
