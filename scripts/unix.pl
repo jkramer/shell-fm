@@ -39,4 +39,4 @@ my $socket = new IO::Socket::UNIX($path);
 
 die "Failed to create socket. $!.\n" unless $socket;
 
-$socket->say("@ARGV\n") or die("$!\n");
+$socket->say("@ARGV\n") or die("Failed to send command. $!.\n");
