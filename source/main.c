@@ -150,9 +150,14 @@ int main(int argc, char ** argv) {
 		if(haskey(& rc, "port"))
 			port = atoi(value(& rc, "port"));
 
-		if(mksckif(value(& rc, "bind"), (unsigned short) port))
+		if(tcpsock(value(& rc, "bind"), (unsigned short) port))
 			haveSocket = !0;
 	}
+
+
+	/* Open a UNIX socket for local "remote" control. */
+	if(haskey(& rc, "unix") && unixsock(value(& rc, "unix")))
+		haveSocket = !0;
 
 
 	/* We can't daemonize if there's no possibility left to control Shell.FM. */
@@ -410,7 +415,7 @@ int main(int argc, char ** argv) {
 
 		interface(!background);
 		if(haveSocket)
-			sckif(background ? 2 : 0);
+			sckif(background ? 2 : 0, -1);
 	}
 
 	return 0;
@@ -441,6 +446,9 @@ static void help(const char * argv0, int errorCode) {
 static void cleanup(void) {
 	canon(!0);
 	rmsckif();
+
+	if(haskey(& rc, "unix"))
+		unlink(value(& rc, "unix"));
 
 	empty(& data);
 	empty(& rc);

@@ -5,9 +5,12 @@
 #ifndef SHELLFM_SCKIF
 #define SHELLFM_SCKIF
 
-extern int mksckif(const char *, unsigned short);
+extern int tcpsock(const char *, unsigned short);
+extern int unixsock(const char *);
+
 extern void rmsckif(void);
-extern void sckif(int);
+
+extern void sckif(int, int);
 
 extern void execcmd(const char *, FILE *);
 

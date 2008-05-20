@@ -21,6 +21,7 @@
 #include <netdb.h>
 
 #include <sys/select.h>
+#include <sys/un.h>
 
 #include "sckif.h"
 #include "http.h"
@@ -35,11 +36,11 @@
 
 struct hash track;
 
-static int ssck = -1;
+static int stcpsck = -1, sunixsck = -1;
 static int waitread(int, unsigned, unsigned);
 
 
-int mksckif(const char * ip, unsigned short port) {
+int tcpsock(const char * ip, unsigned short port) {
 	static const int one = 1;
 	struct sockaddr_in host;
 	struct hostent * hostent;
@@ -47,7 +48,7 @@ int mksckif(const char * ip, unsigned short port) {
 	if(!ip || !port)
 		return 0;
 
-	if(-1 == (ssck = socket(AF_INET, SOCK_STREAM, PF_UNSPEC))) {
+	if(-1 == (stcpsck = socket(AF_INET, SOCK_STREAM, PF_UNSPEC))) {
 		fputs("Failed to create socket.\n", stderr);
 		return 0;
 	}
@@ -61,32 +62,88 @@ int mksckif(const char * ip, unsigned short port) {
 	host.sin_port = htons(port);
 	host.sin_addr.s_addr = * (unsigned *) hostent->h_addr;
 
-	if(-1 == setsockopt(ssck, SOL_SOCKET, SO_REUSEADDR, & one, sizeof one))
+	if(-1 == setsockopt(stcpsck, SOL_SOCKET, SO_REUSEADDR, & one, sizeof one))
 		fprintf(stderr, "Couldn't make socket re-usable. %s\n", strerror(errno));
 
-	if(bind(ssck, (struct sockaddr *) & host, sizeof(struct sockaddr_in))) {
+	if(bind(stcpsck, (struct sockaddr *) & host, sizeof(struct sockaddr_in))) {
 		fprintf(stderr, "Failed to bind socket. %s.\n", strerror(errno));
 		return 0;
 	}
 
-	listen(ssck, 2);
+	listen(stcpsck, 2);
 
 	return !0;
 }
 
+
+int unixsock(const char * path) {
+	struct sockaddr_un host;
+
+	if(path == NULL)
+		return 0;
+
+
+	if(!access(path, F_OK)) {
+		fprintf(stderr, "%s already existing. UNIX socket not created.\n", path);
+		return 0;
+	}
+
+
+	if(-1 == (sunixsck = socket(AF_UNIX, SOCK_STREAM, PF_UNSPEC))) {
+		fputs("Failed to create socket.\n", stderr);
+		return 0;
+	}
+
+
+	memset(& host, 0, sizeof(struct sockaddr_un));
+	strncpy(host.sun_path, path, sizeof(host.sun_path) - 1);
+	host.sun_family = AF_UNIX;
+
+
+	if(bind(sunixsck, (struct sockaddr *) & host, sizeof(struct sockaddr_un))) {
+		fprintf(stderr, "Failed to bind socket. %s.\n", strerror(errno));
+		return 0;
+	}
+
+	listen(sunixsck, 2);
+
+	return !0;
+}
+
+
 void rmsckif(void) {
-	if(ssck > 0) {
-		close(ssck);
-		ssck = -1;
+	if(stcpsck > 0) {
+		close(stcpsck);
+		stcpsck = -1;
+	}
+
+
+	if(sunixsck > 0) {
+		close(sunixsck);
+		sunixsck = -1;
 	}
 }
 
-void sckif(int timeout) {
-	if(ssck != -1 && waitread(ssck, timeout, 0)) {
+
+void sckif(int timeout, int sck) {
+
+	/* If the given socket is -1, try both sockets, unix and tcp. */
+	if(sck == -1) {
+		if(stcpsck != -1)
+			sckif(timeout, stcpsck);
+
+		if(sunixsck != -1)
+			sckif(timeout, sunixsck);
+
+		return;
+	}
+
+
+	if(waitread(sck, timeout, 0)) {
 		struct sockaddr_in client;
 		socklen_t scksize = sizeof(struct sockaddr_in);
 
-		int csck = accept(ssck, & client, & scksize);
+		int csck = accept(sck, & client, & scksize);
 		if(-1 != csck) {
 			if(waitread(csck, 0, 100000)) {
 				FILE * fd = fdopen(csck, "r+");

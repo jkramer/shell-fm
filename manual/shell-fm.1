@@ -210,6 +210,15 @@ shell-fm remotely (or from local scripts, see
 above). Check the
 .B NETWORK INTERFACE COMMANDS
 section below for a list of known commands.
+.B NOTE:
+The network interface has no user authentication, so anyone with access to your
+network/host can control shell-fm. Use it only if you really need to control
+shell-fm over a network. Otherwise use the UNIX socket interface (see below).
+.TP
+.B unix = path
+If this is set to a proper path, on that path a UNIX socket will be created for
+local "remote" control. This socket interface takes the same commands as the
+TCP socket interface (see above).
 .TP
 .B port = port-number
 With this option you can change the port shell-fm will listen on (if
