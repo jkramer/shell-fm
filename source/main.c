@@ -46,6 +46,8 @@ static void forcequit(int);
 static void help(const char *, int);
 static void playsig(int);
 
+pid_t ppid = 0;
+
 int main(int argc, char ** argv) {
 	int option, nerror = 0, background = 0, haveSocket = 0;
 	time_t pauselength = 0;
@@ -209,6 +211,8 @@ int main(int argc, char ** argv) {
 		enable(QUIET);
 	}
 	
+	ppid = getpid();
+
 	atexit(cleanup);
 	loadqueue(!0);
 
@@ -448,7 +452,7 @@ static void cleanup(void) {
 	canon(!0);
 	rmsckif();
 
-	if(haskey(& rc, "unix"))
+	if(haskey(& rc, "unix") && getpid() == ppid)
 		unlink(value(& rc, "unix"));
 
 	empty(& data);
@@ -473,7 +477,7 @@ static void cleanup(void) {
 		DIR * directory = opendir(cache);
 
 		if(directory != NULL) {
-			time_t expiry = 24 * 60 * 60;
+			time_t expiry = 24 * 60 * 60; /* Expiration after 24h. */
 			struct dirent * entry;
 			struct stat status;
 			char path[PATH_MAX];

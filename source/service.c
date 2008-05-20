@@ -215,6 +215,8 @@ int play(struct playlist * list) {
 		FILE * fd = NULL;
 		const char * location = value(& list->track->track, "location");
 
+		subfork = 0;
+
 		if(location != NULL) {
 			fetch(location, & fd, NULL, NULL);
 
@@ -224,11 +226,6 @@ int play(struct playlist * list) {
 				fshutdown(& fd);
 			}
 		}
-
-		freelist(list);
-		empty(& data);
-		empty(& rc);
-		subfork = 0;
 
 		exit(EXIT_SUCCESS);
 	}
