@@ -11,6 +11,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <sys/stat.h>
+#include <sys/types.h>
+
 #include "hash.h"
 #include "getln.h"
 #include "settings.h"
@@ -72,6 +75,13 @@ int settings(const char * path, int first) {
 
 	return retval;
 }
+
+
+void makercd(void) {
+	mkdir(rcpath(""), 0755);
+	mkdir(rcpath("cache"), 0755);
+}
+
 
 const char * rcpath(const char * file) {
 	static char path[4096] = { 0 };

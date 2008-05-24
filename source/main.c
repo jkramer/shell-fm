@@ -53,6 +53,9 @@ int main(int argc, char ** argv) {
 	time_t pauselength = 0;
 	char * proxy;
 	opterr = 0;
+
+	/* Create directories. */
+	makercd();
 	
 	/* Load settings from ~/.shell-fm/shell-fm.rc. */
 	settings(rcpath("shell-fm.rc"), !0);
