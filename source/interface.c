@@ -318,7 +318,7 @@ const char * meta(const char * fmt, int colored, struct hash * track) {
 	memset(string, 0, sizeof(string));
 
 	while(fmt[x] && remn > 0) {
-		if(fmt[x] != 0x25)
+		if(fmt[x] != '%')
 			string[length++] = fmt[x++];
 		else if(fmt[++x]) {
 			const char * keys [] = {

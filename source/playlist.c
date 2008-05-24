@@ -56,6 +56,14 @@ int expand(struct playlist * list) {
 	return 0;
 }
 
+void trim(char* string){
+	int offset = 0;
+	while (string[offset] == ' ')
+		offset++;
+	if (offset)
+		memmove(string, string+offset, strlen(string+offset)+1);
+}
+
 
 int parsexspf(struct playlist * list, const char * xml) {
 	char * ptr;
@@ -136,6 +144,7 @@ int parsexspf(struct playlist * list, const char * xml) {
 				}
 			}
 
+			trim(list->title);
 			set(& node->track, "station", list->title);
 			push(list, node);
 
