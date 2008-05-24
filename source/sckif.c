@@ -140,8 +140,8 @@ void sckif(int timeout, int sck) {
 
 
 	if(waitread(sck, timeout, 0)) {
-		struct sockaddr_in client;
-		socklen_t scksize = sizeof(struct sockaddr_in);
+		struct sockaddr client;
+		socklen_t scksize = sizeof(struct sockaddr);
 
 		int csck = accept(sck, & client, & scksize);
 		if(-1 != csck) {
