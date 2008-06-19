@@ -187,6 +187,12 @@ int station(const char * stationURL) {
 
 
 int play(struct playlist * list) {
+	unsigned i;
+	char * keys [] = {
+		"creator", "title", "album", "duration", "station",
+		"lastfm:trackauth", "trackpage", "artistpage", "albumpage"
+	};
+
 	assert(list != NULL);
 
 	if(!list->left)
@@ -197,21 +203,15 @@ int play(struct playlist * list) {
 		return !0;
 	}
 
-	playfork = fork();
 	enable(QUIET);
 
 	empty(& track);
 
-	if(playfork) {
-		unsigned i;
-		char * keys [] = {
-			"creator", "title", "album", "duration", "station",
-			"lastfm:trackauth", "trackpage", "artistpage", "albumpage"
-		};
+	for(i = 0; i < (sizeof(keys) / sizeof(char *)); ++i)
+		set(& track, keys[i], value(& list->track->track, keys[i]));
 
-		for(i = 0; i < (sizeof(keys) / sizeof(char *)); ++i)
-			set(& track, keys[i], value(& list->track->track, keys[i]));
-	} else {
+	playfork = fork();
+	if (!playfork) {
 		FILE * fd = NULL;
 		const char * location = value(& list->track->track, "location");
 

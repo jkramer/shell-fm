@@ -29,6 +29,8 @@
 #include "settings.h"
 #include "pipe.h"
 #include "play.h"
+#include "interface.h"
+#include "globals.h"
 
 struct stream {
 	FILE * streamfd;
@@ -118,12 +120,13 @@ int playback(FILE * streamfd) {
 		mad_decoder_finish(& dec);
 	} else {
 		pid_t ppid = getppid(), cpid = 0;
-		FILE * ext = openpipe(value(& rc, "extern"), & cpid);
+		const char * cmd = meta(value(& rc, "extern"), 0, & track);
+		FILE * ext = openpipe(cmd, & cpid);
 		unsigned char * buf;
 
 		if(!ext) {
 			fprintf(stderr, "Failed to execute external player (%s). %s.\n",
-					value(& rc, "extern"), strerror(errno));
+					cmd, strerror(errno));
 			return 0;
 		}
 
