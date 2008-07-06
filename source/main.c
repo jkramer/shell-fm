@@ -45,6 +45,7 @@ static void cleanup(void);
 static void forcequit(int);
 static void help(const char *, int);
 static void playsig(int);
+static void stopsig(int);
 
 pid_t ppid = 0;
 
@@ -225,6 +226,9 @@ int main(int argc, char ** argv) {
 	/* SIGUSR2 from playfork means, it detected an error. */
 	signal(SIGUSR2, playsig);
 
+	/* Catch SIGTSTP to set pausetime when user suspends us with ^Z. */
+	signal(SIGTSTP, stopsig);
+
 
 	/* Authenticate to the Last.FM server. */
 	if(!authenticate(value(& rc, "username"), value(& rc, "password")))
@@ -256,13 +260,19 @@ int main(int argc, char ** argv) {
 			if(child == subfork)
 				subdead(WEXITSTATUS(status));
 			else if(child == playfork) {
-				if(WIFSTOPPED(status))
-					time(& pausetime);
+				if(WIFSTOPPED(status)) {
+					/* time(& pausetime); */
+				}
 				else {
-					if(WIFCONTINUED(status))
-						pauselength += time(NULL) - pausetime;
-					else
+					if(WIFCONTINUED(status)) {
+						signal(SIGTSTP, stopsig);
+						if(pausetime != 0) {
+							pauselength += time(NULL) - pausetime;
+						}
+					}
+					else {
 						playnext = !0;
+					}
 					pausetime = 0;		
 				}
 			}
@@ -518,4 +528,14 @@ static void forcequit(int sig) {
 static void playsig(int sig) {
 	if(sig == SIGUSR2)
 		error = !0;
+}
+
+
+static void stopsig(int sig) {
+	if(sig == SIGTSTP) {
+		time(& pausetime);
+
+		signal(SIGTSTP, SIG_DFL);
+		raise(SIGTSTP);
+	}
 }

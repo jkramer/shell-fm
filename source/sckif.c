@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <time.h>
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -239,8 +240,15 @@ void execcmd(const char * cmd, FILE * fd) {
 			break;
 
 		case 6:
-			if(playfork)
-				kill(playfork, pausetime ? SIGCONT : SIGSTOP);
+			if(playfork) {
+				if(pausetime) {
+					kill(playfork, SIGCONT);
+				}
+				else {
+					time(& pausetime);
+					kill(playfork, SIGSTOP);
+				}
+			}
 			break;
 
 		case 7:

@@ -16,6 +16,7 @@
 #include <signal.h>
 #include <stdarg.h>
 #include <ctype.h>
+#include <time.h>
 
 #include "service.h"
 #include "hash.h"
@@ -36,6 +37,7 @@
 
 #include "globals.h"
 
+extern time_t pausetime;
 
 struct hash track;
 
@@ -193,8 +195,15 @@ void interface(int interactive) {
 				break;
 
 			case 'p':
-				if(playfork)
-					kill(playfork, pausetime ? SIGCONT : SIGSTOP);
+				if(playfork) {
+					if(pausetime) {
+						kill(playfork, SIGCONT);
+					}
+					else {
+						time(& pausetime);
+						kill(playfork, SIGSTOP);
+					}
+				}
 				break;
 
 			case 'R':
