@@ -23,7 +23,17 @@
 #ifdef LIBAO
 #include <ao/ao.h>
 #else
+
+#if (defined(__NetBSD__) || defined(__OpenBSD__))
+#include <soundcard.h>
+#endif
+#ifdef __FreeBSD__
+#include <sys/soundcard.h>
+#endif
+#ifdef __linux__
 #include <linux/soundcard.h>
+#endif
+
 #endif
 
 #include "settings.h"

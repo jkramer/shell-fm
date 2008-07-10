@@ -4,7 +4,7 @@ OBJECT	:= $(subst .c,.o,$(SOURCE))
 BINARY	:= shell-fm
 override LDFLAGS += $(shell pkg-config --exists ao && pkg-config ao --libs)
 LIBAO	:= $(shell pkg-config --exists ao && echo -DLIBAO)
-override CFLAGS += -Os -Wall -W -I./include/ $(LIBAO)
+override CFLAGS += -Os -Wall -W -I./include/ $(LIBAO) $(shell pkg-config mad --cflags)
 
 .PHONY: clean tags cscope
 

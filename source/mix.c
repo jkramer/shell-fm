@@ -15,7 +15,7 @@
 #include <soundcard.h>
 #endif
 #ifdef __FreeBSD__
-#include <machine/soundcard.h>
+#include <sys/soundcard.h>
 #endif
 #ifdef __linux__
 #include <linux/soundcard.h>
