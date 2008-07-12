@@ -36,7 +36,8 @@ Make shell-fm use the given host as proxy server for HTTP requests.
 Print help text and exit.
 .TP
 .B lastfm://...
-URI of a Last.FM radio stream to play after startup.
+URI of a Last.FM radio stream to play after startup. 
+For example: `shell-fm -d lastfm://artist/The%20Beatles/similarartists'
 .SH USAGE
 On startup, shell-fm will ask you for your Last.FM login and password
 (if not
@@ -93,7 +94,12 @@ Quit.
 .B r
 Change radio station. This will prompt you for an Last.FM radio station URI.
 The tabulator key helps if you don't know what to type. Arrow-Up and Arrow-Down
-allow you to browse your radio history.
+allow you to browse your radio history. Enter these without the
+"lastfm://" prefix. 
+.RS
+.PP
+For example: `radio url> globaltags/world'
+.RE
 .TP
 .B R
 Recommend the currently played track/artist/album to another Last.FM user.
@@ -108,12 +114,6 @@ Jump to the similar artists radio stream of the currently played tracks artist.
 Tag the currently played track/artist/album. Tabulator key completes known
 tags.
 .TP
-.B U
-Unlove the currently played track.
-.TP
-.B u
-Print upcoming tracks in playlist.
-.TP
 .B +
 Increase volume (vol).
 .TP
@@ -125,7 +125,7 @@ Decrease volume (vol).
 .TP
 .B /
 Decrease volume (pcm).
-.TP
+.PP
 .SH SETUP
 Before you start, you should have created the directories
 .B ~/.shell-fm
@@ -137,7 +137,7 @@ You might also want to place a configuration file in
 .B ~/.shell-fm
 for a faster startup.
 .SH CONFIGURATION
-This section describes the syntax an options for the shell-fm configuration
+This section describes the syntax and options for the shell-fm configuration
 file. The file should be placed in
 .B ~/.shell-fm/shell-fm.rc
 and should consist of simple
@@ -165,9 +165,6 @@ track into the given file, whenever a new track is played.
 .B np-file-format = format-string
 This defines how the information written to your now-playing file will look
 like. There are several format flags available. Have a look at the
-.TP
-.B preview-format = format-string
-Format of the track information in the playlist preview (key 'u').
 .B FORMAT FLAGS
 section for the details.
 .TP
@@ -210,15 +207,6 @@ shell-fm remotely (or from local scripts, see
 above). Check the
 .B NETWORK INTERFACE COMMANDS
 section below for a list of known commands.
-.B NOTE:
-The network interface has no user authentication, so anyone with access to your
-network/host can control shell-fm. Use it only if you really need to control
-shell-fm over a network. Otherwise use the UNIX socket interface (see below).
-.TP
-.B unix = path
-If this is set to a proper path, on that path a UNIX socket will be created for
-local "remote" control. This socket interface takes the same commands as the
-TCP socket interface (see above).
 .TP
 .B port = port-number
 With this option you can change the port shell-fm will listen on (if
@@ -264,9 +252,6 @@ specified in the scrobbling protocol version 1.2.
 If this is set to anything, and you change the station with 'r', 's' or 'f',
 the station-change will be delayed until the currently played track finishes or
 is skipped.
-.TP
-.B discovery = something
-If this is set, discovery mode will be automatically activated on startup.
 .SH FORMAT FLAGS
 There are several format flags allowed for some options. Here is the list.
 .TP
@@ -355,9 +340,11 @@ the interface, you must provide a valid value to the
 option in your configuration or use the
 .B -i
 option on the command line. Then you can connect the specified port (54311 by
-default) and send one of the commands at one time. You also have to hurry,
+default) and send one command at a time. You also have to hurry,
 since there is a very short timeout. Best thing would be if you used a script
-for accessing this interface. This is a list of the known commands.
+for accessing this interface. (See 
+.B shell-fm-*/scripts/
+for examples) This is a list of the known commands.
 .TP
 .B play lastfm://...
 Play the given stream.
@@ -431,6 +418,25 @@ time it is run.
 .TP
 .B shell-fm.rc
 Your configuration file as described above.
+.SH EXAMPLES
+.TP
+.B  Sample Configuration for shell-fm.rc
+.PP
+.RS
+.nf
+# shell-fm.rc example
+username = shellfmlover
+password = CheckFileIsOnlyReadableByOwner
+default-radio = lastfm://user/shellfmlover/playlist
+np-file = /home/shellfmlover/.shell-fm/nowplaying
+np-file-format = %t:%a:%S:%A
+minimum = 80
+delay-change = true
+.fi
+.RE
+.TP
+.B shell-fm-*.*/scripts/
+Includes examples of using the network interface plus a color printing script to help with choosing colors.
 .SH BUGS
 No bugs known at the moment. Please send bug reports to <shell-fm@nex.scrapping.cc>.
 .SH COPYRIGHT
