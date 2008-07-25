@@ -242,7 +242,7 @@ void interface(int interactive) {
 					"A = autoban artist\n"
 					"B = ban Track\n"
 					"d = discovery mode\n"
-					"e = manually expand playlist\n"
+					"E = manually expand playlist\n"
 					"f = fan Station\n"
 					"h = list bookmarks\n"
 					"H = bookmark current radio\n"
