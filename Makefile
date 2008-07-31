@@ -7,10 +7,10 @@ MANDIR	:= $(DESTDIR)/man
 all				: shell-fm manual
 
 shell-fm		:
-	${MAKE} -C source
+	$(MAKE) -C source
 
 manual			:
-	${MAKE} -C manual
+	$(MAKE) -C manual
 
 install			:
 	mkdir -p $(DESTDIR)/bin $(MANDIR)/man1
@@ -30,8 +30,8 @@ uninstall		:
 
 
 clean			:
-	${MAKE} -C source clean
-	${MAKE} -C manual clean
+	$(MAKE) -C source clean
+	$(MAKE) -C manual clean
 
 
 tags		: cscope.files

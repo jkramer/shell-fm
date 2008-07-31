@@ -9,7 +9,7 @@ CFLAGS  := -Os -Wall -W -I./include/ $(LIBAO) $(shell pkg-config mad --cflags)
 .PHONY: clean tags cscope
 
 shell-fm	: $(OBJECT)
-	gcc -o $(BINARY) $(CFLAGS) $(OBJECT) $(shell pkg-config mad --libs) $(LDFLAGS)
+	$(CC) -o $(BINARY) $(CFLAGS) $(OBJECT) $(shell pkg-config mad --libs) $(LDFLAGS)
 
 clean		:
 	rm -f $(OBJECT) $(BINARY)
