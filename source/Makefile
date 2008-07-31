@@ -1,18 +1,21 @@
-
 SOURCE	:= $(wildcard *.c)
 OBJECT	:= $(subst .c,.o,$(SOURCE))
 BINARY	:= shell-fm
-LDFLAGS := $(shell pkg-config --exists ao && pkg-config ao --libs | sed -e 's/-lpthread//')
-LIBAO	:= $(shell pkg-config --exists ao && echo -DLIBAO)
+LDFLAGS := $(shell pkg-config --exists ao && pkg-config ao --libs) \
+	$(shell pkg-config mad --libs)
+ifeq ($(shell uname -s), OpenBSD)
+	LDFLAGS += -lossaudio
+endif
+LIBAO	:= $(shell pkg-config --exists ao && echo -DLIBAO && pkg-config ao --cflags)
 CFLAGS  := -Os -Wall -W -I./include/ $(LIBAO) $(shell pkg-config mad --cflags)
 
 .PHONY: clean tags cscope
 
 shell-fm	: $(OBJECT)
-	$(CC) -o $(BINARY) $(CFLAGS) $(OBJECT) $(shell pkg-config mad --libs) $(LDFLAGS)
+	$(CC) -o $(BINARY) $(CFLAGS) $(OBJECT) $(LDFLAGS)
 
 clean		:
 	rm -f $(OBJECT) $(BINARY)
 
 tags cscope	:
-	${MAKE} -C .. $@
+	$(MAKE) -C .. $@
