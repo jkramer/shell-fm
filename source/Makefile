@@ -6,6 +6,9 @@ LDFLAGS := $(shell pkg-config --exists ao && pkg-config ao --libs) \
 ifeq ($(shell uname -s), OpenBSD)
 	LDFLAGS += -lossaudio
 endif
+ifeq ($(shell uname -s), NetBSD)
+	LDFLAGS += -lossaudio
+endif
 LIBAO	:= $(shell pkg-config --exists ao && echo -DLIBAO && pkg-config ao --cflags)
 CFLAGS  := -Os -Wall -W -I./include/ $(LIBAO) $(shell pkg-config mad --cflags)
 

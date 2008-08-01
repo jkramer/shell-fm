@@ -35,6 +35,15 @@
 #define PATH_MAX 4096
 #endif
 
+#ifdef __NetBSD__
+#  ifndef WCONTINUED
+#    define WCONTINUED 0                    /* not available on NetBSD */
+#  endif
+#  ifndef WIFCONTINUED
+#    define WIFCONTINUED(x)  ((x) == 0x13)  /* SIGCONT */
+#  endif
+#endif
+
 unsigned flags = RTP;
 time_t changeTime = 0, pausetime = 0;
 char * nextstation = NULL;
