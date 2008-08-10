@@ -199,8 +199,16 @@ void shift(struct playlist * list) {
 }
 
 void preview(struct playlist list) {
-	struct tracknode * node = list.track->next;
+	struct tracknode * node;
 	unsigned n = 0;
+
+	if (list.track != NULL)
+		node = list.track->next;
+	else
+	{
+		puts("No tracks in queue.");
+		return;
+	}
 
 	if(node == NULL) {
 		puts("No tracks in queue.");
