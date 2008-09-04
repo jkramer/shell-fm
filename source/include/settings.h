@@ -5,7 +5,7 @@
 #ifndef SHELLFM_SETTINGS
 #define SHELLFM_SETTINGS
 
-#define PACKAGE_VERSION "0.5"
+#define PACKAGE_VERSION "0.6"
 
 #include "hash.h"
 
