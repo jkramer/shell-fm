@@ -1,6 +1,7 @@
  SHELL.FM RELEASE NOTES 0.6 - 2008-09-04
 
 Many thanks to the contributors to this release:
+	* Mike Kelly (fixes for FreeBSD)
 	* Lars-Dominik Braun (bug fixes)
 	* Rodrigo Tartajo (small improvements)
 	* Guillaume Pinot (patches for OpenBSD)
