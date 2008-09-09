@@ -1,6 +1,7 @@
 
-DESTDIR	:= /usr
-MANDIR	:= $(DESTDIR)/man
+DESTDIR =
+PREFIX	:= /usr
+MANDIR	:= $(PREFIX)/man
 
 .PHONY			: shell-fm manual all clean tags cscope
 
@@ -13,20 +14,21 @@ manual			:
 	$(MAKE) -C manual
 
 install			:
-	mkdir -p $(DESTDIR)/bin $(MANDIR)/man1
-	install source/shell-fm $(DESTDIR)/bin/shell-fm
-	install manual/shell-fm.1.gz $(MANDIR)/man1
+	install -m 0755 -d $(DESTDIR)$(PREFIX)/bin/
+	install -m 0755 -d $(DESTDIR)$(MANDIR)/man1/
+	install -m 0755 source/shell-fm $(DESTDIR)$(PREFIX)/bin/
+	install -m 0755 manual/shell-fm.1.gz $(DESTDIR)$(MANDIR)/man1/
 
 install-strip	: install
-	strip $(DESTDIR)/bin/shell-fm
+	strip $(PREFIX)/bin/shell-fm
 
 uninstall		:
-	rm -f $(DESTDIR)/bin/shell-fm
+	rm -f $(PREFIX)/bin/shell-fm
 	rm -f $(MANDIR)/man1/shell-fm.1.gz
-	rmdir --ignore-fail-on-non-empty $(DESTDIR)/bin
+	rmdir --ignore-fail-on-non-empty $(PREFIX)/bin
 	rmdir --ignore-fail-on-non-empty $(MANDIR)/man1
 	rmdir --ignore-fail-on-non-empty $(MANDIR)
-	rmdir --ignore-fail-on-non-empty $(DESTDIR)
+	rmdir --ignore-fail-on-non-empty $(PREFIX)
 
 
 clean			:
