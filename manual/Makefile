@@ -1,8 +1,10 @@
 
 .PHONY	: clean
 
-manual	:
-	gzip -9 -c shell-fm.1 > shell-fm.1.gz
+manual	: shell-fm.1.gz
+
+shell-fm.1.gz : shell-fm.1
+	gzip -9 -c $< > $@
 
 clean	:
 	rm -f shell-fm.1.gz
