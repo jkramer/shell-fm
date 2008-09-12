@@ -400,6 +400,16 @@ int main(int argc, char ** argv) {
 					}
 
 
+					if(haskey(& rc, "screen-format")) {
+						const char * term = getenv("TERM");
+						if(term != NULL && !strncmp(term, "screen", 6)) {
+							const char * output =
+								meta(value(& rc, "screen-format"), 0, & track);
+							printf("\x1Bk%s\x1B\\", output);
+						}
+					}
+
+
 					/* Run a command with our track data. */
 					if(haskey(& rc, "np-cmd"))
 						run(meta(value(& rc, "np-cmd"), 0, & track));
