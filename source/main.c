@@ -410,6 +410,13 @@ int main(int argc, char ** argv) {
 					}
 
 
+					if(haskey(& rc, "term-format")) {
+						const char * output =
+							meta(value(& rc, "term-format"), 0, & track);
+						printf("\x1B]2;%s\a", output);
+					}
+
+
 					/* Run a command with our track data. */
 					if(haskey(& rc, "np-cmd"))
 						run(meta(value(& rc, "np-cmd"), 0, & track));
