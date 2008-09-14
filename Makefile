@@ -17,7 +17,7 @@ install			:
 	install -m 0755 -d $(DESTDIR)$(PREFIX)/bin/
 	install -m 0755 -d $(DESTDIR)$(MANDIR)/man1/
 	install -m 0755 source/shell-fm $(DESTDIR)$(PREFIX)/bin/
-	install -m 0755 manual/shell-fm.1.gz $(DESTDIR)$(MANDIR)/man1/
+	install -m 0644 manual/shell-fm.1.gz $(DESTDIR)$(MANDIR)/man1/
 
 install-strip	: install
 	strip $(PREFIX)/bin/shell-fm
