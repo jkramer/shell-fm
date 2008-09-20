@@ -28,7 +28,8 @@ const char * nextmatch(char ** list, char * needle, unsigned * nres) {
 	static int lastmatch = 0, matches = 0, nlen = 0;
 	register unsigned i;
 
-	assert(list != NULL);
+	if(!list)
+		return NULL;
 
 	/* Check if a new search is needed or wanted. */
 	if(needle != NULL) {
