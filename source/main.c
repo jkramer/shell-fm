@@ -143,14 +143,10 @@ int main(int argc, char ** argv) {
 	if(nerror)
 		help(argv[0], EXIT_FAILURE);
 
-
 #ifndef LIBAO
 	if(!haskey(& rc, "device"))
 		set(& rc, "device", "/dev/audio");
 #endif
-
-
-
 
 	if(!background) {
 		puts("Shell.FM v" PACKAGE_VERSION ", (C) 2006-2008 by Jonas Kramer");
@@ -232,7 +228,7 @@ int main(int argc, char ** argv) {
 	/* Set up signal handlers for communication with the playback process. */
 	signal(SIGINT, forcequit);
 
-	/* SIGUSR2 from playfork means, it detected an error. */
+	/* SIGUSR2 from playfork means it detected an error. */
 	signal(SIGUSR2, playsig);
 
 	/* Catch SIGTSTP to set pausetime when user suspends us with ^Z. */
@@ -282,7 +278,7 @@ int main(int argc, char ** argv) {
 					else {
 						playnext = !0;
 					}
-					pausetime = 0;		
+					pausetime = 0;
 				}
 			}
 		}
@@ -333,6 +329,7 @@ int main(int argc, char ** argv) {
 				}
 
 				disable(STOPPED);
+				disable(CHANGED);
 
 				continue;
 			}
