@@ -12,6 +12,6 @@ extern void rmsckif(void);
 
 extern void sckif(int, int);
 
-extern void execcmd(const char *, FILE *);
+extern void execcmd(const char *, char *);
 
 #endif

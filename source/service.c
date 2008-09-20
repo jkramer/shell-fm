@@ -25,6 +25,7 @@
 #include "playlist.h"
 #include "ropen.h"
 #include "strary.h"
+#include "sckif.h"
 
 #include "globals.h"
 
@@ -211,9 +212,11 @@ int play(struct playlist * list) {
 		set(& track, keys[i], value(& list->track->track, keys[i]));
 
 	playfork = fork();
-	if (!playfork) {
+	if(!playfork) {
 		FILE * fd = NULL;
 		const char * location = value(& list->track->track, "location");
+
+		rmsckif();
 
 		subfork = 0;
 

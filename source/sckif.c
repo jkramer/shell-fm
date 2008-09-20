@@ -40,6 +40,7 @@ struct hash track;
 static int stcpsck = -1, sunixsck = -1;
 static int waitread(int, unsigned, unsigned);
 
+#define REPLYBUFSIZE 1024
 
 int tcpsock(const char * ip, unsigned short port) {
 	static const int one = 1;
@@ -118,7 +119,6 @@ void rmsckif(void) {
 		stcpsck = -1;
 	}
 
-
 	if(sunixsck > 0) {
 		close(sunixsck);
 		sunixsck = -1;
@@ -139,46 +139,51 @@ void sckif(int timeout, int sck) {
 		return;
 	}
 
+	signal(SIGPIPE, SIG_IGN);
 
 	if(waitread(sck, timeout, 0)) {
 		struct sockaddr client;
 		socklen_t scksize = sizeof(struct sockaddr);
 
 		int csck = accept(sck, & client, & scksize);
+
 		if(-1 != csck) {
 			if(waitread(csck, 0, 100000)) {
-				FILE * fd = fdopen(csck, "r+");
+				FILE * fd = fdopen(csck, "r");
 
 				if(fd) {
-					char * line = NULL, * ptr = NULL;
+					char * line = NULL, * ptr = NULL, reply[REPLYBUFSIZE];
 					unsigned size = 0;
+
 					getln(& line, & size, fd);
 
 					if(line && size > 0 && !ferror(fd)) {
-						if((ptr = strchr(line, 13)) != NULL)
+						if((ptr = strchr(line, 13)) || (ptr = strchr(line, 10)))
 							* ptr = 0;
 
-						if((ptr = strchr(line, 10)) != NULL)
-							* ptr = 0;
-
-						execcmd(line, fd);
+						execcmd(line, reply);
 					}
 
 					if(line)
 						free(line);
 
+					if(strlen(reply)) {
+						write(csck, reply, strlen(reply));
+					}
+
 					fclose(fd);
 				}
 			}
+
 			shutdown(csck, SHUT_RDWR);
 			close(csck);
 		}
 	}
 }
 
-void execcmd(const char * cmd, FILE * fd) {
+void execcmd(const char * cmd, char * reply) {
 	char arg[1024], * ptr;
-	register unsigned ncmd;
+	unsigned ncmd;
 	const char * known [] = {
 		"play",
 		"love",
@@ -197,15 +202,17 @@ void execcmd(const char * cmd, FILE * fd) {
 		"stop",
 	};
 
-	memset(arg, sizeof(arg), 0);
+	memset(arg, 0, sizeof(arg));
+	memset(reply, 0, REPLYBUFSIZE);
 
-	for(ncmd = 0; ncmd < (sizeof(known) / sizeof(char *)); ++ncmd)
+	for(ncmd = 0; ncmd < (sizeof(known) / sizeof(char *)); ++ncmd) {
 		if(!strncmp(known[ncmd], cmd, strlen(known[ncmd])))
 			break;
+	}
 
 	switch(ncmd) {
 		case (sizeof(known) / sizeof(char *)):
-			fprintf(fd, "ERROR\n");
+			strncpy(reply, "ERROR", REPLYBUFSIZE);
 			break;
 
 		case 0:
@@ -233,10 +240,15 @@ void execcmd(const char * cmd, FILE * fd) {
 			exit(EXIT_SUCCESS);
 
 		case 5:
-			snprintf(arg, sizeof(arg), "%s", meta(cmd + 5, 0, & track));
-			if(!strlen(arg) && haskey(& rc, "np-file-format"))
-				snprintf(arg, sizeof(arg), "%s", meta(value(& rc, "np-file-format"), 0, & track));
-			fprintf(fd, "%s\n", arg);
+			if(* (cmd + 5))
+				strncpy(reply, meta(cmd + 5, 0, & track), REPLYBUFSIZE);
+			else if(haskey(& rc, "np-file-format"))
+				strncpy(
+					reply,
+					meta(value(& rc, "np-file-format"), 0, & track),
+					REPLYBUFSIZE
+				);
+
 			break;
 
 		case 6:
@@ -272,7 +284,7 @@ void execcmd(const char * cmd, FILE * fd) {
 
 		case 11:
 			if((ptr = oldtags('a', track)) != NULL) {
-				fprintf(fd, "%s\n", ptr);
+				strncpy(reply, ptr, REPLYBUFSIZE);
 				free(ptr);
 				ptr = NULL;
 			}
@@ -280,7 +292,7 @@ void execcmd(const char * cmd, FILE * fd) {
 
 		case 12:
 			if((ptr = oldtags('l', track)) != NULL) {
-				fprintf(fd, "%s\n", ptr);
+				strncpy(reply, ptr, REPLYBUFSIZE);
 				free(ptr);
 				ptr = NULL;
 			}
@@ -288,7 +300,7 @@ void execcmd(const char * cmd, FILE * fd) {
 
 		case 13:
 			if((ptr = oldtags('t', track)) != NULL) {
-				fprintf(fd, "%s\n", ptr);
+				strncpy(reply, ptr, REPLYBUFSIZE);
 				free(ptr);
 				ptr = NULL;
 			}
