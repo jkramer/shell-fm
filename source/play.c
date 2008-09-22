@@ -58,7 +58,7 @@ struct stream {
 
 static enum mad_flow input(void *, struct mad_stream *);
 static enum mad_flow output(void *, const struct mad_header *, struct mad_pcm *);
-static signed scale(mad_fixed_t);
+inline signed scale(mad_fixed_t);
 
 int killed = 0;
 
@@ -319,7 +319,7 @@ static enum mad_flow output(
 }
 #endif
 
-static signed scale(register mad_fixed_t sample) {
+inline signed scale(register mad_fixed_t sample) {
 	sample += (1L << (MAD_F_FRACBITS - 16));
 	
 	if(sample >= MAD_F_ONE)

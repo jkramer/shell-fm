@@ -210,14 +210,34 @@ int main(int argc, char ** argv) {
 
 	/* Fork to background. */
 	if(background) {
+		int null;
 		pid_t pid = fork();
+
 		if(pid == -1) {
 			fputs("Failed to daemonize.\n", stderr);
 			exit(EXIT_FAILURE);
 		} else if(pid) {
 			exit(EXIT_SUCCESS);
 		}
+
 		enable(QUIET);
+
+		/* Detach from TTY */
+		setsid();
+		pid = fork();
+
+		if(pid > 0)
+			exit(EXIT_SUCCESS);
+
+		/* Close stdin out and err */
+		close(0);
+		close(1);
+		close(2);
+
+		/* Redirect  stdin and out to /dev/null */
+		null = open("/dev/null", O_RDWR);
+		dup(null);
+		dup(null);
 	}
 	
 	ppid = getpid();
