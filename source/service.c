@@ -191,7 +191,7 @@ int play(struct playlist * list) {
 	unsigned i;
 	char * keys [] = {
 		"creator", "title", "album", "duration", "station",
-		"lastfm:trackauth", "trackpage", "artistpage", "albumpage"
+		"lastfm:trackauth", "trackpage", "artistpage", "albumpage", "image"
 	};
 
 	assert(list != NULL);

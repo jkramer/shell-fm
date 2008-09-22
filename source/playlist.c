@@ -91,7 +91,7 @@ int parsexspf(struct playlist * list, const char * xml) {
 			char * next = strcasestr(track + 7, "<track>");
 
 			const char * tags [] = {
-				"location", "title", "album", "creator", "duration",
+				"location", "title", "album", "creator", "duration", "image",
 				"lastfm:trackauth",
 			};
 

@@ -340,7 +340,8 @@ const char * meta(const char * fmt, int colored, struct hash * track) {
 				"dduration",
 				"sstation",
 				"SstationURL",
-				"Rremain"
+				"Rremain",
+				"Iimage"
 			};
 
 			register unsigned i = sizeof(keys) / sizeof(char *);
