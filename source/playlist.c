@@ -95,7 +95,7 @@ int parsexspf(struct playlist * list, const char * xml) {
 				"lastfm:trackauth",
 			};
 
-			const char * links [] = { "artistpage", "albumpage", "trackpage" };
+			const char * links [] = { "artistpage", "albumpage", "trackpage", "freeTrackURL", };
 
 
 			if(next)

@@ -46,12 +46,15 @@ struct stream {
 	FILE * streamfd;
 #ifdef LIBAO
 	int driver_id;
-	ao_device *device;
+	ao_device * device;
 	ao_sample_format fmt;
 #else
 	int audiofd;
 #endif
 	pid_t parent;
+
+	FILE * dump;
+	char * path;
 };
 
 #define BUFSIZE (32*1024)
@@ -85,7 +88,7 @@ int playback(FILE * streamfd) {
 #endif
 
 		memset(& data, 0, sizeof(struct stream));
-		
+
 		data.streamfd = streamfd;
 		data.parent = getppid();
 
@@ -122,12 +125,30 @@ int playback(FILE * streamfd) {
 		ioctl(data.audiofd, SOUND_PCM_WRITE_BITS, & arg);
 #endif
 
+		if(haskey(& track, "freeTrackURL") && haskey(& rc, "download")) {
+			data.path = strdup(meta(value(& rc, "download"), 0, & track));
+			data.dump = fopen(data.path, "w");
+
+			if(!data.dump)
+				fprintf(stderr, "Can't write download to %s.\n", data.path);
+		}
+
 		mad_decoder_init(& dec, & data, input, NULL, NULL, output, NULL, NULL);
 		mad_decoder_run(& dec, MAD_DECODER_MODE_SYNC);
 #ifndef LIBAO
 		close(fd);
 #endif
 		mad_decoder_finish(& dec);
+
+		if(data.dump) {
+			fclose(data.dump);
+
+			if(killed)
+				unlink(data.path);
+
+			free(data.path);
+		}
+
 	} else {
 		pid_t ppid = getppid(), cpid = 0;
 		const char * cmd = meta(value(& rc, "extern"), 0, & track);
@@ -199,12 +220,16 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 	if(!nbyte)
 		return MAD_FLOW_STOP;
 
+	if(ptr->dump)
+		fwrite(buf, nbyte, 1, ptr->dump);
+
 	nbyte += remnbyte;
 
 	mad_stream_buffer(stream, (unsigned char *) buf, nbyte);
 
 	if(kill(ptr->parent, 0) == -1 && errno == ESRCH) {
 		fclose(ptr->streamfd);
+		killed = !0;
 		return MAD_FLOW_STOP;
 	}
 

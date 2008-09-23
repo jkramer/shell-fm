@@ -50,16 +50,16 @@ int authenticate(const char * username, const char * password) {
 		"&passwordmd5=%s"
 		"&debug=0"
 		"&language=en";
-	
+
 	memset(& data, 0, sizeof(struct hash));
-	
+
 	/* create the hash, then convert to ASCII */
 	md5 = MD5((const unsigned char *) password, strlen(password));
 	for(ndigit = 0; ndigit < 16; ++ndigit)
 		sprintf(2 * ndigit + hexmd5, "%02x", md5[ndigit]);
 
 	set(& rc, "password", hexmd5);
-	
+
 	/* escape username for URL */
 	encode(username, & encuser);
 
@@ -72,7 +72,7 @@ int authenticate(const char * username, const char * password) {
 		fputs("No response.\n", stderr);
 		return 0;
 	}
-	
+
 	while(response[i]) {
 		char key[64] = { 0 }, val[256] = { 0 };
 		sscanf(response[i], "%63[^=]=%255[^\r\n]", key, val);
@@ -87,7 +87,7 @@ int authenticate(const char * username, const char * password) {
 		unset(& data, "session");
 		return 0;
 	}
-	
+
 	return !0;
 }
 
@@ -119,11 +119,11 @@ int station(const char * stationURL) {
 		}
 
 	/*
-		If this is not a special "one-time" stream, it's a regular radio
-		station and we request it using the good old /adjust.php URL.
-		If it's not a regular stream, the reply of this request already is
-		a XSPF playlist we have to parse.
-	*/
+	   If this is not a special "one-time" stream, it's a regular radio
+	   station and we request it using the good old /adjust.php URL.
+	   If it's not a regular stream, the reply of this request already is
+	   a XSPF playlist we have to parse.
+   */
 	if(regular) {
 		fmt = "http://ws.audioscrobbler.com/radio/adjust.php?session=%s&url=%s";
 	}
@@ -150,7 +150,7 @@ int station(const char * stationURL) {
 
 		purge(response);
 		response = NULL;
-		
+
 		if(!retval) {
 			printf("Sorry, couldn't set station to %s.\n", stationURL);
 			return 0;
@@ -169,7 +169,7 @@ int station(const char * stationURL) {
 
 		free(xml);
 	}
-	
+
 	enable(CHANGED);
 	histapp(stationURL);
 
@@ -191,7 +191,8 @@ int play(struct playlist * list) {
 	unsigned i;
 	char * keys [] = {
 		"creator", "title", "album", "duration", "station",
-		"lastfm:trackauth", "trackpage", "artistpage", "albumpage", "image"
+		"lastfm:trackauth", "trackpage", "artistpage", "albumpage",
+		"image", "freeTrackURL",
 	};
 
 	assert(list != NULL);
@@ -212,6 +213,7 @@ int play(struct playlist * list) {
 		set(& track, keys[i], value(& list->track->track, keys[i]));
 
 	playfork = fork();
+
 	if(!playfork) {
 		FILE * fd = NULL;
 		const char * location = value(& list->track->track, "location");
