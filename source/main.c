@@ -55,6 +55,7 @@ static void forcequit(int);
 static void help(const char *, int);
 static void playsig(int);
 static void stopsig(int);
+static void unlinknp(void);
 
 pid_t ppid = 0;
 
@@ -297,6 +298,7 @@ int main(int argc, char ** argv) {
 					}
 					else {
 						playnext = !0;
+						unlinknp();
 					}
 					pausetime = 0;
 				}
@@ -511,6 +513,8 @@ static void cleanup(void) {
 	if(haskey(& rc, "unix") && getpid() == ppid)
 		unlink(value(& rc, "unix"));
 
+	unlinknp();
+
 	empty(& data);
 	empty(& rc);
 	empty(& track);
@@ -580,5 +584,14 @@ static void stopsig(int sig) {
 
 		signal(SIGTSTP, SIG_DFL);
 		raise(SIGTSTP);
+	}
+}
+
+static void unlinknp(void) {
+	/* Remove now-playing file. */
+	if(haskey(& rc, "np-file")) {
+		const char * np = value(& rc, "np-file");
+		if(np != NULL)
+			unlink(np);
 	}
 }
