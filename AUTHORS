@@ -5,6 +5,14 @@
 * Nguyen Thai Ngoc Duy
 * Ondrej Novy
 * Csaba Henk
+* Matthias Goebl
+* Benoît Rouits
+* Mike Kelly
+* Christian Neukirchen
+* Guillaume Pinot
+* Wirt Wolff
+* Alexander Monakov
+* Rodrigo Tartajo
 
 NOTE: I've removed the information about who did what, since during the
 development almost everything anyone added has been changed/replaced at some
@@ -12,6 +20,6 @@ time by me or others and it's impossible to track everything. So I'll just list
 all the names of the people who contributed something at some time here. Of
 course the details are still in the subversion commit log.
 
-Please mail me (jonas.kramer@gmail.com) if your name is missing here.
-If you want to praise or blame a developer for something particular,
-search the SVN log.
+Please mail me (jkramer at nex dot scrapping dot cc) if your name is missing
+here.  If you want to praise or blame a developer for something particular,
+search the GIT log.
