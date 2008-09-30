@@ -513,8 +513,6 @@ static void cleanup(void) {
 	if(haskey(& rc, "unix") && getpid() == ppid)
 		unlink(value(& rc, "unix"));
 
-	unlinknp();
-
 	empty(& data);
 	empty(& rc);
 	empty(& track);
