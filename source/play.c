@@ -220,12 +220,12 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 	if(!nbyte)
 		return MAD_FLOW_STOP;
 
-	if(ptr->dump)
-		fwrite(buf, nbyte, 1, ptr->dump);
-
 	nbyte += remnbyte;
 
 	mad_stream_buffer(stream, (unsigned char *) buf, nbyte);
+
+	if(ptr->dump)
+		fwrite(buf, nbyte, 1, ptr->dump);
 
 	if(kill(ptr->parent, 0) == -1 && errno == ESRCH) {
 		fclose(ptr->streamfd);
