@@ -72,7 +72,7 @@ void radioprompt(const char * prompt) {
 
 	if(strlen(url)) {
 		decode(url, & decoded);
-		if(playfork && haskey(& rc, "delay-change")) {
+		if(playthread && haskey(& rc, "delay-change")) {
 			nextstation = strdup(decoded);
 			puts("\rDelayed.");
 		}

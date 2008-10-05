@@ -6,7 +6,7 @@
 #include "playlist.h"
 
 /* Track, session and settings data structures. */
-extern struct hash data, track;
+extern struct hash data;
 extern struct playlist playlist;
 extern struct hash rc;
 
@@ -15,7 +15,7 @@ extern struct hash rc;
 extern int batch;
 
 /* Forks. */
-extern pid_t playfork, subfork;
+extern pthread_t playthread, subthread;
 
 extern char * currentStation; /* Name of the current station. */
 

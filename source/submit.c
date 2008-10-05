@@ -14,6 +14,8 @@
 #include <assert.h>
 #include <time.h>
 
+#include <pthread.h>
+
 #include "hash.h"
 #include "http.h"
 #include "md5.h"
@@ -31,10 +33,9 @@ struct hash submission, * queue = NULL;
 unsigned qlength = 0, submitting = 0;
 
 int handshaked = 0;
-pid_t subfork = 0;
+pthread_t subthread = 0;
 
-extern pid_t playfork;
-extern struct hash data, rc, track;
+extern struct hash data, rc;
 
 static int handshake(const char *, const char *);
 static void sliceq(unsigned);
@@ -79,30 +80,24 @@ int enqueue(struct hash * track) {
 
 
 /* Submit tracks from the queue. */
-int submit(const char * user, const char * password) {
+int submit(struct hash * rc) {
 	char * body = NULL, ** resp;
 	const unsigned stepsize = 1024 * sizeof(char);
 	unsigned total = stepsize, ntrack;
 	int retval = -1;
 
-
-	if(!qlength || subfork > 0)
-		return 0;
+	if(!qlength)
+		pthread_exit(NULL);
 
 	submitting = qlength;
-	subfork = fork();
 
-	if(subfork != 0)
-		return !0;
-
-	playfork = 0;
 	enable(QUIET);
 
 	signal(SIGTERM, SIG_IGN);
 
-	if(!handshaked && !handshake(user, password)) {
+	if(!handshaked && !handshake(value(rc, "username"), value(rc, "password"))) {
 		fputs("Handshake failed.\n", stderr);
-		exit(retval);
+		pthread_exit(NULL);
 	}
 
 	/* Prepare POST body. */
@@ -150,9 +145,13 @@ int submit(const char * user, const char * password) {
 	free(body);
 
 	if(retval)
-		puts("Couldn't scrobble track(s).");
+		fputs("Couldn't scrobble track(s).\n", stderr);
+	else {
+		sliceq(submitting);
+		submitting = 0;
+	}
 
-	exit(retval);
+	return retval;
 }
 
 
@@ -231,15 +230,6 @@ static int handshake(const char * user, const char * password) {
 	}
 
 	return retval;
-}
-
-
-void subdead(int exitcode) {
-	if(exitcode == 0)
-		sliceq(submitting);
-
-	subfork = 0;
-	submitting = 0;
 }
 
 

@@ -51,8 +51,6 @@ struct stream {
 #else
 	int audiofd;
 #endif
-	pid_t parent;
-
 	FILE * dump;
 	char * path;
 };
@@ -90,7 +88,6 @@ int playback(FILE * streamfd) {
 		memset(& data, 0, sizeof(struct stream));
 
 		data.streamfd = streamfd;
-		data.parent = getppid();
 
 #ifdef LIBAO
 		data.driver_id = ao_default_driver_id();
@@ -125,8 +122,8 @@ int playback(FILE * streamfd) {
 		ioctl(data.audiofd, SOUND_PCM_WRITE_BITS, & arg);
 #endif
 
-		if(haskey(& track, "freeTrackURL") && haskey(& rc, "download")) {
-			data.path = strdup(meta(value(& rc, "download"), 0, & track));
+		if(haskey(& playlist.track->track, "freeTrackURL") && haskey(& rc, "download")) {
+			data.path = strdup(meta(value(& rc, "download"), 0, & playlist.track->track));
 			data.dump = fopen(data.path, "w");
 
 			if(!data.dump)
@@ -150,8 +147,8 @@ int playback(FILE * streamfd) {
 		}
 
 	} else {
-		pid_t ppid = getppid(), cpid = 0;
-		const char * cmd = meta(value(& rc, "extern"), 0, & track);
+		pid_t cpid = 0;
+		const char * cmd = meta(value(& rc, "extern"), 0, & playlist.track->track);
 		FILE * ext = openpipe(cmd, & cpid);
 		unsigned char * buf;
 
@@ -175,9 +172,6 @@ int playback(FILE * streamfd) {
 				fflush(ext);
 			}
 
-			if(kill(ppid, 0) == -1 && errno == ESRCH)
-				break;
-
 			if(killed)
 				break;
 		}
@@ -185,6 +179,8 @@ int playback(FILE * streamfd) {
 		free(buf);
 		fclose(ext);
 	}
+
+	fclose(streamfd);
 
 	return !0;
 }
@@ -226,12 +222,6 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 
 	if(ptr->dump)
 		fwrite(buf, nbyte, 1, ptr->dump);
-
-	if(kill(ptr->parent, 0) == -1 && errno == ESRCH) {
-		fclose(ptr->streamfd);
-		killed = !0;
-		return MAD_FLOW_STOP;
-	}
 
 	if(killed)
 		return MAD_FLOW_STOP;

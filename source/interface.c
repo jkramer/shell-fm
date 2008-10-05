@@ -39,8 +39,6 @@
 
 extern time_t pausetime;
 
-struct hash track;
-
 void interface(int interactive) {
 	if(interactive) {
 		int key, result;
@@ -68,7 +66,7 @@ void interface(int interactive) {
 
 			case 'B':
 				puts(rate("B") ? "Banned." : "Sorry, failed.");
-				kill(playfork, SIGUSR1);
+				pthread_kill(playthread, SIGUSR1);
 				break;
 
 			case 'n':
@@ -80,24 +78,24 @@ void interface(int interactive) {
 				exit(EXIT_SUCCESS);
 
 			case 'i':
-				if(playfork) {
+				if(playthread) {
 					const char * path = rcpath("i-template");
 					if(path && !access(path, R_OK)) {
 						char ** template = slurp(path);
 						if(template != NULL) {
 							unsigned n = 0;
 							while(template[n]) {
-								puts(meta(template[n], !0, & track));
+								puts(meta(template[n], !0, & playlist.track->track));
 								free(template[n++]);
 							}
 							free(template);
 						}
 					}
 					else {
-						puts(meta("Track:    \"%t\" (%T)", !0, & track));
-						puts(meta("Artist:   \"%a\" (%A)", !0, & track));
-						puts(meta("Album:    \"%l\" (%L)", !0, & track));
-						puts(meta("Station:  %s", !0, & track));
+						puts(meta("Track:    \"%t\" (%T)", !0, & playlist.track->track));
+						puts(meta("Artist:   \"%a\" (%A)", !0, & playlist.track->track));
+						puts(meta("Album:    \"%l\" (%L)", !0, & playlist.track->track));
+						puts(meta("Station:  %s", !0, & playlist.track->track));
 					}
 				}
 				break;
@@ -109,7 +107,7 @@ void interface(int interactive) {
 			case 'd':
 				toggle(DISCOVERY);
 				printf("Discovery mode %s.\n", enabled(DISCOVERY) ? "enabled" : "disabled");
-				if(playfork) {
+				if(playthread) {
 					printf(
 						"%u track(s) left to play/skip until change comes into affect.\n",
 						playlist.left
@@ -118,12 +116,12 @@ void interface(int interactive) {
 				break;
 
 			case 'A':
-				printf(meta("Really ban all tracks by artist %a? [yN]", !0, & track));
+				printf(meta("Really ban all tracks by artist %a? [yN]", !0, & playlist.track->track));
 				fflush(stdout);
 				if(fetchkey(5000000) != 'y')
 					puts("\nAbort.");
-				else if(autoban(value(& track, "creator"))) {
-					printf("\n%s banned.\n", meta("%a", !0, & track));
+				else if(autoban(value(& playlist.track->track, "creator"))) {
+					printf("\n%s banned.\n", meta("%a", !0, & playlist.track->track));
 					rate("B");
 				}
 				fflush(stdout);
@@ -132,8 +130,8 @@ void interface(int interactive) {
 			case 'a':
 				result = xmlrpc(
 					"addTrackToUserPlaylist", "ss",
-					value(& track, "creator"),
-					value(& track, "title")
+					value(& playlist.track->track, "creator"),
+					value(& playlist.track->track, "title")
 				);
 				
 				puts(result ? "Added to playlist." : "Sorry, failed.");
@@ -145,8 +143,8 @@ void interface(int interactive) {
 				break;
 
 			case 'f':
-				if(playfork) {
-					const char * uri = meta("lastfm://artist/%a/fans", 0, & track);
+				if(playthread) {
+					const char * uri = meta("lastfm://artist/%a/fans", 0, & playlist.track->track);
 					if(haskey(& rc, "delay-change")) {
 						puts("\rDelayed.");
 						nextstation = strdup(uri);
@@ -158,8 +156,8 @@ void interface(int interactive) {
 				break;
 				
 			case 's':
-				if(playfork) {
-					const char * uri = meta("lastfm://artist/%a/similarartists", 0, & track);
+				if(playthread) {
+					const char * uri = meta("lastfm://artist/%a/similarartists", 0, & playlist.track->track);
 					if(haskey(& rc, "delay-change")) {
 						puts("\rDelayed.");
 						nextstation = strdup(uri);
@@ -175,7 +173,7 @@ void interface(int interactive) {
 				break;
 
 			case 'H':
-				if(playfork && currentStation) {
+				if(playthread && currentStation) {
 					puts("What number do you want to bookmark this stream as? [0-9]");
 					key = fetchkey(5000000);
 					setmark(currentStation, key - 0x30);
@@ -183,32 +181,32 @@ void interface(int interactive) {
 				break;
 
 			case 'S':
-				if(playfork) {
+				if(playthread) {
 					enable(STOPPED);
-					kill(playfork, SIGUSR1);
+					pthread_kill(playthread, SIGUSR1);
 				}
 				break;
 
 			case 'T':
-				if(playfork)
-					tag(track);
+				if(playthread)
+					tag(playlist.track->track);
 				break;
 
 			case 'p':
-				if(playfork) {
+				if(playthread) {
 					if(pausetime) {
-						kill(playfork, SIGCONT);
+						pthread_kill(playthread, SIGCONT);
 					}
 					else {
 						time(& pausetime);
-						kill(playfork, SIGSTOP);
+						pthread_kill(playthread, SIGSTOP);
 					}
 				}
 				break;
 
 			case 'R':
-				if(playfork) {
-					recommend(track);
+				if(playthread) {
+					recommend(playlist.track->track);
 				}
 				break;
 
@@ -288,7 +286,7 @@ void interface(int interactive) {
 			default:
 				snprintf(customkey, sizeof(customkey), "key0x%02X", key & 0xFF);
 				if(haskey(& rc, customkey))
-					run(meta(value(& rc, customkey), 0, & track));
+					run(meta(value(& rc, customkey), 0, & playlist.track->track));
 		}
 	}
 }
@@ -402,37 +400,37 @@ void run(const char * cmd) {
 
 
 int rate(const char * rating) {
-	if(playfork && rating != NULL) {
-		set(& track, "rating", rating);
+	if(playthread && rating != NULL) {
+		set(& playlist.track->track, "rating", rating);
 
 		switch(rating[0]) {
 			case 'B':
-				kill(playfork, SIGUSR1);
+				pthread_kill(playthread, SIGUSR1);
 				return xmlrpc(
 						"banTrack",
 						"ss",
-						value(& track, "creator"),
-						value(& track, "title")
+						value(& playlist.track->track, "creator"),
+						value(& playlist.track->track, "title")
 						);
 
 			case 'L':
 				return xmlrpc(
 						"loveTrack",
 						"ss",
-						value(& track, "creator"),
-						value(& track, "title")
+						value(& playlist.track->track, "creator"),
+						value(& playlist.track->track, "title")
 						);
 
 			case 'U':
 				return xmlrpc(
 						"unLoveTrack",
 						"ss",
-						value(& track, "creator"),
-						value(& track, "title")
+						value(& playlist.track->track, "creator"),
+						value(& playlist.track->track, "title")
 						);
 
 			case 'S':
-				kill(playfork, SIGUSR1);
+				pthread_kill(playthread, SIGUSR1);
 				return !0;
 		}
 	}

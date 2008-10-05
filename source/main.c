@@ -16,8 +16,9 @@
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-
+#include <errno.h>
 #include <dirent.h>
+#include <pthread.h>
 
 #include "hash.h"
 #include "service.h"
@@ -55,7 +56,6 @@ static void forcequit(int);
 static void help(const char *, int);
 static void playsig(int);
 static void stopsig(int);
-static void unlinknp(void);
 
 pid_t ppid = 0;
 
@@ -206,7 +206,6 @@ int main(int argc, char ** argv) {
 
 
 	memset(& data, 0, sizeof(struct hash));
-	memset(& track, 0, sizeof(struct hash));
 	memset(& playlist, 0, sizeof(struct playlist));
 
 	/* Fork to background. */
@@ -277,33 +276,27 @@ int main(int argc, char ** argv) {
 
 	/* The main loop. */
 	while(!0) {
-		pid_t child;
-		int status, playnext = 0;
+		int playnext = 0;
 
+		/* Check if playback thread is alive. */
+		if(playthread) {
+			if(pthread_kill(playthread, 0) == ESRCH) {
+				playthread = 0;
+				playnext = !0;
 
-		/* Check if anything died (submissions fork or playback fork). */
-		while((child = waitpid(-1, & status, WNOHANG | WUNTRACED | WCONTINUED)) > 0) {
-			if(child == subfork)
-				subdead(WEXITSTATUS(status));
-			else if(child == playfork) {
-				if(WIFSTOPPED(status)) {
-					/* time(& pausetime); */
-				}
-				else {
-					if(WIFCONTINUED(status)) {
-						signal(SIGTSTP, stopsig);
-						if(pausetime != 0) {
-							pauselength += time(NULL) - pausetime;
-						}
-					}
-					else {
-						playnext = !0;
-						unlinknp();
-					}
-					pausetime = 0;
+				/* Remove now-playing file. */
+				if(haskey(& rc, "np-file")) {
+					const char * np = value(& rc, "np-file");
+					if(np != NULL)
+						unlink(np);
 				}
 			}
 		}
+
+		/* Check if submission thread is alive. */
+		if(subthread)
+			if(pthread_kill(subthread, 0) != ESRCH)
+				subthread = 0;
 
 		/*
 			Check if the playback process died. If so, submit the data
@@ -315,12 +308,12 @@ int main(int argc, char ** argv) {
 			playfork would still be running.
 		*/
 		if(playnext) {
-			playfork = 0;
+			playthread = 0;
 
 			if(enabled(RTP)) {
 				unsigned duration, played, minimum;
 
-				duration = atoi(value(& track, "duration")) / 1000;
+				duration = atoi(value(& playlist.track->track, "duration")) / 1000;
 				played = time(NULL) - changeTime - pauselength;
 
 				/* Allow user to specify minimum playback length (min. 50%). */
@@ -335,15 +328,16 @@ int main(int argc, char ** argv) {
 				}
 
 				if(duration >= 30 && (played >= 240 || played > minimum))
-					enqueue(& track);
+					enqueue(& playlist.track->track);
 			}
 
-			submit(value(& rc, "username"), value(& rc, "password"));
+			if(!subthread)
+				pthread_create(& subthread, NULL, (void *(*)(void *)) submit, & rc);
 
 			/* Check if the user stopped the stream. */
 			if(enabled(STOPPED) || error) {
 				freelist(& playlist);
-				empty(& track);
+				empty(& playlist.track->track);
 
 				if(error) {
 					fputs("Playback stopped with an error.\n", stderr);
@@ -381,24 +375,24 @@ int main(int argc, char ** argv) {
 				}
 			}
 
-			if(!playfork) {
+			if(!playthread) {
 				if(play(& playlist)) {
 					time(& changeTime);
 					pauselength = 0;
 
-					set(& track, "stationURL", currentStation);
+					set(& playlist.track->track, "stationURL", currentStation);
 
 					/* Print what's currently played. (Ondrej Novy) */
 					if(!background) {
 						if(enabled(CHANGED) && playlist.left > 0) {
-							puts(meta("Receiving %s.", !0, & track));
+							puts(meta("Receiving %s.", !0, & playlist.track->track));
 							disable(CHANGED);
 						}
 
 						if(haskey(& rc, "title-format"))
-							printf("%s\n", meta(value(& rc, "title-format"), !0, & track));
+							printf("%s\n", meta(value(& rc, "title-format"), !0, & playlist.track->track));
 						else
-							printf("%s\n", meta("Now playing \"%t\" by %a.", !0, & track));
+							printf("%s\n", meta("Now playing \"%t\" by %a.", !0, & playlist.track->track));
 					}
 
 
@@ -411,7 +405,7 @@ int main(int argc, char ** argv) {
 
 						unlink(file);
 						if(-1 != (np = open(file, O_WRONLY | O_CREAT, 0644))) {
-							const char * output = meta(fmt, 0, & track);
+							const char * output = meta(fmt, 0, & playlist.track->track);
 							if(output)
 								write(np, output, strlen(output));
 							close(np);
@@ -423,7 +417,7 @@ int main(int argc, char ** argv) {
 						const char * term = getenv("TERM");
 						if(term != NULL && !strncmp(term, "screen", 6)) {
 							const char * output =
-								meta(value(& rc, "screen-format"), 0, & track);
+								meta(value(& rc, "screen-format"), 0, & playlist.track->track);
 							printf("\x1Bk%s\x1B\\", output);
 						}
 					}
@@ -431,20 +425,20 @@ int main(int argc, char ** argv) {
 
 					if(haskey(& rc, "term-format")) {
 						const char * output =
-							meta(value(& rc, "term-format"), 0, & track);
+							meta(value(& rc, "term-format"), 0, & playlist.track->track);
 						printf("\x1B]2;%s\a", output);
 					}
 
 
 					/* Run a command with our track data. */
 					if(haskey(& rc, "np-cmd"))
-						run(meta(value(& rc, "np-cmd"), 0, & track));
+						run(meta(value(& rc, "np-cmd"), 0, & playlist.track->track));
 				} else
 					changeTime = 0;
 			}
 
-			if(banned(value(& track, "creator"))) {
-				puts(meta("%a is banned.", !0, & track));
+			if(banned(value(& playlist.track->track, "creator"))) {
+				puts(meta("%a is banned.", !0, & playlist.track->track));
 				rate("B");
 				fflush(stdout);
 			}
@@ -452,17 +446,17 @@ int main(int argc, char ** argv) {
 
 		playnext = 0;
 
-		if(playfork && changeTime && haskey(& track, "duration") && !pausetime) {
+		if(playthread && changeTime && haskey(& playlist.track->track, "duration") && !pausetime) {
 			unsigned duration;
 			signed remain;
 			char remstr[32];
 
-			duration = atoi(value(& track, "duration")) / 1000;
+			duration = atoi(value(& playlist.track->track, "duration")) / 1000;
 
 			remain = (changeTime + duration) - time(NULL) + pauselength;
 
 			snprintf(remstr, sizeof(remstr), "%d", remain);
-			set(& track, "remain", remstr);
+			set(& playlist.track->track, "remain", remstr);
 
 			if(!background) {
 				printf(
@@ -515,7 +509,6 @@ static void cleanup(void) {
 
 	empty(& data);
 	empty(& rc);
-	empty(& track);
 
 	freelist(& playlist);
 
@@ -524,8 +517,8 @@ static void cleanup(void) {
 		currentStation = NULL;
 	}
 
-	if(subfork)
-		waitpid(subfork, NULL, 0);
+	if(subthread)
+		pthread_join(subthread, NULL);
 
 	dumpqueue(!0);
 
@@ -557,8 +550,8 @@ static void cleanup(void) {
 		}
 	}
 
-	if(playfork)
-		kill(playfork, SIGUSR1);
+	if(playthread)
+		pthread_kill(playthread, SIGUSR1);
 }
 
 
@@ -582,14 +575,5 @@ static void stopsig(int sig) {
 
 		signal(SIGTSTP, SIG_DFL);
 		raise(SIGTSTP);
-	}
-}
-
-static void unlinknp(void) {
-	/* Remove now-playing file. */
-	if(haskey(& rc, "np-file")) {
-		const char * np = value(& rc, "np-file");
-		if(np != NULL)
-			unlink(np);
 	}
 }

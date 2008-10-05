@@ -14,6 +14,7 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <stdarg.h>
+#include <pthread.h>
 
 #include "hash.h"
 #include "http.h"
@@ -29,9 +30,8 @@
 
 #include "globals.h"
 
-struct hash data; /* Warning! MUST be bzero'd ASAP or we're all gonna die! */
-
-pid_t playfork = 0; /* PID of the decoding & playing process, if running */
+struct hash data;
+pthread_t playthread; /* PID of the decoding & playing process, if running */
 
 struct playlist playlist;
 char * currentStation = NULL;
@@ -178,9 +178,9 @@ int station(const char * stationURL) {
 
 	currentStation = strdup(stationURL);
 
-	if(retval && playfork) {
+	if(retval && playthread) {
 		/* enable(STOPPED); */
-		kill(playfork, SIGUSR1);
+		pthread_kill(playthread, SIGUSR1);
 	}
 
 	return retval;
@@ -188,51 +188,39 @@ int station(const char * stationURL) {
 
 
 int play(struct playlist * list) {
-	unsigned i;
-	char * keys [] = {
-		"creator", "title", "album", "duration", "station",
-		"lastfm:trackauth", "trackpage", "artistpage", "albumpage",
-		"image", "freeTrackURL",
-	};
+	FILE * fd = NULL;
+	const char * location;
 
 	assert(list != NULL);
 
 	if(!list->left)
 		return 0;
 
-	if(playfork) {
-		kill(playfork, SIGUSR1);
+	/*
+		If playback thread is still running, this means the track is to be
+		skipped. Tell it to quit and return. The main loop will wait until it's
+		exited and then call this function again.
+	*/
+	if(playthread) {
+		pthread_kill(playthread, SIGUSR1);
 		return !0;
 	}
 
 	enable(QUIET);
 
-	empty(& track);
+	location = value(& list->track->track, "location");
 
-	for(i = 0; i < (sizeof(keys) / sizeof(char *)); ++i)
-		set(& track, keys[i], value(& list->track->track, keys[i]));
+	if(location != NULL) {
+		fetch(location, & fd, NULL, NULL);
 
-	playfork = fork();
-
-	if(!playfork) {
-		FILE * fd = NULL;
-		const char * location = value(& list->track->track, "location");
-
-		rmsckif();
-
-		subfork = 0;
-
-		if(location != NULL) {
-			fetch(location, & fd, NULL, NULL);
-
-			if(fd != NULL) {
-				if(!playback(fd))
-					kill(getppid(), SIGUSR2);
-				fshutdown(& fd);
-			}
+		if(fd != NULL) {
+			pthread_create(
+				& playthread,
+				NULL,
+				(void *(*)(void *)) playback,
+				(void *) fd
+			);
 		}
-
-		exit(EXIT_SUCCESS);
 	}
 
 	return !0;

@@ -35,8 +35,6 @@
 
 #include "globals.h"
 
-struct hash track;
-
 static int stcpsck = -1, sunixsck = -1;
 static int waitread(int, unsigned, unsigned);
 
@@ -241,24 +239,24 @@ void execcmd(const char * cmd, char * reply) {
 
 		case 5:
 			if(* (cmd + 5))
-				strncpy(reply, meta(cmd + 5, 0, & track), REPLYBUFSIZE);
+				strncpy(reply, meta(cmd + 5, 0, & playlist.track->track), REPLYBUFSIZE);
 			else if(haskey(& rc, "np-file-format"))
 				strncpy(
 					reply,
-					meta(value(& rc, "np-file-format"), 0, & track),
+					meta(value(& rc, "np-file-format"), 0, & playlist.track->track),
 					REPLYBUFSIZE
 				);
 
 			break;
 
 		case 6:
-			if(playfork) {
+			if(playthread) {
 				if(pausetime) {
-					kill(playfork, SIGCONT);
+					pthread_kill(playthread, SIGCONT);
 				}
 				else {
 					time(& pausetime);
-					kill(playfork, SIGSTOP);
+					pthread_kill(playthread, SIGSTOP);
 				}
 			}
 			break;
@@ -269,21 +267,21 @@ void execcmd(const char * cmd, char * reply) {
 
 		case 8:
 			if(sscanf(cmd, "tag-artist %128s", arg) == 1)
-				sendtag('a', arg, track);
+				sendtag('a', arg, playlist.track->track);
 			break;
 
 		case 9:
 			if(sscanf(cmd, "tag-album %128s", arg) == 1)
-				sendtag('l', arg, track);
+				sendtag('l', arg, playlist.track->track);
 			break;
 
 		case 10:
 			if(sscanf(cmd, "tag-track %128s", arg) == 1)
-				sendtag('t', arg, track);
+				sendtag('t', arg, playlist.track->track);
 			break;
 
 		case 11:
-			if((ptr = oldtags('a', track)) != NULL) {
+			if((ptr = oldtags('a', playlist.track->track)) != NULL) {
 				strncpy(reply, ptr, REPLYBUFSIZE);
 				free(ptr);
 				ptr = NULL;
@@ -291,7 +289,7 @@ void execcmd(const char * cmd, char * reply) {
 			break;
 
 		case 12:
-			if((ptr = oldtags('l', track)) != NULL) {
+			if((ptr = oldtags('l', playlist.track->track)) != NULL) {
 				strncpy(reply, ptr, REPLYBUFSIZE);
 				free(ptr);
 				ptr = NULL;
@@ -299,7 +297,7 @@ void execcmd(const char * cmd, char * reply) {
 			break;
 
 		case 13:
-			if((ptr = oldtags('t', track)) != NULL) {
+			if((ptr = oldtags('t', playlist.track->track)) != NULL) {
 				strncpy(reply, ptr, REPLYBUFSIZE);
 				free(ptr);
 				ptr = NULL;
@@ -307,9 +305,9 @@ void execcmd(const char * cmd, char * reply) {
 			break;
 
 		case 14:
-			if(playfork) {
+			if(playthread) {
 				enable(STOPPED);
-				kill(playfork, SIGUSR1);
+				pthread_kill(playthread, SIGUSR1);
 			}
 			break;
 	}
