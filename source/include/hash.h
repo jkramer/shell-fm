@@ -5,6 +5,8 @@
 #ifndef SHELLFM_HASH
 #define SHELLFM_HASH
 
+#include <pthread.h>
+
 struct pair {
 	char * key, * value;
 };
@@ -12,6 +14,7 @@ struct pair {
 struct hash {
 	unsigned size;
 	struct pair * content;
+	pthread_mutex_t mutex;
 };
 
 extern void set(struct hash *, const char *, const char *);

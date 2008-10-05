@@ -10,12 +10,15 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <pthread.h>
 
 #include "hash.h"
 
 
 void set(struct hash * hash, const char * key, const char * value) {
 	unset(hash, key);
+
+	pthread_mutex_lock(& hash->mutex);
 
 	hash->content =
 		realloc(hash->content, sizeof(struct pair) * (hash->size + 1));
@@ -26,15 +29,24 @@ void set(struct hash * hash, const char * key, const char * value) {
 	assert((hash->content[hash->size].value = strdup(value)) != NULL);
 
 	++hash->size;
+
+	pthread_mutex_unlock(& hash->mutex);
 }
 
 const char * value(struct hash * hash, const char * key) {
-	unsigned index = haskey(hash, key);
+	unsigned index;
+
+	index = haskey(hash, key);
+
 	return index > 0 ? hash->content[index - 1].value : "";
 }
 
 void unset(struct hash * hash, const char * key) {
-	unsigned index = haskey(hash, key);
+	unsigned index;
+
+	pthread_mutex_lock(& hash->mutex);
+	
+	index = haskey(hash, key);
 	if(index > 0) {
 		--index;
 
@@ -52,9 +64,13 @@ void unset(struct hash * hash, const char * key) {
 		hash->content = realloc(hash->content, sizeof(struct pair) * hash->size);
 		assert(hash->content != NULL);
 	}
+
+	pthread_mutex_unlock(& hash->mutex);
 }
 
 void empty(struct hash * hash) {
+	pthread_mutex_lock(& hash->mutex);
+
 	if(hash != NULL) {
 		if(hash->content != NULL) {
 			while(hash->size > 0) {
@@ -69,6 +85,8 @@ void empty(struct hash * hash) {
 		}
 		memset(hash, 0, sizeof(struct hash));
 	}
+
+	pthread_mutex_unlock(& hash->mutex);
 }
 
 int haskey(struct hash * hash, const char * key) {
@@ -77,12 +95,16 @@ int haskey(struct hash * hash, const char * key) {
 	assert(hash != NULL);
 	assert(key != NULL);
 	
-	if(!hash->size || !hash->content)
+	if(!hash->size || !hash->content) {
+		pthread_mutex_unlock(& hash->mutex);
 		return 0;
+	}
 	
 	for(x = 0; x < hash->size; ++x)
-		if(hash->content[x].key != NULL && !strcmp(hash->content[x].key, key))
+		if(hash->content[x].key != NULL && !strcmp(hash->content[x].key, key)) {
+			pthread_mutex_unlock(& hash->mutex);
 			return x + 1;
+		}
 
 	return 0;
 }

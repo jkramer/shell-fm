@@ -46,7 +46,7 @@
 #endif
 
 unsigned flags = RTP;
-time_t changeTime = 0, pausetime = 0;
+time_t changeTime = 0, pausetime = 0, pauselength = 0;
 char * nextstation = NULL;
 
 int batch = 0, error = 0;
@@ -61,7 +61,6 @@ pid_t ppid = 0;
 
 int main(int argc, char ** argv) {
 	int option, nerror = 0, background = 0, haveSocket = 0;
-	time_t pauselength = 0;
 	char * proxy;
 	opterr = 0;
 

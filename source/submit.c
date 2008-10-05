@@ -31,6 +31,7 @@
 
 struct hash submission, * queue = NULL;
 unsigned qlength = 0, submitting = 0;
+pthread_mutex_t queuemt = PTHREAD_MUTEX_INITIALIZER;
 
 int handshaked = 0;
 pthread_t subthread = 0;
@@ -48,13 +49,17 @@ int enqueue(struct hash * track) {
 	struct hash post;
 	char timestamp[16], lastid[8], duration[8];
 
+	pthread_mutex_lock(& queuemt);
+
 	assert(track != NULL);
 
 	memset(& post, 0, sizeof(struct hash));
 
 	for(i = 0; i < (sizeof(keys) / sizeof(char *)); ++i)
-		if(!haskey(track, keys[i]))
+		if(!haskey(track, keys[i])) {
+			pthread_mutex_unlock(& queuemt);
 			return 0;
+		}
 
 	queue = realloc(queue, sizeof(struct hash) * (qlength + 1));
 	assert(queue != NULL);
@@ -75,6 +80,7 @@ int enqueue(struct hash * track) {
 
 	memcpy(& queue[qlength++], & post, sizeof(struct hash));
 
+	pthread_mutex_unlock(& queuemt);
 	return !0;
 }
 
@@ -86,8 +92,12 @@ int submit(struct hash * rc) {
 	unsigned total = stepsize, ntrack;
 	int retval = -1;
 
-	if(!qlength)
+	pthread_mutex_lock(& queuemt);
+
+	if(!qlength) {
+		pthread_mutex_unlock(& queuemt);
 		pthread_exit(NULL);
+	}
 
 	submitting = qlength;
 
@@ -97,6 +107,7 @@ int submit(struct hash * rc) {
 
 	if(!handshaked && !handshake(value(rc, "username"), value(rc, "password"))) {
 		fputs("Handshake failed.\n", stderr);
+		pthread_mutex_unlock(& queuemt);
 		pthread_exit(NULL);
 	}
 
@@ -131,8 +142,6 @@ int submit(struct hash * rc) {
 		}
 	}
 
-	sliceq(qlength);
-
 	resp = fetch(value(& submission, "submissions"), NULL, body, NULL);
 
 	if(resp) {
@@ -150,6 +159,8 @@ int submit(struct hash * rc) {
 		sliceq(submitting);
 		submitting = 0;
 	}
+
+	pthread_mutex_unlock(& queuemt);
 
 	return retval;
 }
@@ -173,6 +184,7 @@ static void sliceq(unsigned tracks) {
 	} else {
 		free(queue);
 		queue = NULL;
+
 	}
 }
 
@@ -236,6 +248,9 @@ static int handshake(const char * user, const char * password) {
 /* Write the tracks from the scrobble queue to a file. */
 void dumpqueue(int overwrite) {
 	const char * path = rcpath("scrobble-cache");
+
+	pthread_mutex_lock(& queuemt);
+
 	if(path != NULL) {
 		FILE * fd = fopen(path, overwrite ? "w" : "a+");
 		if(fd != NULL) {
@@ -259,11 +274,15 @@ void dumpqueue(int overwrite) {
 	}
 
 	sliceq(qlength);
+
+	pthread_mutex_unlock(& queuemt);
 }
 
 
 void loadqueue(int overwrite) {
 	const char * path = rcpath("scrobble-cache");
+
+	pthread_mutex_lock(& queuemt);
 
 	if(overwrite)
 		sliceq(qlength);
@@ -306,4 +325,6 @@ void loadqueue(int overwrite) {
 			fclose(fd);
 		}
 	}
+
+	pthread_mutex_unlock(& queuemt);
 }

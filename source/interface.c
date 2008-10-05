@@ -17,6 +17,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include <time.h>
+#include <pthread.h>
 
 #include "service.h"
 #include "hash.h"
@@ -37,7 +38,8 @@
 
 #include "globals.h"
 
-extern time_t pausetime;
+extern time_t pausetime, pauselength;
+extern pthread_mutex_t paused;
 
 void interface(int interactive) {
 	if(interactive) {
@@ -195,11 +197,14 @@ void interface(int interactive) {
 			case 'p':
 				if(playthread) {
 					if(pausetime) {
-						pthread_kill(playthread, SIGCONT);
+						pauselength += time(NULL) - pausetime;
+						pausetime = 0;
+
+						pthread_mutex_unlock(& paused);
 					}
 					else {
 						time(& pausetime);
-						pthread_kill(playthread, SIGSTOP);
+						pthread_mutex_lock(& paused);
 					}
 				}
 				break;

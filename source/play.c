@@ -19,6 +19,7 @@
 #include <signal.h>
 #include <sys/wait.h>
 #include <sys/ioctl.h>
+#include <pthread.h>
 
 #ifdef LIBAO
 #include <ao/ao.h>
@@ -60,6 +61,10 @@ struct stream {
 static enum mad_flow input(void *, struct mad_stream *);
 static enum mad_flow output(void *, const struct mad_header *, struct mad_pcm *);
 inline signed scale(mad_fixed_t);
+
+extern time_t pausetime;
+
+pthread_mutex_t paused = PTHREAD_MUTEX_INITIALIZER;
 
 int killed = 0;
 
@@ -146,7 +151,8 @@ int playback(FILE * streamfd) {
 			free(data.path);
 		}
 
-	} else {
+	}
+	else {
 		pid_t cpid = 0;
 		const char * cmd = meta(value(& rc, "extern"), 0, & playlist.track->track);
 		FILE * ext = openpipe(cmd, & cpid);
@@ -231,17 +237,21 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 
 #ifdef LIBAO
 static enum mad_flow output(
-		void * data,
-		const struct mad_header * head,
-		struct mad_pcm * pcm) {
+	void * data,
+	const struct mad_header * head,
+	struct mad_pcm * pcm
+) {
 	struct stream * ptr = (struct stream *) data;
 
 	unsigned nchan = pcm->channels, rate = pcm->samplerate;
 	register unsigned nsample = pcm->length;
 	mad_fixed_t * left = pcm->samples[0], * right = pcm->samples[1];
-	char *stream, *stream_ptr;
+	char * stream, * stream_ptr;
 
 	head = NULL;
+
+	pthread_mutex_lock(& paused);
+	pthread_mutex_unlock(& paused);
 
 	if((signed) rate != ptr->fmt.rate || (signed) nchan != ptr->fmt.channels) {
 		ptr->fmt.rate = rate;
