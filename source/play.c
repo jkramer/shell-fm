@@ -207,13 +207,20 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 		memmove(buf, stream->next_frame, remnbyte);
 	}
 
-	if(preload)
+	if(preload) {
 		nbyte = read(fileno(ptr->streamfd), buf + remnbyte, BUFSIZE - remnbyte);
+		if(ptr->dump)
+			fwrite(buf + remnbyte, sizeof(buf[0]), nbyte, ptr->dump);
+	}
 	else {
 		while(nbyte < BUFSIZE) {
 			int retval = read(fileno(ptr->streamfd), buf + nbyte, BUFSIZE - nbyte);
 			if(retval <= 0)
 				break;
+
+			if(ptr->dump)
+				fwrite(buf + nbyte, sizeof(buf[0]), retval, ptr->dump);
+
 			nbyte += retval;
 		}
 		preload = !0;
@@ -226,8 +233,6 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 
 	mad_stream_buffer(stream, (unsigned char *) buf, nbyte);
 
-	if(ptr->dump)
-		fwrite(buf, nbyte, 1, ptr->dump);
 
 	if(killed)
 		return MAD_FLOW_STOP;
