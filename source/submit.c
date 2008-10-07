@@ -216,7 +216,7 @@ static int handshake(const char * user, const char * password) {
 		"http://post.audioscrobbler.com/" /* Base URL. */
 		"?hs=true" /* Handshake? Yes! */
 		"&p=%s" /* Protocol 1.2. */
-		"&c=tst" /* Client ID (get a real one later). */
+		"&c=sfm" /* Client ID (get a real one later). */
 		"&v=%s" /* Client version. */
 		"&u=%s" /* Last.FM user name. */
 		"&t=%u" /* Timestamp. */
