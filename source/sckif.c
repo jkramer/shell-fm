@@ -272,11 +272,14 @@ void execcmd(const char * cmd, char * reply) {
 		case 6:
 			if(playthread) {
 				if(pausetime) {
-					pthread_kill(playthread, SIGCONT);
+					pauselength += time(NULL) - pausetime;
+					pausetime = 0;
+
+					pthread_mutex_unlock(& paused);
 				}
 				else {
 					time(& pausetime);
-					pthread_kill(playthread, SIGSTOP);
+					pthread_mutex_lock(& paused);
 				}
 			}
 			break;
