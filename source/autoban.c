@@ -15,6 +15,10 @@
 #include "getln.h"
 
 
+/*
+	Check if a given artist is banned completely (it appears in
+	"~/.shell-fm/autoban").
+*/
 int banned(const char * artist) {
 	FILE * fd;
 	signed match = 0;
@@ -29,12 +33,14 @@ int banned(const char * artist) {
 
 	while(!feof(fd) && !match) {
 		char * ptr;
+
 		if(!getln(& line, & size, fd))
 			continue;
 	
 		if(strlen(line) > 1) {
 			if((ptr = strrchr(line, 10)) != NULL)
-					* ptr = (char) 0;
+				* ptr = (char) 0;
+
 			match = !strncasecmp(line, artist, strlen(line));
 		}
 	}
@@ -43,9 +49,12 @@ int banned(const char * artist) {
 		free(line);
 
 	fclose(fd);
+
 	return match;
 }
 
+
+/* Ban an artist by adding it to the autoban file. */
 int autoban(const char * artist) {
 	FILE * fd;
 	const char * file = rcpath("autoban");
