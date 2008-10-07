@@ -28,6 +28,7 @@
 #include "playlist.h"
 #include "submit.h"
 #include "readline.h"
+#include "radio.h"
 
 #include "globals.h"
 
@@ -273,7 +274,8 @@ int main(int argc, char ** argv) {
 	/* Play default radio, if specified. */
 	if(haskey(& rc, "default-radio"))
 		station(value(& rc, "default-radio"));
-
+	else
+		radioprompt("radio url> ");
 
 	/* The main loop. */
 	while(!0) {
