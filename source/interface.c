@@ -241,32 +241,20 @@ void interface(int interactive) {
 
 			case '?':
 				fputs(
-					"a = add the track to the playlist\n"
-					"A = autoban artist\n"
-					"B = ban Track\n"
-					"d = discovery mode\n"
-					"E = manually expand playlist\n"
-					"f = fan Station\n"
-					"h = list bookmarks\n"
-					"H = bookmark current radio\n"
-					"i = current track information\n"
-					"l = love track\n"
-					"n = skip track\n"
-					"p = pause\n"
-					"P = enable/disable RTP\n"
-					"Q = quit\n"
-					"r = change radio station\n"
-					"R = recommend track/artist/album\n"
-					"S = stop\n"
-					"s = similiar artist\n"
-					"T = tag track/artist/album\n"
-					"u = show upcoming tracks in playlist\n"
-					"U = unlove track\n"
-					"+ = increase volume (vol)\n"
-					"- = decrease volume (vol)\n"
-					"* = increase volume (pcm)\n"
-					"/ = decrease volume (pcm)\n"
-					, stderr
+					"a = add the track to the playlist | A = autoban artist\n"
+					"B = ban Track                     | d = discovery mode\n"
+					"E = manually expand playlist      | f = fan Station\n"
+					"h = list bookmarks                | H = bookmark current radio\n"
+					"i = current track information     | l = love track\n"
+					"n = skip track                    | p = pause\n"
+					"P = enable/disable RTP            | Q = quit\n"
+					"r = change radio station          | R = recommend track/artist/album\n"
+					"S = stop                          | s = similiar artist\n"
+					"T = tag track/artist/album        | u = show upcoming tracks in playlist\n"
+					"U = unlove track                  | + = increase volume (vol)\n"
+					"- = decrease volume (vol)         | * = increase volume (pcm)\n"
+					"/ = decrease volume (pcm)\n",
+					stderr
 				);
 				break;
 
