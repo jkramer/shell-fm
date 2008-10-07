@@ -47,7 +47,7 @@
 #endif
 
 unsigned flags = RTP;
-time_t changeTime = 0, pausetime = 0, pauselength = 0;
+time_t changetime = 0, pausetime = 0, pauselength = 0;
 char * nextstation = NULL;
 
 int batch = 0, error = 0;
@@ -55,13 +55,10 @@ int batch = 0, error = 0;
 static void cleanup(void);
 static void forcequit(int);
 static void help(const char *, int);
-static void playsig(int);
 static void stopsig(int);
 
-pid_t ppid = 0;
-
 int main(int argc, char ** argv) {
-	int option, nerror = 0, background = 0, haveSocket = 0;
+	int option, nerror = 0, background = 0, havesocket = 0;
 	char * proxy;
 	opterr = 0;
 
@@ -165,17 +162,17 @@ int main(int argc, char ** argv) {
 			port = atoi(value(& rc, "port"));
 
 		if(tcpsock(value(& rc, "bind"), (unsigned short) port))
-			haveSocket = !0;
+			havesocket = !0;
 	}
 
 
 	/* Open a UNIX socket for local "remote" control. */
 	if(haskey(& rc, "unix") && unixsock(value(& rc, "unix")))
-		haveSocket = !0;
+		havesocket = !0;
 
 
 	/* We can't daemonize if there's no possibility left to control Shell.FM. */
-	if(background && !haveSocket) {
+	if(background && !havesocket) {
 		fputs("Can't daemonize without control socket.\n", stderr);
 		exit(EXIT_FAILURE);
 	}
@@ -240,16 +237,11 @@ int main(int argc, char ** argv) {
 		dup(null);
 	}
 	
-	ppid = getpid();
-
 	atexit(cleanup);
 	loadqueue(!0);
 
 	/* Set up signal handlers for communication with the playback process. */
 	signal(SIGINT, forcequit);
-
-	/* SIGUSR2 from playfork means it detected an error. */
-	signal(SIGUSR2, playsig);
 
 	/* Catch SIGTSTP to set pausetime when user suspends us with ^Z. */
 	signal(SIGTSTP, stopsig);
@@ -315,7 +307,7 @@ int main(int argc, char ** argv) {
 				unsigned duration, played, minimum;
 
 				duration = atoi(value(& playlist.track->track, "duration")) / 1000;
-				played = time(NULL) - changeTime - pauselength;
+				played = time(NULL) - changetime - pauselength;
 
 				/* Allow user to specify minimum playback length (min. 50%). */
 				if(haskey(& rc, "minimum")) {
@@ -355,7 +347,10 @@ int main(int argc, char ** argv) {
 		}
 
 
+		/* Play next track / station changed? */
 		if(playnext || enabled(CHANGED)) {
+
+			/* If there's a delayed station change, change to the station now. */
 			if(nextstation != NULL) {
 				playnext = 0;
 				disable(CHANGED);
@@ -366,19 +361,29 @@ int main(int argc, char ** argv) {
 				nextstation = NULL;
 			}
 
+			/*
+				If there are no tracks left in the playlist, try to fetch more.
+				If there are no more tracks to fetch, stop the station.
+			*/
 			if(!playlist.left) {
 				expand(& playlist);
+
 				if(!playlist.left) {
 					puts("No tracks left.");
+
 					playnext = 0;
 					disable(CHANGED);
+
 					continue;
 				}
 			}
 
+			/* If there's no playback thread runnong, see if we can start one. */
 			if(!playthread) {
+
+				/* Try to play a track from the playlist. */
 				if(play(& playlist)) {
-					time(& changeTime);
+					time(& changetime);
 					pauselength = 0;
 
 					set(& playlist.track->track, "stationURL", currentStation);
@@ -405,15 +410,20 @@ int main(int argc, char ** argv) {
 							* fmt = value(& rc, "np-file-format");
 
 						unlink(file);
+
 						if(-1 != (np = open(file, O_WRONLY | O_CREAT, 0644))) {
 							const char * output = meta(fmt, 0, & playlist.track->track);
+
 							if(output)
 								write(np, output, strlen(output));
+
 							close(np);
 						}
 					}
 
-
+					/*
+						Print escape sequence to give the GNU Screen window a title.
+					*/
 					if(haskey(& rc, "screen-format")) {
 						const char * term = getenv("TERM");
 						if(term != NULL && !strncmp(term, "screen", 6)) {
@@ -423,7 +433,9 @@ int main(int argc, char ** argv) {
 						}
 					}
 
-
+					/*
+						Same for X terminals.
+					*/
 					if(haskey(& rc, "term-format")) {
 						const char * output =
 							meta(value(& rc, "term-format"), 0, & playlist.track->track);
@@ -434,10 +446,13 @@ int main(int argc, char ** argv) {
 					/* Run a command with our track data. */
 					if(haskey(& rc, "np-cmd"))
 						run(meta(value(& rc, "np-cmd"), 0, & playlist.track->track));
-				} else
-					changeTime = 0;
+
+				}
+				else
+					changetime = 0;
 			}
 
+			/* Automatically ban tracks from banned artists. */
 			if(banned(value(& playlist.track->track, "creator"))) {
 				puts(meta("%a is banned.", !0, & playlist.track->track));
 				rate("B");
@@ -447,32 +462,12 @@ int main(int argc, char ** argv) {
 
 		playnext = 0;
 
-		if(playthread && changeTime && haskey(& playlist.track->track, "duration") && !pausetime) {
-			unsigned duration;
-			signed remain;
-			char remstr[32];
+		/* Handle user input if not daemonized. */
+		if(!background)
+			interface();
 
-			duration = atoi(value(& playlist.track->track, "duration")) / 1000;
-
-			remain = (changeTime + duration) - time(NULL) + pauselength;
-
-			snprintf(remstr, sizeof(remstr), "%d", remain);
-			set(& playlist.track->track, "remain", remstr);
-
-			if(!background) {
-				printf(
-					"%c%02d:%02d%c",
-					remain < 0 ? '-' : ' ',
-					(remain >= 0) ? (remain / 60) : (-remain / 60),
-					(remain >= 0) ? (remain % 60) : (-remain % 60),
-					batch ? '\n' : '\r'
-				);
-				fflush(stdout);
-			}
-		}
-
-		interface(!background);
-		if(haveSocket)
+		/* Handle socket input. */
+		if(havesocket)
 			sckif(background ? 2 : 0, -1);
 	}
 
@@ -480,7 +475,8 @@ int main(int argc, char ** argv) {
 }
 
 
-static void help(const char * argv0, int errorCode) {
+/* Print help and exit. */
+static void help(const char * self, int error) {
 	fprintf(stderr,
 		"Shell.FM v" PACKAGE_VERSION ", (C) 2006-2008 by Jonas Kramer\n"
 		"Published under the terms of the GNU General Public License (GPL).\n"
@@ -494,19 +490,35 @@ static void help(const char * argv0, int errorCode) {
 		"  -D        device to play on.\n"
 		"  -y        proxy url to connect through.\n"
 		"  -h        this help.\n",
-		argv0
+		self
 	);
 
-	exit(errorCode);
+	exit(error);
 }
 
 
+/* Clean up at exit. */
 static void cleanup(void) {
-	canon(!0);
-	rmsckif();
+	/*
+		First join the threads. Tell playback thread to quit and give it some
+		time while we join with the submissions thread. Then join with playback
+		thread.
+	*/
+	if(playthread)
+		pthread_kill(playthread, SIGUSR1);
 
-	if(haskey(& rc, "unix") && getpid() == ppid)
-		unlink(value(& rc, "unix"));
+	if(subthread)
+		pthread_join(subthread, NULL);
+
+	if(playthread)
+		pthread_join(subthread, NULL);
+
+
+	/* Reset terminal. */
+	canon(!0);
+
+	/* Remove sockets. */
+	rmsckif();
 
 	empty(& data);
 	empty(& rc);
@@ -517,9 +529,6 @@ static void cleanup(void) {
 		free(currentStation);
 		currentStation = NULL;
 	}
-
-	if(subthread)
-		pthread_join(subthread, NULL);
 
 	dumpqueue(!0);
 
@@ -550,12 +559,10 @@ static void cleanup(void) {
 			closedir(directory);
 		}
 	}
-
-	if(playthread)
-		pthread_kill(playthread, SIGUSR1);
 }
 
 
+/* Print something when killed with ^C. */
 static void forcequit(int sig) {
 	if(sig == SIGINT) {
 		fputs("Try to press Q next time you want to quit.\n", stderr);
@@ -564,12 +571,7 @@ static void forcequit(int sig) {
 }
 
 
-static void playsig(int sig) {
-	if(sig == SIGUSR2)
-		error = !0;
-}
-
-
+/* Set pause time when "paused" with ^Z. */
 static void stopsig(int sig) {
 	if(sig == SIGTSTP) {
 		time(& pausetime);

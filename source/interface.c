@@ -38,249 +38,260 @@
 
 #include "globals.h"
 
-extern time_t pausetime, pauselength;
-extern pthread_mutex_t paused;
 
-void interface(int interactive) {
-	if(interactive) {
-		int key, result;
-		char customkey[8] = { 0 }, * marked = NULL;
-		
-		canon(0);
-		fflush(stderr);
-		if((key = fetchkey(1000000)) == -1)
-			return;
 
-		if(key == 27) {
-			int ch;
-			while((ch = fetchkey(100000)) != -1 && !strchr("ABCDEFGHMPQRSZojmk~", ch));
-			return;
-		}
+/* Main user input function. */
+void interface() {
+	int key, result, remain;
+	char customkey[8] = { 0 }, * marked = NULL;
 
-		switch(key) {
-			case 'l':
-				puts(rate("L") ? "Loved." : "Sorry, failed.");
-				break;
+	remain = timeout(& playlist.track->track);
 
-			case 'U':
-				puts(rate("U") ? "Unloved." : "Sorry, failed.");
-				break;
+	printf(
+		"%c%02d:%02d%c",
+		remain < 0 ? '-' : ' ',
+		(remain >= 0) ? (remain / 60) : (-remain / 60),
+		(remain >= 0) ? (remain % 60) : (-remain % 60),
+		batch ? '\n' : '\r'
+	);
 
-			case 'B':
-				puts(rate("B") ? "Banned." : "Sorry, failed.");
-				pthread_kill(playthread, SIGUSR1);
-				break;
+	fflush(stdout);
+	
+	canon(0);
+	fflush(stderr);
 
-			case 'n':
-				rate("S");
-				break;
+	if((key = fetchkey(1000000)) == -1)
+		return;
 
-			case 'Q':
-				unlink(rcpath("session"));
-				exit(EXIT_SUCCESS);
+	if(key == 27) {
+		int ch;
+		while((ch = fetchkey(100000)) != -1 && !strchr("ABCDEFGHMPQRSZojmk~", ch));
+		return;
+	}
 
-			case 'i':
-				if(playthread) {
-					const char * path = rcpath("i-template");
-					if(path && !access(path, R_OK)) {
-						char ** template = slurp(path);
-						if(template != NULL) {
-							unsigned n = 0;
-							while(template[n]) {
-								puts(meta(template[n], !0, & playlist.track->track));
-								free(template[n++]);
-							}
-							free(template);
+	switch(key) {
+		case 'l':
+			puts(rate("L") ? "Loved." : "Sorry, failed.");
+			break;
+
+		case 'U':
+			puts(rate("U") ? "Unloved." : "Sorry, failed.");
+			break;
+
+		case 'B':
+			puts(rate("B") ? "Banned." : "Sorry, failed.");
+			pthread_kill(playthread, SIGUSR1);
+			break;
+
+		case 'n':
+			rate("S");
+			break;
+
+		case 'Q':
+			unlink(rcpath("session"));
+			exit(EXIT_SUCCESS);
+
+		case 'i':
+			if(playthread) {
+				const char * path = rcpath("i-template");
+				if(path && !access(path, R_OK)) {
+					char ** template = slurp(path);
+					if(template != NULL) {
+						unsigned n = 0;
+						while(template[n]) {
+							puts(meta(template[n], !0, & playlist.track->track));
+							free(template[n++]);
 						}
-					}
-					else {
-						puts(meta("Track:    \"%t\" (%T)", !0, & playlist.track->track));
-						puts(meta("Artist:   \"%a\" (%A)", !0, & playlist.track->track));
-						puts(meta("Album:    \"%l\" (%L)", !0, & playlist.track->track));
-						puts(meta("Station:  %s", !0, & playlist.track->track));
+						free(template);
 					}
 				}
-				break;
-
-			case 'r':
-				radioprompt("radio url> ");
-				break;
-
-			case 'd':
-				toggle(DISCOVERY);
-				printf("Discovery mode %s.\n", enabled(DISCOVERY) ? "enabled" : "disabled");
-				if(playthread) {
-					printf(
-						"%u track(s) left to play/skip until change comes into affect.\n",
-						playlist.left
-					);
+				else {
+					puts(meta("Track:    \"%t\" (%T)", !0, & playlist.track->track));
+					puts(meta("Artist:   \"%a\" (%A)", !0, & playlist.track->track));
+					puts(meta("Album:    \"%l\" (%L)", !0, & playlist.track->track));
+					puts(meta("Station:  %s", !0, & playlist.track->track));
 				}
-				break;
+			}
+			break;
 
-			case 'A':
-				printf(meta("Really ban all tracks by artist %a? [yN]", !0, & playlist.track->track));
-				fflush(stdout);
-				if(fetchkey(5000000) != 'y')
-					puts("\nAbort.");
-				else if(autoban(value(& playlist.track->track, "creator"))) {
-					printf("\n%s banned.\n", meta("%a", !0, & playlist.track->track));
-					rate("B");
-				}
-				fflush(stdout);
-				break;
+		case 'r':
+			radioprompt("radio url> ");
+			break;
 
-			case 'a':
-				result = xmlrpc(
-					"addTrackToUserPlaylist", "ss",
-					value(& playlist.track->track, "creator"),
-					value(& playlist.track->track, "title")
+		case 'd':
+			toggle(DISCOVERY);
+			printf("Discovery mode %s.\n", enabled(DISCOVERY) ? "enabled" : "disabled");
+			if(playthread) {
+				printf(
+					"%u track(s) left to play/skip until change comes into affect.\n",
+					playlist.left
 				);
-				
-				puts(result ? "Added to playlist." : "Sorry, failed.");
-				break;
+			}
+			break;
 
-			case 'P':
-				toggle(RTP);
-				printf("%s RTP.\n", enabled(RTP) ? "Enabled" : "Disabled");
-				break;
+		case 'A':
+			printf(meta("Really ban all tracks by artist %a? [yN]", !0, & playlist.track->track));
+			fflush(stdout);
+			if(fetchkey(5000000) != 'y')
+				puts("\nAbort.");
+			else if(autoban(value(& playlist.track->track, "creator"))) {
+				printf("\n%s banned.\n", meta("%a", !0, & playlist.track->track));
+				rate("B");
+			}
+			fflush(stdout);
+			break;
 
-			case 'f':
-				if(playthread) {
-					const char * uri = meta("lastfm://artist/%a/fans", 0, & playlist.track->track);
-					if(haskey(& rc, "delay-change")) {
-						puts("\rDelayed.");
-						nextstation = strdup(uri);
-					}
-					else {
-						station(uri);
-					}
+		case 'a':
+			result = xmlrpc(
+				"addTrackToUserPlaylist", "ss",
+				value(& playlist.track->track, "creator"),
+				value(& playlist.track->track, "title")
+			);
+			
+			puts(result ? "Added to playlist." : "Sorry, failed.");
+			break;
+
+		case 'P':
+			toggle(RTP);
+			printf("%s RTP.\n", enabled(RTP) ? "Enabled" : "Disabled");
+			break;
+
+		case 'f':
+			if(playthread) {
+				const char * uri = meta("lastfm://artist/%a/fans", 0, & playlist.track->track);
+				if(haskey(& rc, "delay-change")) {
+					puts("\rDelayed.");
+					nextstation = strdup(uri);
 				}
-				break;
-				
-			case 's':
-				if(playthread) {
-					const char * uri = meta("lastfm://artist/%a/similarartists", 0, & playlist.track->track);
-					if(haskey(& rc, "delay-change")) {
-						puts("\rDelayed.");
-						nextstation = strdup(uri);
-					}
-					else {
-						station(uri);
-					}
+				else {
+					station(uri);
 				}
-				break;
-
-			case 'h':
-				printmarks();
-				break;
-
-			case 'H':
-				if(playthread && currentStation) {
-					puts("What number do you want to bookmark this stream as? [0-9]");
-					key = fetchkey(5000000);
-					setmark(currentStation, key - 0x30);
+			}
+			break;
+			
+		case 's':
+			if(playthread) {
+				const char * uri = meta("lastfm://artist/%a/similarartists", 0, & playlist.track->track);
+				if(haskey(& rc, "delay-change")) {
+					puts("\rDelayed.");
+					nextstation = strdup(uri);
 				}
-				break;
-
-			case 'S':
-				if(playthread) {
-					enable(STOPPED);
-					pthread_kill(playthread, SIGUSR1);
+				else {
+					station(uri);
 				}
-				break;
+			}
+			break;
 
-			case 'T':
-				if(playthread)
-					tag(playlist.track->track);
-				break;
+		case 'h':
+			printmarks();
+			break;
 
-			case 'p':
-				if(playthread) {
-					if(pausetime) {
-						pauselength += time(NULL) - pausetime;
-						pausetime = 0;
+		case 'H':
+			if(playthread && currentStation) {
+				puts("What number do you want to bookmark this stream as? [0-9]");
+				key = fetchkey(5000000);
+				setmark(currentStation, key - 0x30);
+			}
+			break;
 
-						pthread_mutex_unlock(& paused);
-					}
-					else {
-						time(& pausetime);
-						pthread_mutex_lock(& paused);
-					}
+		case 'S':
+			if(playthread) {
+				enable(STOPPED);
+				pthread_kill(playthread, SIGUSR1);
+			}
+			break;
+
+		case 'T':
+			if(playthread)
+				tag(playlist.track->track);
+			break;
+
+		case 'p':
+			if(playthread) {
+				if(pausetime) {
+					pauselength += time(NULL) - pausetime;
+					pausetime = 0;
+
+					pthread_mutex_unlock(& paused);
 				}
-				break;
-
-			case 'R':
-				if(playthread) {
-					recommend(playlist.track->track);
+				else {
+					time(& pausetime);
+					pthread_mutex_lock(& paused);
 				}
-				break;
+			}
+			break;
 
-			case '+':
-				adjust(+STEP, VOL);
-				break;
+		case 'R':
+			if(playthread) {
+				recommend(playlist.track->track);
+			}
+			break;
 
-			case '-':
-				adjust(-STEP, VOL);
-				break;
+		case '+':
+			adjust(+STEP, VOL);
+			break;
 
-			case '*':
-				adjust(+STEP, PCM);
-				break;
+		case '-':
+			adjust(-STEP, VOL);
+			break;
 
-			case '/':
-				adjust(-STEP, PCM);
-				break;
+		case '*':
+			adjust(+STEP, PCM);
+			break;
 
-			case 'u':
-				preview(playlist);
-				break;
+		case '/':
+			adjust(-STEP, PCM);
+			break;
 
-			case 'E':
-				expand(& playlist);
-				break;
+		case 'u':
+			preview(playlist);
+			break;
 
-			case '?':
-				fputs(
-					"a = add the track to the playlist | A = autoban artist\n"
-					"B = ban Track                     | d = discovery mode\n"
-					"E = manually expand playlist      | f = fan Station\n"
-					"h = list bookmarks                | H = bookmark current radio\n"
-					"i = current track information     | l = love track\n"
-					"n = skip track                    | p = pause\n"
-					"P = enable/disable RTP            | Q = quit\n"
-					"r = change radio station          | R = recommend track/artist/album\n"
-					"S = stop                          | s = similiar artist\n"
-					"T = tag track/artist/album        | u = show upcoming tracks in playlist\n"
-					"U = unlove track                  | + = increase volume (vol)\n"
-					"- = decrease volume (vol)         | * = increase volume (pcm)\n"
-					"/ = decrease volume (pcm)\n",
-					stderr
-				);
-				break;
+		case 'E':
+			expand(& playlist);
+			break;
 
-			case '0':
-			case '1':
-			case '2':
-			case '3':
-			case '4':
-			case '5':
-			case '6':
-			case '7':
-			case '8':
-			case '9':
-				if((marked = getmark(key - 0x30))) {
-					station(marked);
-					free(marked);
-				} else {
-					puts("Bookmark not defined.");
-				}
-				break;
+		case '?':
+			fputs(
+				"a = add the track to the playlist | A = autoban artist\n"
+				"B = ban Track                     | d = discovery mode\n"
+				"E = manually expand playlist      | f = fan Station\n"
+				"h = list bookmarks                | H = bookmark current radio\n"
+				"i = current track information     | l = love track\n"
+				"n = skip track                    | p = pause\n"
+				"P = enable/disable RTP            | Q = quit\n"
+				"r = change radio station          | R = recommend track/artist/album\n"
+				"S = stop                          | s = similiar artist\n"
+				"T = tag track/artist/album        | u = show upcoming tracks in playlist\n"
+				"U = unlove track                  | + = increase volume (vol)\n"
+				"- = decrease volume (vol)         | * = increase volume (pcm)\n"
+				"/ = decrease volume (pcm)\n",
+				stderr
+			);
+			break;
 
-			default:
-				snprintf(customkey, sizeof(customkey), "key0x%02X", key & 0xFF);
-				if(haskey(& rc, customkey))
-					run(meta(value(& rc, customkey), 0, & playlist.track->track));
-		}
+		case '0':
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
+			if((marked = getmark(key - 0x30))) {
+				station(marked);
+				free(marked);
+			} else {
+				puts("Bookmark not defined.");
+			}
+			break;
+
+		default:
+			snprintf(customkey, sizeof(customkey), "key0x%02X", key & 0xFF);
+			if(haskey(& rc, customkey))
+				run(meta(value(& rc, customkey), 0, & playlist.track->track));
 	}
 }
 
@@ -430,3 +441,26 @@ int rate(const char * rating) {
 
 	return 0;
 }
+
+
+/* Calculate time left of track. */
+signed timeout(struct hash * track) {
+	if(playthread && changetime && haskey(track, "duration") && !pausetime) {
+		unsigned duration;
+		signed remain;
+		char remstr[32];
+
+		duration = atoi(value(track, "duration")) / 1000;
+
+		remain = (changetime + duration) - time(NULL) + pauselength;
+
+		snprintf(remstr, sizeof(remstr), "%d", remain);
+		set(track, "remain", remstr);
+
+
+		return remain;
+	}
+
+	return 0;
+}
+

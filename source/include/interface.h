@@ -8,12 +8,13 @@
 #include "hash.h"
 
 extern const char * meta(const char *, int, struct hash *);
-extern void interface(int);
+extern void interface();
 extern void run(const char *);
 extern void canon(int);
 extern int fetchkey(unsigned);
 extern void shownp(void);
 extern void tag(struct hash);
 extern int rate(const char *);
+extern signed timeout(struct hash *);
 
 #endif

@@ -37,9 +37,11 @@
 
 static int stcpsck = -1, sunixsck = -1;
 static int waitread(int, unsigned, unsigned);
+void oldtagstring(char *, unsigned, char);
 
 #define REPLYBUFSIZE 1024
 
+/* Open a TCP port for remote control. */
 int tcpsock(const char * ip, unsigned short port) {
 	static const int one = 1;
 	struct sockaddr_in host;
@@ -48,11 +50,13 @@ int tcpsock(const char * ip, unsigned short port) {
 	if(!ip || !port)
 		return 0;
 
+	/* Create socket. */
 	if(-1 == (stcpsck = socket(AF_INET, SOCK_STREAM, PF_UNSPEC))) {
 		fputs("Failed to create socket.\n", stderr);
 		return 0;
 	}
 
+	/* Look up local address to bind socket to. */
 	if(!(hostent = gethostbyname(ip))) {
 		fprintf(stderr, "Failed to lookup host. %s.\n", hstrerror(h_errno));
 		return 0;
@@ -62,6 +66,7 @@ int tcpsock(const char * ip, unsigned short port) {
 	host.sin_port = htons(port);
 	host.sin_addr.s_addr = * (unsigned *) hostent->h_addr;
 
+	/* Prepare socket for incoming connections and make it re-usable. */
 	if(-1 == setsockopt(stcpsck, SOL_SOCKET, SO_REUSEADDR, & one, sizeof one))
 		fprintf(stderr, "Couldn't make socket re-usable. %s\n", strerror(errno));
 
@@ -76,6 +81,7 @@ int tcpsock(const char * ip, unsigned short port) {
 }
 
 
+/* Create a local (UNIX) socket for locale "remote" control. */
 int unixsock(const char * path) {
 	struct sockaddr_un host;
 
@@ -111,6 +117,7 @@ int unixsock(const char * path) {
 }
 
 
+/* Clean up sockets. */
 void rmsckif(void) {
 	if(stcpsck > 0) {
 		close(stcpsck);
@@ -119,11 +126,14 @@ void rmsckif(void) {
 
 	if(sunixsck > 0) {
 		close(sunixsck);
+		unlink(value(& rc, "unix"));
+
 		sunixsck = -1;
 	}
 }
 
 
+/* Handle input on UNIX or TCP socket. */
 void sckif(int timeout, int sck) {
 
 	/* If the given socket is -1, try both sockets, unix and tcp. */
@@ -179,8 +189,10 @@ void sckif(int timeout, int sck) {
 	}
 }
 
+
+/* Parse and execute a command received on a socket. */
 void execcmd(const char * cmd, char * reply) {
-	char arg[1024], * ptr;
+	char arg[1024];
 	unsigned ncmd;
 	const char * known [] = {
 		"play",
@@ -209,10 +221,12 @@ void execcmd(const char * cmd, char * reply) {
 	}
 
 	switch(ncmd) {
+		/* Send error if the command isn't known. */
 		case (sizeof(known) / sizeof(char *)):
-			strncpy(reply, "ERROR", REPLYBUFSIZE);
+			strncpy(reply, "UNKNOWN COMMAND", REPLYBUFSIZE);
 			break;
 
+		/* Play a station. */
 		case 0:
 			if(sscanf(cmd, "play %128[a-zA-Z0-9:/_ %,-]", arg) == 1) {
 				char * url;
@@ -222,21 +236,26 @@ void execcmd(const char * cmd, char * reply) {
 			}
 			break;
 
+		/* Love track. */
 		case 1:
 			rate("L");
 			break;
 
+		/* Ban track. */
 		case 2:
 			rate("B");
 			break;
 
+		/* Skip track. */
 		case 3:
 			rate("S");
 			break;
 
+		/* Quit. */
 		case 4:
 			exit(EXIT_SUCCESS);
 
+		/* Evaluate a given format string and return it. */
 		case 5:
 			if(* (cmd + 5))
 				strncpy(reply, meta(cmd + 5, 0, & playlist.track->track), REPLYBUFSIZE);
@@ -249,6 +268,7 @@ void execcmd(const char * cmd, char * reply) {
 
 			break;
 
+		/* Pause. */
 		case 6:
 			if(playthread) {
 				if(pausetime) {
@@ -261,49 +281,45 @@ void execcmd(const char * cmd, char * reply) {
 			}
 			break;
 
+		/* Toggle discovery mode. */
 		case 7:
 			toggle(DISCOVERY);
 			break;
 
+		/* Tag artist of the currently played track. */
 		case 8:
 			if(sscanf(cmd, "tag-artist %128s", arg) == 1)
 				sendtag('a', arg, playlist.track->track);
 			break;
 
+		/* Tag album of the currently played track. */
 		case 9:
 			if(sscanf(cmd, "tag-album %128s", arg) == 1)
 				sendtag('l', arg, playlist.track->track);
 			break;
 
+		/* Tag currently played track. */
 		case 10:
 			if(sscanf(cmd, "tag-track %128s", arg) == 1)
 				sendtag('t', arg, playlist.track->track);
 			break;
 
+		/* Get artist tags. */
 		case 11:
-			if((ptr = oldtags('a', playlist.track->track)) != NULL) {
-				strncpy(reply, ptr, REPLYBUFSIZE);
-				free(ptr);
-				ptr = NULL;
-			}
+			oldtagstring(reply, REPLYBUFSIZE, 'a');
 			break;
 
+		/* Get album tags. */
 		case 12:
-			if((ptr = oldtags('l', playlist.track->track)) != NULL) {
-				strncpy(reply, ptr, REPLYBUFSIZE);
-				free(ptr);
-				ptr = NULL;
-			}
+			oldtagstring(reply, REPLYBUFSIZE, 'l');
 			break;
 
+		/* Get track tags. */
 		case 13:
-			if((ptr = oldtags('t', playlist.track->track)) != NULL) {
-				strncpy(reply, ptr, REPLYBUFSIZE);
-				free(ptr);
-				ptr = NULL;
-			}
+			oldtagstring(reply, REPLYBUFSIZE, 't');
 			break;
 
+		/* Stop station. */
 		case 14:
 			if(playthread) {
 				enable(STOPPED);
@@ -313,6 +329,8 @@ void execcmd(const char * cmd, char * reply) {
 	}
 }
 
+
+/* Wait for incoming data on the given file descriptor. */
 static int waitread(int fd, unsigned sec, unsigned usec) {
 	fd_set readfd;
 	struct timeval tv;
@@ -324,4 +342,15 @@ static int waitread(int fd, unsigned sec, unsigned usec) {
 	tv.tv_usec = usec;
 	
 	return (select(fd + 1, & readfd, NULL, NULL, & tv) > 0);
+}
+
+
+/* Get old tags and copy the string into the reply buffer. */
+void oldtagstring(char * reply, unsigned size, char type) {
+	char * tagstring;
+
+	if((tagstring = oldtags(type, playlist.track->track)) != NULL) {
+		strncpy(reply, tagstring, size);
+		free(tagstring);
+	}
 }

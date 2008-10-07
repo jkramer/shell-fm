@@ -6,9 +6,8 @@
 #include "playlist.h"
 
 /* Track, session and settings data structures. */
-extern struct hash data;
+extern struct hash data, rc;
 extern struct playlist playlist;
-extern struct hash rc;
 
 /* Batch mode: no coloring, every line of output gets uncoditionally
    terminated by newline. */
@@ -17,10 +16,13 @@ extern int batch;
 /* Forks. */
 extern pthread_t playthread, subthread;
 
+/* Pause mutex. */
+extern pthread_mutex_t paused;
+
 extern char * currentStation; /* Name of the current station. */
 
 extern unsigned submitting; /* Number of tracks currently submitted. */
-extern time_t pausetime; /* Pause start time. */
+extern time_t changetime, pausetime, pauselength; /* Timers. */
 
 
 extern unsigned flags;

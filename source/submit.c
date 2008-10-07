@@ -36,8 +36,6 @@ pthread_mutex_t queuemt = PTHREAD_MUTEX_INITIALIZER;
 int handshaked = 0;
 pthread_t subthread = 0;
 
-extern struct hash data, rc;
-
 static int handshake(const char *, const char *);
 static void sliceq(unsigned);
 
@@ -55,6 +53,7 @@ int enqueue(struct hash * track) {
 
 	memset(& post, 0, sizeof(struct hash));
 
+	/* Make sure all needed track data fields are there. */
 	for(i = 0; i < (sizeof(keys) / sizeof(char *)); ++i)
 		if(!haskey(track, keys[i])) {
 			pthread_mutex_unlock(& queuemt);
@@ -64,10 +63,12 @@ int enqueue(struct hash * track) {
 	queue = realloc(queue, sizeof(struct hash) * (qlength + 1));
 	assert(queue != NULL);
 
+	/* Stringify some values for the request. */
 	snprintf(timestamp, sizeof(timestamp), "%lu", time(NULL));
 	snprintf(lastid, sizeof(lastid), "L%s", value(track, "lastfm:trackauth"));
 	snprintf(duration, sizeof(duration), "%d", atoi(value(track, "duration")) / 1000);
 
+	/* Fill the hash with the scrobbling data and the keys known by the API. */
 	set(& post, "a", value(track, "creator"));
 	set(& post, "t", value(track, "title"));
 	set(& post, "i", timestamp);
@@ -81,6 +82,7 @@ int enqueue(struct hash * track) {
 	memcpy(& queue[qlength++], & post, sizeof(struct hash));
 
 	pthread_mutex_unlock(& queuemt);
+
 	return !0;
 }
 
@@ -103,8 +105,7 @@ int submit(struct hash * rc) {
 
 	enable(QUIET);
 
-	signal(SIGTERM, SIG_IGN);
-
+	/* Authenticate to the webservice. */
 	if(!handshaked && !handshake(value(rc, "username"), value(rc, "password"))) {
 		fputs("Handshake failed.\n", stderr);
 		pthread_mutex_unlock(& queuemt);
@@ -117,8 +118,11 @@ int submit(struct hash * rc) {
 	memset(body, 0, stepsize);
 
 	snprintf(body, stepsize, "s=%s", value(& submission, "session"));
+
+	/* Add track data from queued tracks to POST body. */
 	for(ntrack = 0; ntrack < qlength; ++ntrack) {
 		unsigned pair;
+
 		for(pair = 0; pair < queue[ntrack].size; ++pair) {
 			char key[16], * encoded = NULL;
 			unsigned length, bodysz = strlen(body);
@@ -142,6 +146,7 @@ int submit(struct hash * rc) {
 		}
 	}
 
+	/* POST it and check response. */
 	resp = fetch(value(& submission, "submissions"), NULL, body, NULL);
 
 	if(resp) {
@@ -284,11 +289,13 @@ void loadqueue(int overwrite) {
 
 	pthread_mutex_lock(& queuemt);
 
+	/* Clear queue. */
 	if(overwrite)
 		sliceq(qlength);
 
 	if(path != NULL) {
 		FILE * fd = fopen(path, "r");
+
 		if(fd != NULL) {
 			while(!feof(fd)) {
 				char * line = NULL;
@@ -302,13 +309,16 @@ void loadqueue(int overwrite) {
 					memset(& track, 0, sizeof(struct hash));
 
 					while(n--) {
-						char key[2] = { 0 }, * value = NULL;
+						char key[2] = { 0, }, * value = NULL;
+
 						sscanf(splt[n], "%c=", & key[0]);
+
 						if(strchr("atirolbnm", key[0])) {
 							decode(splt[n] + 2, & value);
 							set(& track, key, value);
 							free(value);
 						}
+
 						free(splt[n]);
 					}
 
@@ -322,6 +332,7 @@ void loadqueue(int overwrite) {
 				if(line)
 					free(line);
 			}
+
 			fclose(fd);
 		}
 	}
