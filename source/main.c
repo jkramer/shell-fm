@@ -386,7 +386,7 @@ int main(int argc, char ** argv) {
 					time(& changetime);
 					pauselength = 0;
 
-					set(& playlist.track->track, "stationURL", currentStation);
+					set(& playlist.track->track, "stationURL", currentstation);
 
 					/* Print what's currently played. (Ondrej Novy) */
 					if(!background) {
@@ -525,9 +525,9 @@ static void cleanup(void) {
 
 	freelist(& playlist);
 
-	if(currentStation) {
-		free(currentStation);
-		currentStation = NULL;
+	if(currentstation) {
+		free(currentstation);
+		currentstation = NULL;
 	}
 
 	dumpqueue(!0);

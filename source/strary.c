@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2006 by Jonas Kramer
+	Copyright (C) 2006-2008 by Jonas Kramer
 	Copyright (C) 2006 by Bart Trojanowski <bart@jukie.net>
 
 	Published under the terms of the GNU General Public License (GPL).
@@ -79,8 +79,8 @@ void purge(char ** list) {
 }
 
 /*
-	Merge strings of an array to one big string. If the second argument is
-  false, the list is purged.
+   Merge strings of an array to one big string. If the second argument is
+   false, the list is purged.
 */
 char * join(char ** list, int keep) {
 	unsigned i = 0, length = 0;

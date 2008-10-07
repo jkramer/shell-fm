@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2006 by Jonas Kramer
+	Copyright (C) 2006-2008 by Jonas Kramer
 	Published under the terms of the GNU General Public License (GPL).
 */
 
@@ -10,6 +10,10 @@
 
 #include "split.h"
 
+/*
+   Split a string wherever the given delimiter occurs, return a
+   NULL-terminated array of strings with the chunks.
+*/
 char ** split(char * string, const char * del, unsigned * pnsplt) {
 	char ** splt = NULL;
 	unsigned nsplt = 0;

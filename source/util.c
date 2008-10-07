@@ -13,6 +13,8 @@
 #include "util.h"
 #include "getln.h"
 
+
+/* Read a whole (text) file at once, return the lines as array of strings. */
 char ** slurp(const char * path) {
 	char ** content = NULL;
 	unsigned items = 0;
@@ -49,6 +51,7 @@ char ** slurp(const char * path) {
 }
 
 
+/* Remove duplicates from an array of strings. */
 char ** uniq(char ** list) {
 	char ** uniqlist = NULL;
 
@@ -76,6 +79,7 @@ char ** uniq(char ** list) {
 }
 
 
+/* Search an array of strings for a given string, returns true if found. */
 int grep(char ** list, char * needle) {
 	register unsigned x = 0;
 	
@@ -96,6 +100,7 @@ int grep(char ** list, char * needle) {
 
 #ifdef __STRNDUP__
 
+/* Our own implementation of strndup(), for non-gnu systems. */
 char * strndup(const char * src, size_t len) {
 	char * tmp = (char *) malloc(len + 1);
 	if(tmp != NULL) {

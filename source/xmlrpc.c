@@ -20,6 +20,7 @@ static void sparam(char **, unsigned *, const char *);
 static void aparam(char **, unsigned *, const char **);
 char * xmlize(const char *);
 
+/* Send a XML RPC method call to the webservice. */
 int xmlrpc(const char * method, const char * fmt, ...) {
 	unsigned size = 1024, narg, x;
 	const unsigned char * md5;

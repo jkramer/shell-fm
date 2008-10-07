@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2006 by Jonas Kramer
+	Copyright (C) 2006-2008 by Jonas Kramer
 	Published under the terms of the GNU General Public License (GPL).
 */
 
@@ -31,12 +31,13 @@
 #include "globals.h"
 
 struct hash data;
-pthread_t playthread; /* PID of the decoding & playing process, if running */
+pthread_t playthread; /* ID of the decoding & playing thread, if running */
 
 struct playlist playlist;
-char * currentStation = NULL;
+char * currentstation = NULL;
 
 
+/* Authenticate to the Last.FM webservice. */
 int authenticate(const char * username, const char * password) {
 	const unsigned char * md5;
 	char hexmd5[32 + 1] = { 0 }, url[512] = { 0 }, ** response;
@@ -79,6 +80,7 @@ int authenticate(const char * username, const char * password) {
 		set(& data, key, val);
 		free(response[i++]);
 	}
+
 	free(response);
 
 	session = value(& data, "session");
@@ -92,6 +94,7 @@ int authenticate(const char * username, const char * password) {
 }
 
 
+/* Request a Last.FM station. */
 int station(const char * stationURL) {
 	char url[512] = { 0 }, * encodedURL = NULL, ** response;
 	unsigned i = 0, retval = !0, regular = !0;
@@ -173,20 +176,19 @@ int station(const char * stationURL) {
 	enable(CHANGED);
 	histapp(stationURL);
 
-	if(currentStation)
-		free(currentStation);
+	if(currentstation)
+		free(currentstation);
 
-	currentStation = strdup(stationURL);
+	currentstation = strdup(stationURL);
 
-	if(retval && playthread) {
-		/* enable(STOPPED); */
+	if(retval && playthread)
 		pthread_kill(playthread, SIGUSR1);
-	}
 
 	return retval;
 }
 
 
+/* Play the next track from the given playlist. */
 int play(struct playlist * list) {
 	FILE * fd = NULL;
 	const char * location;
@@ -205,8 +207,6 @@ int play(struct playlist * list) {
 		pthread_kill(playthread, SIGUSR1);
 		return !0;
 	}
-
-	enable(QUIET);
 
 	location = value(& list->track->track, "location");
 

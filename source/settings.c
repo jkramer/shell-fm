@@ -20,6 +20,10 @@
 
 struct hash rc; /* settings read from ~/.shell-fm.rc */
 
+/*
+   Read settings from the file pointed to by the given path and store them in
+   the global hash.
+*/
 int settings(const char * path, int first) {
 	int retval = !0;
 	FILE * fd = fopen(path, "r");
@@ -77,12 +81,14 @@ int settings(const char * path, int first) {
 }
 
 
+/* Create paths. */
 void makercd(void) {
 	mkdir(rcpath(""), 0755);
 	mkdir(rcpath("cache"), 0755);
 }
 
 
+/* Return path to a file within the default shell-fm directory. */
 const char * rcpath(const char * file) {
 	static char path[4096] = { 0 };
 	memset(path, 0, sizeof(path));

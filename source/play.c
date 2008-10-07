@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2006 by Jonas Kramer
+	Copyright (C) 2006-2008 by Jonas Kramer
 	Published under the terms of the GNU General Public License (GPL).
 
 	Some code of this is shamelessly stolen from the libmad-example

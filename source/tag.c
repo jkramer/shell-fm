@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2006 by Jonas Kramer
+	Copyright (C) 2006-2008 by Jonas Kramer
 	Copyright (C) 2006 by Bart Trojanowski <bart@jukie.net>
 
 	Published under the terms of the GNU General Public License (GPLv2).
@@ -29,6 +29,7 @@
 
 char ** popular = NULL;
 
+/* Prompt for tags providing tab completion. */
 void tag(struct hash data) {
 	char key, * tagstring;
 	struct prompt setup = {
@@ -67,6 +68,10 @@ void tag(struct hash data) {
 }
 
 
+/*
+	Get existing tags for an artist/album/track and return the as
+	comma-separated string.
+*/
 char * oldtags(char key, struct hash track) {
 	unsigned length, x;
 	char * tags = NULL, * url = calloc(512, sizeof(char)),
@@ -140,9 +145,11 @@ char * oldtags(char key, struct hash track) {
 }
 
 
+/* Strip slashes from a string. */
 void stripslashes(char * string) {
 	unsigned x = 0;
-	while(x < strlen(string)) {
+
+	while(string[x]) {
 		if(string[x] == 0x2F)
 			strncpy(string + x, string + x + 1, strlen(string + x + 1));
 		else
@@ -151,6 +158,7 @@ void stripslashes(char * string) {
 }
 
 
+/* Callback function for tag completion. */
 int tagcomplete(char * line, const unsigned max, int changed) {
 	unsigned length, nres = 0;
 	int retval = 0;
@@ -198,6 +206,7 @@ int tagcomplete(char * line, const unsigned max, int changed) {
 }
 
 
+/* Send tags to Last.FM webservice. */
 void sendtag(char key, char * tagstring, struct hash data) {
 	unsigned nsplt = 0;
 	int result = 0;

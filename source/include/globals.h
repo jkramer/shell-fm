@@ -19,7 +19,7 @@ extern pthread_t playthread, subthread;
 /* Pause mutex. */
 extern pthread_mutex_t paused;
 
-extern char * currentStation; /* Name of the current station. */
+extern char * currentstation; /* Name of the current station. */
 
 extern unsigned submitting; /* Number of tracks currently submitted. */
 extern time_t changetime, pausetime, pauselength; /* Timers. */

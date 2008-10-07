@@ -187,10 +187,10 @@ void interface() {
 			break;
 
 		case 'H':
-			if(playthread && currentStation) {
+			if(playthread && currentstation) {
 				puts("What number do you want to bookmark this stream as? [0-9]");
 				key = fetchkey(5000000);
-				setmark(currentStation, key - 0x30);
+				setmark(currentstation, key - 0x30);
 			}
 			break;
 
