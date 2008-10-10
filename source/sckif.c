@@ -89,10 +89,8 @@ int unixsock(const char * path) {
 		return 0;
 
 
-	if(!access(path, F_OK)) {
-		fprintf(stderr, "%s already existing. UNIX socket not created.\n", path);
-		return 0;
-	}
+	if(!access(path, F_OK))
+		unlink(path);
 
 
 	if(-1 == (sunixsck = socket(AF_UNIX, SOCK_STREAM, PF_UNSPEC))) {
