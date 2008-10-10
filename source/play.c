@@ -188,7 +188,7 @@ int playback(FILE * streamfd) {
 
 	fclose(streamfd);
 
-	return !0;
+	pthread_exit(NULL);
 }
 
 static enum mad_flow input(void * data, struct mad_stream * stream) {

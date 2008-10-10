@@ -324,8 +324,21 @@ int main(int argc, char ** argv) {
 					enqueue(& playlist.track->track);
 			}
 
-			if(!subthread)
-				pthread_create(& subthread, NULL, (void *(*)(void *)) submit, & rc);
+			if(!subthread) {
+				int error = pthread_create(
+					& subthread,
+					NULL,
+					(void *(*)(void *)) submit,
+					& rc
+				);
+
+				if(error)
+					fprintf(
+						stderr,
+						"Failed to create thread. %s.\n",
+						strerror(error)
+					);
+			}
 
 			/* Check if the user stopped the stream. */
 			if(enabled(STOPPED) || error) {
@@ -507,11 +520,15 @@ static void cleanup(void) {
 	if(playthread)
 		pthread_kill(playthread, SIGUSR1);
 
-	if(subthread)
+	if(subthread) {
 		pthread_join(subthread, NULL);
+		subthread = 0;
+	}
 
-	if(playthread)
-		pthread_join(subthread, NULL);
+	if(playthread) {
+		pthread_join(playthread, NULL);
+		playthread = 0;
+	}
 
 
 	/* Reset terminal. */
