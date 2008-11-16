@@ -260,6 +260,7 @@ int main(int argc, char ** argv) {
 		}
 	}
 
+	playthread = 0;
 
 	/* Play default radio, if specified. */
 	if(haskey(& rc, "default-radio"))

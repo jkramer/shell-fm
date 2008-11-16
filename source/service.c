@@ -214,12 +214,16 @@ int play(struct playlist * list) {
 		fetch(location, & fd, NULL, NULL);
 
 		if(fd != NULL) {
-			pthread_create(
+			int error = pthread_create(
 				& playthread,
 				NULL,
 				(void *(*)(void *)) playback,
 				(void *) fd
 			);
+
+			if(error) {
+				fprintf(stderr, "Failed to create thread. %s.\n", strerror(error));
+			}
 		}
 	}
 
