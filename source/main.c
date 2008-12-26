@@ -393,14 +393,14 @@ int main(int argc, char ** argv) {
 					/* Print what's currently played. (Ondrej Novy) */
 					if(!background) {
 						if(enabled(CHANGED) && playlist.left > 0) {
-							puts(meta("Receiving %s.", !0, & track));
+							puts(meta("Receiving %s.", M_COLORED, & track));
 							disable(CHANGED);
 						}
 
 						if(haskey(& rc, "title-format"))
-							printf("%s\n", meta(value(& rc, "title-format"), !0, & track));
+							printf("%s\n", meta(value(& rc, "title-format"), M_COLORED, & track));
 						else
-							printf("%s\n", meta("Now playing \"%t\" by %a.", !0, & track));
+							printf("%s\n", meta("Now playing \"%t\" by %a.", M_COLORED, & track));
 					}
 
 
@@ -446,7 +446,7 @@ int main(int argc, char ** argv) {
 			}
 
 			if(banned(value(& track, "creator"))) {
-				puts(meta("%a is banned.", !0, & track));
+				puts(meta("%a is banned.", M_COLORED, & track));
 				rate("B");
 				fflush(stdout);
 			}

@@ -87,17 +87,17 @@ void interface(int interactive) {
 						if(template != NULL) {
 							unsigned n = 0;
 							while(template[n]) {
-								puts(meta(template[n], !0, & track));
+								puts(meta(template[n], M_COLORED, & track));
 								free(template[n++]);
 							}
 							free(template);
 						}
 					}
 					else {
-						puts(meta("Track:    \"%t\" (%T)", !0, & track));
-						puts(meta("Artist:   \"%a\" (%A)", !0, & track));
-						puts(meta("Album:    \"%l\" (%L)", !0, & track));
-						puts(meta("Station:  %s", !0, & track));
+						puts(meta("Track:    \"%t\" (%T)", M_COLORED, & track));
+						puts(meta("Artist:   \"%a\" (%A)", M_COLORED, & track));
+						puts(meta("Album:    \"%l\" (%L)", M_COLORED, & track));
+						puts(meta("Station:  %s", M_COLORED, & track));
 					}
 				}
 				break;
@@ -118,12 +118,12 @@ void interface(int interactive) {
 				break;
 
 			case 'A':
-				printf(meta("Really ban all tracks by artist %a? [yN]", !0, & track));
+				printf(meta("Really ban all tracks by artist %a? [yN]", M_COLORED, & track));
 				fflush(stdout);
 				if(fetchkey(5000000) != 'y')
 					puts("\nAbort.");
 				else if(autoban(value(& track, "creator"))) {
-					printf("\n%s banned.\n", meta("%a", !0, & track));
+					printf("\n%s banned.\n", meta("%a", M_COLORED, & track));
 					rate("B");
 				}
 				fflush(stdout);
@@ -302,12 +302,13 @@ int fetchkey(unsigned nsec) {
 
 
 #define remn (sizeof(string) - length - 1)
-const char * meta(const char * fmt, int colored, struct hash * track) {
+const char * meta(const char * fmt, int flags, struct hash * track) {
 	static char string[4096];
 	unsigned length = 0, x = 0;
 
 	/* Switch off coloring when in batch mode */
-	colored = (colored && !(batch));
+	if (batch)
+		flags &= ~M_COLORED;
 
 	if(!fmt)
 		return NULL;
@@ -337,7 +338,8 @@ const char * meta(const char * fmt, int colored, struct hash * track) {
 			while(i--) {
 				if(fmt[x] == keys[i][0]) {
 					const char * val = value(track, keys[i] + 1), * color = NULL;
-					if(colored) {
+					char *val2;
+					if(flags & M_COLORED) {
 						char colorkey[64] = { 0 };
 						snprintf(colorkey, sizeof(colorkey), "%c-color", keys[i][0]);
 						color = value(& rc, colorkey);
@@ -354,7 +356,20 @@ const char * meta(const char * fmt, int colored, struct hash * track) {
 						}
 					}
 
-					length = strlen(strncat(string, val ? val : "(unknown)", remn));
+					if((flags & M_RELAXPATH) && val) {
+						unsigned j;
+						size_t l = strlen(val);
+
+						val2 = malloc(l+1);
+						if(val2) {
+							for(j = 0; j <= l; j++)
+								val2[j] = (val[j] == '/') ? '|' : val[j];
+						}
+					} else
+						val2 = (char *)val;
+					length = strlen(strncat(string, val2 ? val2 : "(unknown)", remn));
+					if(flags & M_RELAXPATH)
+						free(val2);
 
 					if(color)
 						length = strlen(strncat(string, "\x1B[0m", remn));

@@ -222,7 +222,7 @@ void preview(struct playlist list) {
 				? value(& rc, "preview-format")
 				: "%a - %t";
 
-			printf("%2d %s\n", n++, meta(format, !0, & node->track));
+			printf("%2d %s\n", n++, meta(format, M_COLORED, & node->track));
 
 			node = node->next;
 		}

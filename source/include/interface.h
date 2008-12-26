@@ -7,6 +7,9 @@
 
 #include "hash.h"
 
+#define M_COLORED   0x1
+#define M_RELAXPATH 0x2
+
 extern const char * meta(const char *, int, struct hash *);
 extern void interface(int);
 extern void run(const char *);

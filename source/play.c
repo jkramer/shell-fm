@@ -126,7 +126,7 @@ int playback(FILE * streamfd) {
 #endif
 
 		if(haskey(& track, "freeTrackURL") && haskey(& rc, "download")) {
-			data.path = strdup(meta(value(& rc, "download"), 0, & track));
+			data.path = strdup(meta(value(& rc, "download"), M_RELAXPATH, & track));
 			data.dump = fopen(data.path, "w");
 
 			if(!data.dump)
