@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <signal.h>
+#include <libgen.h>
 #include <sys/wait.h>
 #include <sys/ioctl.h>
 
@@ -66,6 +67,39 @@ inline signed scale(mad_fixed_t);
 int killed = 0;
 
 static void sighand(int);
+
+/*
+ * Taken from *BSD code
+ * (usr.bin/patch/mkpath.c)
+ */
+int
+mkpath(char *path)
+{
+	struct stat sb;
+	char *slash;
+	int done = 0;
+
+	slash = path;
+
+	while (!done) {
+		slash += strspn(slash, "/");
+		slash += strcspn(slash, "/");
+
+		done = (*slash == '\0');
+		*slash = '\0';
+
+		if (stat(path, &sb)) {
+			if (errno != ENOENT || (mkdir(path, 0777) &&
+			    errno != EEXIST))
+				return (-1);
+		} else if (!S_ISDIR(sb.st_mode))
+			return (-1);
+
+		*slash = '/';
+	}
+
+	return (0);
+}
 
 int playback(FILE * streamfd) {
 	killed = 0;
@@ -126,8 +160,15 @@ int playback(FILE * streamfd) {
 #endif
 
 		if(haskey(& track, "freeTrackURL") && haskey(& rc, "download")) {
+			char *dnam;
+			int rv;
+
 			data.path = strdup(meta(value(& rc, "download"), M_RELAXPATH, & track));
-			data.dump = fopen(data.path, "w");
+			dnam = strdup(data.path);
+			rv = dnam ? mkpath(dirname(dnam)) : -1;
+			free(dnam);
+
+			data.dump = (rv == 0) ? fopen(data.path, "w") : NULL;
 
 			if(!data.dump)
 				fprintf(stderr, "Can't write download to %s.\n", data.path);
