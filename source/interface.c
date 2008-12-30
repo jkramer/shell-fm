@@ -391,33 +391,35 @@ void run(const char * cmd) {
 
 int rate(const char * rating) {
 	if(playfork && rating != NULL) {
-		set(& track, "rating", rating);
+
+		if(rating[0] != 'U')
+			set(& track, "rating", rating);
 
 		switch(rating[0]) {
 			case 'B':
 				kill(playfork, SIGUSR1);
 				return xmlrpc(
-						"banTrack",
-						"ss",
-						value(& track, "creator"),
-						value(& track, "title")
-						);
+					"banTrack",
+					"ss",
+					value(& track, "creator"),
+					value(& track, "title")
+				);
 
 			case 'L':
 				return xmlrpc(
-						"loveTrack",
-						"ss",
-						value(& track, "creator"),
-						value(& track, "title")
-						);
+					"loveTrack",
+					"ss",
+					value(& track, "creator"),
+					value(& track, "title")
+				);
 
 			case 'U':
 				return xmlrpc(
-						"unLoveTrack",
-						"ss",
-						value(& track, "creator"),
-						value(& track, "title")
-						);
+					"unLoveTrack",
+					"ss",
+					value(& track, "creator"),
+					value(& track, "title")
+				);
 
 			case 'S':
 				kill(playfork, SIGUSR1);
