@@ -23,12 +23,16 @@ char ** split(char * string, const char * del, unsigned * pnsplt) {
 			++ptr;
 		if(* ptr) {
 			register unsigned length = 0;
+
 			splt = realloc(splt, sizeof(char *) * (nsplt + 2));
 			assert(splt != NULL);
+
 			splt[nsplt] = calloc(strlen(ptr) + 1, sizeof(char));
 			assert(splt[nsplt] != NULL);
+
 			while(* ptr && !strchr(del, * ptr))
 				splt[nsplt][length++] = * (ptr++);
+
 			splt[nsplt] = realloc(splt[nsplt], length + 1);
 			splt[++nsplt] = NULL;
 		}

@@ -42,6 +42,7 @@ char ** neighbors(const char * user) {
 				memmove(names[i], ptr + 1, length);
 				names[i][length] = 0;
 				names[i] = realloc(names[i], sizeof(char) * (length + 1));
+				assert(names[i] != NULL);
 			}
 		}
 
@@ -78,6 +79,7 @@ char ** topartists(const char * user) {
 					memmove(names[i], ptr + 1, length);
 					names[i][length] = 0;
 					names[i] = realloc(names[i], sizeof(char) * (length + 1));
+					assert(names[i] != NULL);
 				}
 			}
 		}
@@ -152,6 +154,9 @@ char ** toptags(char key, struct hash track) {
 			++count;
 
 	tags = calloc(count + 1, sizeof(char *));
+
+	assert(tags != NULL);
+
 	tags[count] = NULL;
 
 	/* Search tag names in XML document and copy them into our list. */
@@ -159,8 +164,11 @@ char ** toptags(char key, struct hash track) {
 		char * pbeg = strstr(resp[x], "<name>");
 		if(pbeg) {
 			char * pend = strstr(pbeg += 6, "</name>");
-			if(pend)
+
+			if(pend) {
 				tags[idx++] = strndup(pbeg, pend - pbeg);
+				assert(tags[idx - 1] != NULL);
+			}
 		}
 
 		free(resp[x]);
@@ -185,14 +193,20 @@ char ** overalltags(void) {
 			++count;
 
 	tags = calloc(count + 1, sizeof(char *));
+
+	assert(tags != NULL);
+
 	tags[count] = NULL;
 
 	for(x = 0, idx = 0; resp[x]; ++x) {
 		char * pbeg = strstr(resp[x], "<tag name=\""), * pend;
 		if(pbeg) {
 			pend = strstr(pbeg += 11, "\"");
-			if(pend)
+
+			if(pend) {
 				tags[idx++] = strndup(pbeg, pend - pbeg);
+				assert(tags[idx - 1] != NULL);
+			}
 		}
 
 	}
@@ -229,7 +243,13 @@ char ** usertags(const char * user) {
 					* end = 0;
 
 					tags = realloc(tags, sizeof(char *) * (ntag + 2));
+
+					assert(tags != NULL);
+
 					tags[ntag++] = strdup(begin);
+
+					assert(tags[ntag - 1] != NULL);
+
 					tags[ntag] = NULL;
 				}
 			}

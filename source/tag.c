@@ -52,7 +52,7 @@ void tag(struct hash data) {
 
 	setup.line = oldtags(key, data);
 
-	tagstring = strdup(readline(& setup));
+	assert((tagstring = strdup(readline(& setup))) != NULL);
 
 	if(setup.line) {
 		free(setup.line);
@@ -70,8 +70,10 @@ void tag(struct hash data) {
 char * oldtags(char key, struct hash track) {
 	unsigned length, x;
 	char * tags = NULL, * url = calloc(512, sizeof(char)),
-			 * user = NULL, * artist = NULL, * arg = NULL,
-			 * file = NULL, ** resp;
+		 * user = NULL, * artist = NULL, * arg = NULL,
+		 * file = NULL, ** resp;
+	
+	assert(url != NULL);
 	
 	switch(key) {
 		case 'a':
@@ -124,10 +126,18 @@ char * oldtags(char key, struct hash track) {
 			if(pend) {
 				char * thistag = strndup(pbeg, pend - pbeg);
 				unsigned nlength = strlen(thistag) + length;
+
+				assert(thistag != NULL);
+
 				if(length)
 					++nlength;
+
 				tags = realloc(tags, nlength + 1);
+
+				assert(tags != NULL);
+
 				sprintf(tags + length, "%s%s", length ? "," : "", thistag);
+
 				free(thistag);
 				length = nlength;
 			}

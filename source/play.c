@@ -20,6 +20,7 @@
 #include <libgen.h>
 #include <sys/wait.h>
 #include <sys/ioctl.h>
+#include <assert.h>
 
 #ifdef LIBAO
 #include <ao/ao.h>
@@ -164,6 +165,8 @@ int playback(FILE * streamfd) {
 			int rv;
 
 			data.path = strdup(meta(value(& rc, "download"), M_RELAXPATH, & track));
+			assert(data.path != NULL);
+
 			dnam = strdup(data.path);
 			rv = dnam ? mkpath(dirname(dnam)) : -1;
 			free(dnam);
@@ -313,6 +316,8 @@ static enum mad_flow output(
 	}
 
 	stream_ptr = stream = malloc(pcm->length * (pcm->channels == 2 ? 4 : 2));
+
+	assert(stream != NULL);
 	
 	while(nsample--) {
 		signed int sample;

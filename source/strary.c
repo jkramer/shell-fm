@@ -38,7 +38,11 @@ char ** append(char ** list, const char * string) {
 
 	list = realloc(list, sizeof(char *) * (size + 2));
 
+	assert(list != NULL);
+
 	list[size++] = strdup(string);
+	assert(list[size - 1] != NULL);
+
 	list[size] = NULL;
 
 	return list;
@@ -53,7 +57,11 @@ char ** merge(char ** list, char ** appendix, int keep) {
 
 	for(i = 0; appendix && appendix[i] != NULL; ++i) {
 		list = realloc(list, sizeof(char *) * (size + 2));
+
+		assert(list != NULL);
+
 		list[size++] = strdup(appendix[i]);
+		assert(list[size - 1] != NULL);
 		list[size] = NULL;
 
 		if(!keep)
@@ -89,6 +97,8 @@ char * join(char ** list, int keep) {
 	if(list != NULL) {
 		while(list[i] != NULL) {
 			result = realloc(result, sizeof(char) * (length + strlen(list[i]) + 1));
+
+			assert(result != NULL);
 
 			strcpy(result + length, list[i]);
 			length += strlen(list[i]);

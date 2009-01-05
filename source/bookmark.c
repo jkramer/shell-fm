@@ -10,6 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <assert.h>
 
 #include "settings.h"
 #include "bookmark.h"
@@ -31,8 +32,11 @@ void setmark(const char * streamURL, int n) {
 
 			length = getln(& line, & size, fd);
 			if(line && length > 4) {
-				if(sscanf(line, "%d = ", & x) == 1 && !bookmarks[x])
+				if(sscanf(line, "%d = ", & x) == 1 && !bookmarks[x]) {
 					bookmarks[x] = strdup(line + 4);
+					assert(bookmarks[x] != NULL);
+				}
+
 				free(line);
 			}
 		}
@@ -41,6 +45,7 @@ void setmark(const char * streamURL, int n) {
 	}
 
 	bookmarks[n] = strdup(streamURL);
+	assert(bookmarks[n] != NULL);
 
 	if((fd = fopen(rcpath("bookmarks"), "w"))) {
 		int i;
@@ -73,9 +78,12 @@ char * getmark(int n) {
 		if(line && length > 4)
 			if(sscanf(line, "%d = ", & x) == 1 && x == n) {
 				char * ptr = strchr(line, 10);
+
 				if(ptr != NULL)
 					* ptr = 0;
+
 				streamURL = strdup(line + 4);
+				assert(streamURL != NULL);
 			}
 
 		if(size && line)

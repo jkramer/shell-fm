@@ -177,6 +177,7 @@ int station(const char * stationURL) {
 		free(currentStation);
 
 	currentStation = strdup(stationURL);
+	assert(currentStation != NULL);
 
 	if(retval && playfork) {
 		/* enable(STOPPED); */

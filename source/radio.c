@@ -16,6 +16,7 @@
 #include <sys/time.h>
 #include <signal.h>
 #include <stdarg.h>
+#include <assert.h>
 
 #include "completion.h"
 #include "http.h"
@@ -83,6 +84,7 @@ void radioprompt(const char * prompt) {
 		*/
 		if(playfork && haskey(& rc, "delay-change")) {
 			nextstation = strdup(decoded);
+			assert(nextstation != NULL);
 			puts("\rDelayed.");
 		}
 		else {

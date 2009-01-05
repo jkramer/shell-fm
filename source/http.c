@@ -188,7 +188,11 @@ char ** fetch(const char * url, FILE ** pHandle, const char * post, const char *
 
 unsigned encode(const char * orig, char ** encoded) {
 	register unsigned i = 0, x = 0;
+
 	* encoded = calloc((strlen(orig) * 3) + 1, sizeof(char));
+	
+	assert(* encoded != NULL);
+
 	while(i < strlen(orig)) {
 		if(isalnum(orig[i]) || orig[i] == ' ')
 			(* encoded)[x++] = orig[i];
@@ -214,7 +218,11 @@ unsigned encode(const char * orig, char ** encoded) {
 unsigned decode(const char * orig, char ** decoded) {
 	register unsigned i = 0, x = 0;
 	const unsigned len = strlen(orig);
+
 	* decoded = calloc(len + 1, sizeof(char));
+	
+	assert(decoded != NULL);
+
 	while(i < len) {
 		if(orig[i] != '%')
 			(* decoded)[x] = orig[i];
@@ -233,6 +241,8 @@ unsigned decode(const char * orig, char ** decoded) {
 	}
 
 	* decoded = realloc(* decoded, (x + 1) * sizeof(char));
+
+	assert(decoded != NULL);
 	
 	for(i = 0; i < x; ++i)
 		if((* decoded)[i] == '+')

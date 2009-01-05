@@ -76,6 +76,7 @@ int parsexspf(struct playlist * list, const char * xml) {
 		char * track, * radio = NULL;
 
 		radio = strndup(ptr + 7, strcasestr(xml, "</title>") - ptr - 7);
+		assert(radio != NULL);
 
 		if(list->title != NULL) {
 			free(list->title);

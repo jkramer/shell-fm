@@ -17,6 +17,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include <time.h>
+#include <assert.h>
 
 #include "service.h"
 #include "hash.h"
@@ -163,6 +164,7 @@ void interface(int interactive) {
 					if(haskey(& rc, "delay-change")) {
 						puts("\rDelayed.");
 						nextstation = strdup(uri);
+						assert(nextstation != NULL);
 					}
 					else {
 						station(uri);
@@ -347,6 +349,9 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 							/* Strip leading spaces from end of color (Author: Ondrej Novy) */
 							char * color_st = strdup(color);
 							size_t len = strlen(color_st) - 1;
+
+							assert(color_st != NULL);
+
 							while(isspace(color_st[len]) && len > 0) {
 								color_st[len] = 0;
 								len--;

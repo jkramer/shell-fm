@@ -33,7 +33,12 @@ char ** slurp(const char * path) {
 
 				if(strlen(line) > 0) {
 					content = realloc(content, sizeof(char *) * (items + 2));
+
+					assert(content != NULL);
+
 					content[items] = strdup(line);
+					assert(content[items] != NULL);
+
 					content[++items] = NULL;
 				}
 			}
@@ -61,7 +66,9 @@ char ** uniq(char ** list) {
 				list[n] = NULL;
 			} else {
 				uniqlist = realloc(uniqlist, (sizeof(char *)) * (size + 2));
+
 				assert(uniqlist != NULL);
+
 				uniqlist[size++] = list[n];
 				uniqlist[size] = NULL;
 			}
@@ -98,10 +105,12 @@ int grep(char ** list, char * needle) {
 
 char * strndup(const char * src, size_t len) {
 	char * tmp = (char *) malloc(len + 1);
+
 	if(tmp != NULL) {
 		strncpy(tmp, src, len);
 		tmp[len] = 0;
 	}
+
 	return tmp;
 }
 
