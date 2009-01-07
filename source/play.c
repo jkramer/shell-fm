@@ -20,6 +20,7 @@
 #include <libgen.h>
 #include <sys/wait.h>
 #include <sys/ioctl.h>
+#include <sys/stat.h>
 #include <assert.h>
 
 #ifdef LIBAO
