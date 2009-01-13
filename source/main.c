@@ -384,6 +384,18 @@ int main(int argc, char ** argv) {
 			}
 
 			if(!playfork) {
+				/*
+					If there was a track played before, and there is a gap
+					configured, wait that many seconds before playing the next
+					track.
+				*/
+				if(playnext && haskey(& rc, "gap")) {
+					int gap = atoi(value(& rc, "gap"));
+
+					if(gap > 0)
+						sleep(gap);
+				}
+
 				if(play(& playlist)) {
 					time(& changeTime);
 					pauselength = 0;
