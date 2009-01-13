@@ -49,7 +49,7 @@ unsigned flags = RTP;
 time_t changeTime = 0, pausetime = 0;
 char * nextstation = NULL;
 
-int batch = 0, error = 0;
+int batch = 0, error = 0, delayquit = 0;
 
 static void cleanup(void);
 static void forcequit(int);
@@ -301,6 +301,11 @@ int main(int argc, char ** argv) {
 					else {
 						playnext = !0;
 						unlinknp();
+
+						if(delayquit) {
+							unlink(rcpath("session"));
+							exit(EXIT_SUCCESS);
+						}
 					}
 					pausetime = 0;
 				}

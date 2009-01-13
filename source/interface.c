@@ -39,6 +39,7 @@
 #include "globals.h"
 
 extern time_t pausetime;
+extern int delayquit;
 
 struct hash track;
 
@@ -74,6 +75,16 @@ void interface(int interactive) {
 
 			case 'n':
 				rate("S");
+				break;
+
+			case 'q':
+				if(haskey(& rc, "delay-change")) {
+					delayquit = !delayquit;
+					if(delayquit)
+						fputs("Going to quit soon.\n", stderr);
+					else
+						fputs("Delayed quit cancelled.\n", stderr);
+				}
 				break;
 
 			case 'Q':
