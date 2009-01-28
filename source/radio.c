@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2006-2008 by Jonas Kramer.
+	Copyright (C) 2006-2009 by Jonas Kramer.
 	Published under the terms of the GNU General Public License (GPL).
 */
 
@@ -16,6 +16,7 @@
 #include <sys/time.h>
 #include <signal.h>
 #include <stdarg.h>
+#include <assert.h>
 
 #include "completion.h"
 #include "http.h"
@@ -30,6 +31,7 @@
 #include "globals.h"
 
 
+extern int delayquit;
 extern char ** popular;
 static int radiocomplete(char *, const unsigned, int);
 
@@ -82,7 +84,9 @@ void radioprompt(const char * prompt) {
 			as the current track stops.
 		*/
 		if(playthread && haskey(& rc, "delay-change")) {
+			delayquit = 0;
 			nextstation = strdup(decoded);
+			assert(nextstation != NULL);
 			puts("\rDelayed.");
 		}
 		else {

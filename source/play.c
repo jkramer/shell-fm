@@ -17,9 +17,12 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <signal.h>
+#include <libgen.h>
 #include <sys/wait.h>
 #include <sys/ioctl.h>
 #include <pthread.h>
+#include <sys/stat.h>
+#include <assert.h>
 
 #ifdef LIBAO
 #include <ao/ao.h>
@@ -69,6 +72,39 @@ pthread_mutex_t paused = PTHREAD_MUTEX_INITIALIZER;
 int killed = 0;
 
 static void sighand(int);
+
+/*
+ * Taken from *BSD code
+ * (usr.bin/patch/mkpath.c)
+ */
+int
+mkpath(char *path)
+{
+	struct stat sb;
+	char *slash;
+	int done = 0;
+
+	slash = path;
+
+	while (!done) {
+		slash += strspn(slash, "/");
+		slash += strcspn(slash, "/");
+
+		done = (*slash == '\0');
+		*slash = '\0';
+
+		if (stat(path, &sb)) {
+			if (errno != ENOENT || (mkdir(path, 0777) &&
+			    errno != EEXIST))
+				return (-1);
+		} else if (!S_ISDIR(sb.st_mode))
+			return (-1);
+
+		*slash = '/';
+	}
+
+	return (0);
+}
 
 int playback(FILE * streamfd) {
 	killed = 0;
@@ -128,8 +164,17 @@ int playback(FILE * streamfd) {
 #endif
 
 		if(haskey(& playlist.track->track, "freeTrackURL") && haskey(& rc, "download")) {
-			data.path = strdup(meta(value(& rc, "download"), 0, & playlist.track->track));
-			data.dump = fopen(data.path, "w");
+			char *dnam;
+			int rv;
+
+			data.path = strdup(meta(value(& rc, "download"), M_RELAXPATH, & playlist.track->track));
+			assert(data.path != NULL);
+
+			dnam = strdup(data.path);
+			rv = dnam ? mkpath(dirname(dnam)) : -1;
+			free(dnam);
+
+			data.dump = (rv == 0) ? fopen(data.path, "w") : NULL;
 
 			if(!data.dump)
 				fprintf(stderr, "Can't write download to %s.\n", data.path);
@@ -233,7 +278,6 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 
 	mad_stream_buffer(stream, (unsigned char *) buf, nbyte);
 
-
 	if(killed)
 		return MAD_FLOW_STOP;
 
@@ -272,6 +316,8 @@ static enum mad_flow output(
 	}
 
 	stream_ptr = stream = malloc(pcm->length * (pcm->channels == 2 ? 4 : 2));
+
+	assert(stream != NULL);
 	
 	while(nsample--) {
 		signed int sample;

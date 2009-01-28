@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2006-2008 by Jonas Kramer
+	Copyright (C) 2006-2009 by Jonas Kramer
 	Published under the terms of the GNU General Public License (GPL).
 */
 
@@ -50,7 +50,7 @@ unsigned flags = RTP;
 time_t changetime = 0, pausetime = 0, pauselength = 0;
 char * nextstation = NULL;
 
-int batch = 0, error = 0;
+int batch = 0, error = 0, delayquit = 0;
 
 static void cleanup(void);
 static void forcequit(int);
@@ -392,10 +392,21 @@ int main(int argc, char ** argv) {
 				}
 			}
 
-			/* If there's no playback thread runnong, see if we can start one. */
+			/* If there's no playback thread runnoig, see if we can start one. */
 			if(!playthread) {
 
-				/* Try to play a track from the playlist. */
+				/*
+					If there was a track played before, and there is a gap
+					configured, wait that many seconds before playing the next
+					track.
+				*/
+				if(playnext && haskey(& rc, "gap")) {
+					int gap = atoi(value(& rc, "gap"));
+
+					if(gap > 0)
+						sleep(gap);
+				}
+
 				if(play(& playlist)) {
 					time(& changetime);
 					pauselength = 0;
@@ -405,14 +416,14 @@ int main(int argc, char ** argv) {
 					/* Print what's currently played. (Ondrej Novy) */
 					if(!background) {
 						if(enabled(CHANGED) && playlist.left > 0) {
-							puts(meta("Receiving %s.", !0, & playlist.track->track));
+							puts(meta("Receiving %s.", M_COLORED, & playlist.track->track));
 							disable(CHANGED);
 						}
 
 						if(haskey(& rc, "title-format"))
-							printf("%s\n", meta(value(& rc, "title-format"), !0, & playlist.track->track));
+							printf("%s\n", meta(value(& rc, "title-format"), M_COLORED, & playlist.track->track));
 						else
-							printf("%s\n", meta("Now playing \"%t\" by %a.", !0, & playlist.track->track));
+							printf("%s\n", meta("Now playing \"%t\" by %a.", M_COLORED, & playlist.track->track));
 					}
 
 
@@ -468,7 +479,7 @@ int main(int argc, char ** argv) {
 
 			/* Automatically ban tracks from banned artists. */
 			if(banned(value(& playlist.track->track, "creator"))) {
-				puts(meta("%a is banned.", !0, & playlist.track->track));
+				puts(meta("%a is banned.", M_COLORED, & playlist.track->track));
 				rate("B");
 				fflush(stdout);
 			}

@@ -37,7 +37,7 @@ unsigned getln(char ** ptr, unsigned * size, FILE * fd) {
 		
 		if(length + 2 > * size) {
 			* ptr = realloc(* ptr, (* size += 1024));
-			assert(* ptr);
+			assert(* ptr != NULL);
 		}
 
 		(* ptr)[length++] = (char) ch;
@@ -46,6 +46,8 @@ unsigned getln(char ** ptr, unsigned * size, FILE * fd) {
 
 	* size = length + 1;
 	* ptr = realloc(* ptr, * size);
+
+	assert(* ptr != NULL);
 
 	return length;
 }

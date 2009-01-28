@@ -186,6 +186,8 @@ static void sliceq(unsigned tracks) {
 	if(qlength > 0) {
 		memmove(queue, & queue[tracks], sizeof(struct hash) * qlength);
 		queue = realloc(queue, sizeof(struct hash) * qlength);
+
+		assert(queue != NULL);
 	} else {
 		free(queue);
 		queue = NULL;

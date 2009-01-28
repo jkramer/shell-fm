@@ -18,6 +18,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <pthread.h>
+#include <assert.h>
 
 #include "service.h"
 #include "hash.h"
@@ -38,6 +39,8 @@
 
 #include "globals.h"
 
+extern time_t pausetime;
+extern int delayquit;
 
 
 /* Main user input function. */
@@ -91,6 +94,16 @@ void interface() {
 			unlink(rcpath("session"));
 			exit(EXIT_SUCCESS);
 
+		case 'q':
+			if(haskey(& rc, "delay-change")) {
+				delayquit = !delayquit;
+				if(delayquit)
+					fputs("Going to quit soon.\n", stderr);
+				else
+					fputs("Delayed quit cancelled.\n", stderr);
+			}
+			break;
+
 		case 'i':
 			if(playthread) {
 				const char * path = rcpath("i-template");
@@ -106,10 +119,10 @@ void interface() {
 					}
 				}
 				else {
-					puts(meta("Track:    \"%t\" (%T)", !0, & playlist.track->track));
-					puts(meta("Artist:   \"%a\" (%A)", !0, & playlist.track->track));
-					puts(meta("Album:    \"%l\" (%L)", !0, & playlist.track->track));
-					puts(meta("Station:  %s", !0, & playlist.track->track));
+					puts(meta("Track:    \"%t\" (%T)", M_COLORED, & playlist.track->track));
+					puts(meta("Artist:   \"%a\" (%A)", M_COLORED, & playlist.track->track));
+					puts(meta("Album:    \"%l\" (%L)", M_COLORED, & playlist.track->track));
+					puts(meta("Station:  %s", M_COLORED, & playlist.track->track));
 				}
 			}
 			break;
@@ -162,6 +175,7 @@ void interface() {
 				if(haskey(& rc, "delay-change")) {
 					puts("\rDelayed.");
 					nextstation = strdup(uri);
+					assert(nextstation != NULL);
 				}
 				else {
 					station(uri);
@@ -175,6 +189,7 @@ void interface() {
 				if(haskey(& rc, "delay-change")) {
 					puts("\rDelayed.");
 					nextstation = strdup(uri);
+					assert(nextstation != NULL);
 				}
 				else {
 					station(uri);
@@ -316,12 +331,13 @@ int fetchkey(unsigned nsec) {
 
 
 #define remn (sizeof(string) - length - 1)
-const char * meta(const char * fmt, int colored, struct hash * track) {
+const char * meta(const char * fmt, int flags, struct hash * track) {
 	static char string[4096];
 	unsigned length = 0, x = 0;
 
 	/* Switch off coloring when in batch mode */
-	colored = (colored && !(batch));
+	if (batch)
+		flags &= ~M_COLORED;
 
 	if(!fmt)
 		return NULL;
@@ -351,7 +367,8 @@ const char * meta(const char * fmt, int colored, struct hash * track) {
 			while(i--) {
 				if(fmt[x] == keys[i][0]) {
 					const char * val = value(track, keys[i] + 1), * color = NULL;
-					if(colored) {
+					char *val2;
+					if(flags & M_COLORED) {
 						char colorkey[64] = { 0 };
 						snprintf(colorkey, sizeof(colorkey), "%c-color", keys[i][0]);
 						color = value(& rc, colorkey);
@@ -359,6 +376,9 @@ const char * meta(const char * fmt, int colored, struct hash * track) {
 							/* Strip leading spaces from end of color (Author: Ondrej Novy) */
 							char * color_st = strdup(color);
 							size_t len = strlen(color_st) - 1;
+
+							assert(color_st != NULL);
+
 							while(isspace(color_st[len]) && len > 0) {
 								color_st[len] = 0;
 								len--;
@@ -368,7 +388,20 @@ const char * meta(const char * fmt, int colored, struct hash * track) {
 						}
 					}
 
-					length = strlen(strncat(string, val ? val : "(unknown)", remn));
+					if((flags & M_RELAXPATH) && val) {
+						unsigned j;
+						size_t l = strlen(val);
+
+						val2 = malloc(l+1);
+						if(val2) {
+							for(j = 0; j <= l; j++)
+								val2[j] = (val[j] == '/') ? '|' : val[j];
+						}
+					} else
+						val2 = (char *)val;
+					length = strlen(strncat(string, val2 ? val2 : "(unknown)", remn));
+					if(flags & M_RELAXPATH)
+						free(val2);
 
 					if(color)
 						length = strlen(strncat(string, "\x1B[0m", remn));
@@ -405,33 +438,35 @@ void run(const char * cmd) {
 
 int rate(const char * rating) {
 	if(playthread && rating != NULL) {
-		set(& playlist.track->track, "rating", rating);
+
+		if(rating[0] != 'U')
+			set(& playlist.track->track, "rating", rating);
 
 		switch(rating[0]) {
 			case 'B':
 				pthread_kill(playthread, SIGUSR1);
 				return xmlrpc(
-						"banTrack",
-						"ss",
-						value(& playlist.track->track, "creator"),
-						value(& playlist.track->track, "title")
-						);
+					"banTrack",
+					"ss",
+					value(& playlist.track->track, "creator"),
+					value(& playlist.track->track, "title")
+				);
 
 			case 'L':
 				return xmlrpc(
-						"loveTrack",
-						"ss",
-						value(& playlist.track->track, "creator"),
-						value(& playlist.track->track, "title")
-						);
+					"loveTrack",
+					"ss",
+					value(& playlist.track->track, "creator"),
+					value(& playlist.track->track, "title")
+				);
 
 			case 'U':
 				return xmlrpc(
-						"unLoveTrack",
-						"ss",
-						value(& playlist.track->track, "creator"),
-						value(& playlist.track->track, "title")
-						);
+					"unLoveTrack",
+					"ss",
+					value(& playlist.track->track, "creator"),
+					value(& playlist.track->track, "title")
+				);
 
 			case 'S':
 				pthread_kill(playthread, SIGUSR1);

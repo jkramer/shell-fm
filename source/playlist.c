@@ -76,6 +76,7 @@ int parsexspf(struct playlist * list, const char * xml) {
 		char * track, * radio = NULL;
 
 		radio = strndup(ptr + 7, strcasestr(xml, "</title>") - ptr - 7);
+		assert(radio != NULL);
 
 		if(list->title != NULL) {
 			free(list->title);
@@ -222,7 +223,7 @@ void preview(struct playlist list) {
 				? value(& rc, "preview-format")
 				: "%a - %t";
 
-			printf("%2d %s\n", n++, meta(format, !0, & node->track));
+			printf("%2d %s\n", n++, meta(format, M_COLORED, & node->track));
 
 			node = node->next;
 		}

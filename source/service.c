@@ -180,6 +180,7 @@ int station(const char * stationURL) {
 		free(currentstation);
 
 	currentstation = strdup(stationURL);
+	assert(currentstation != NULL);
 
 	if(retval && playthread)
 		pthread_kill(playthread, SIGUSR1);
@@ -188,7 +189,11 @@ int station(const char * stationURL) {
 }
 
 
-/* Play the next track from the given playlist. */
+/*
+	Takes pointer to a playlist, forks off a playback process and tries to play
+	the next track in the playlist. If there's already a playback process, it's
+	killed first (which means the currently played track is skipped).
+*/
 int play(struct playlist * list) {
 	FILE * fd = NULL;
 	const char * location;

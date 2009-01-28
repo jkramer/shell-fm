@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <assert.h>
 
 #include "md5.h"
 #include "settings.h"
@@ -31,6 +32,8 @@ int xmlrpc(const char * method, const char * fmt, ...) {
 		* xml = malloc(size),
 		** resp, * url = "http://ws.audioscrobbler.com/1.0/rw/xmlrpc.php",
 		md5hex[32 + 1] = { 0 }, tmp[32 + 8 + 1] = { 0 };
+
+	assert(xml != NULL);
 
 	const char
 		* challenge = "Shell.FM",
@@ -96,6 +99,8 @@ static void append(char ** string, unsigned * size, const char * appendix) {
 		* size = strlen(* string) + strlen(appendix) + 1;
 		copy = realloc(* string, * size);
 
+		assert(copy != NULL);
+
 		if(!copy)
 			fputs("Out of memory!\n", stderr);
 		else {
@@ -139,6 +144,9 @@ static void aparam(char ** xml, unsigned * size, const char ** param) {
 char * xmlize(const char * orig) {
 	register unsigned i = 0, x = 0;
 	char * encoded = calloc((strlen(orig) * 6) + 1, sizeof(char));
+
+	assert(encoded != NULL);
+
 	while(i < strlen(orig)) {
 		if(strchr("&<>'\"", orig[i])) {
 			snprintf(

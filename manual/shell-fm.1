@@ -251,7 +251,9 @@ specified in the scrobbling protocol version 1.2.
 .B delay-change = something
 If this is set to anything, and you change the station with 'r', 's' or 'f',
 the station-change will be delayed until the currently played track finishes or
-is skipped.
+is skipped. Also they key 'q' will initialize a delayed quit, so after the
+currently played track shell-fm will exit. 'Q' (uppercase) still quits
+immediately.
 .TP
 .B screen-format = format-string
 If this is set, shell-fm will check if the terminal it's running in is a screen
@@ -264,6 +266,10 @@ Works like screen-format, but sets the x-terminals window title.
 .B download = format-string
 If this is set to a valid path (may contain format flags), and the played track
 is free, it is saved at the given place.
+.TP
+.B gap = seconds
+If this is set to a number, shell-fm will wait that amount of seconds between
+tracks.
 .SH FORMAT FLAGS
 There are several format flags allowed for some options. Here is the list.
 .TP
@@ -452,5 +458,5 @@ Includes examples of using the network interface plus a color printing script to
 .SH BUGS
 No bugs known at the moment. Please send bug reports to <shell-fm@nex.scrapping.cc>.
 .SH COPYRIGHT
-Copyright (C) 2006-2008 by Jonas Kramer.
+Copyright (C) 2006-2009 by Jonas Kramer.
 Published under the terms of the GNU General Public License.
