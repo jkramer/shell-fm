@@ -188,6 +188,11 @@ int station(const char * stationURL) {
 }
 
 
+/*
+	Takes pointer to a playlist, forks off a playback process and tries to play
+	the next track in the playlist. If there's already a playback process, it's
+	killed first (which means the currently played track is skipped).
+*/
 int play(struct playlist * list) {
 	unsigned i;
 	char * keys [] = {
