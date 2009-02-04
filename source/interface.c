@@ -279,7 +279,13 @@ void interface(int interactive) {
 			case '8':
 			case '9':
 				if((marked = getmark(key - 0x30))) {
-					station(marked);
+					if(haskey(& rc, "delay-change")) {
+						puts("\rDelayed.");
+						nextstation = strdup(marked);
+					}
+					else {
+						station(marked);
+					}
 					free(marked);
 				} else {
 					puts("Bookmark not defined.");
