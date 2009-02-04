@@ -31,7 +31,6 @@
 #include "globals.h"
 
 
-extern int delayquit;
 extern char ** popular;
 static int radiocomplete(char *, const unsigned, int);
 
@@ -79,19 +78,7 @@ void radioprompt(const char * prompt) {
 	if(strlen(url)) {
 		decode(url, & decoded);
 
-		/*
-			If delay-change is set, save the URI for later and play it as soon
-			as the current track stops.
-		*/
-		if(playfork && haskey(& rc, "delay-change")) {
-			delayquit = 0;
-			nextstation = strdup(decoded);
-			assert(nextstation != NULL);
-			puts("\rDelayed.");
-		}
-		else {
-			station(decoded);
-		}
+		station(decoded);
 
 		free(decoded);
 	}

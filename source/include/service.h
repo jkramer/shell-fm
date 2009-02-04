@@ -14,5 +14,6 @@ extern int update(struct hash *);
 
 extern int play(struct playlist *);
 
+extern int delayquit;
 
 #endif

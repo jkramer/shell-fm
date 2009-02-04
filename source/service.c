@@ -98,6 +98,14 @@ int station(const char * stationURL) {
 	const char * fmt;	
 	const char * types[4] = {"play", "preview", "track", "playlist"};
 
+	delayquit = 0;
+
+	if(playfork && haskey(& rc, "delay-change")) {
+		puts("\rDelayed.");
+		nextstation = strdup(stationURL);
+		return 0;
+	}
+
 	freelist(& playlist);
 
 	if(!haskey(& data, "session")) {

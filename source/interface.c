@@ -39,7 +39,6 @@
 #include "globals.h"
 
 extern time_t pausetime;
-extern int delayquit;
 
 struct hash track;
 
@@ -158,28 +157,13 @@ void interface(int interactive) {
 
 			case 'f':
 				if(playfork) {
-					const char * uri = meta("lastfm://artist/%a/fans", 0, & track);
-					if(haskey(& rc, "delay-change")) {
-						puts("\rDelayed.");
-						nextstation = strdup(uri);
-					}
-					else {
-						station(uri);
-					}
+					station(meta("lastfm://artist/%a/fans", 0, & track));
 				}
 				break;
 				
 			case 's':
 				if(playfork) {
-					const char * uri = meta("lastfm://artist/%a/similarartists", 0, & track);
-					if(haskey(& rc, "delay-change")) {
-						puts("\rDelayed.");
-						nextstation = strdup(uri);
-						assert(nextstation != NULL);
-					}
-					else {
-						station(uri);
-					}
+					station(meta("lastfm://artist/%a/similarartists", 0, & track));
 				}
 				break;
 
@@ -279,13 +263,7 @@ void interface(int interactive) {
 			case '8':
 			case '9':
 				if((marked = getmark(key - 0x30))) {
-					if(haskey(& rc, "delay-change")) {
-						puts("\rDelayed.");
-						nextstation = strdup(marked);
-					}
-					else {
-						station(marked);
-					}
+					station(marked);
 					free(marked);
 				} else {
 					puts("Bookmark not defined.");
