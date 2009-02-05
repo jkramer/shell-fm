@@ -13,6 +13,10 @@
 #include "util.h"
 #include "getln.h"
 
+/*
+	Takes the path of a file as argument, reads the file and returns an array
+	of strings containing the lines of the file.
+*/
 char ** slurp(const char * path) {
 	char ** content = NULL;
 	unsigned items = 0;
@@ -54,6 +58,10 @@ char ** slurp(const char * path) {
 }
 
 
+/*
+	Takes an array of strings and returns another array of strings with all
+	duplicate strings removed. The old array is purged from memory.
+*/
 char ** uniq(char ** list) {
 	char ** uniqlist = NULL;
 
