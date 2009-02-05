@@ -30,6 +30,7 @@ extern unsigned flags;
 #define CHANGED 0x4
 #define RTP 0x8
 #define QUIET 0x10
+#define INTERRUPTED 0x20
 
 #define enabled(n) (flags & n)
 #define enable(n) (flags |= n)

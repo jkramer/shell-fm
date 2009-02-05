@@ -282,7 +282,6 @@ int main(int argc, char ** argv) {
 		pid_t child;
 		int status, playnext = 0;
 
-
 		/* Check if anything died (submissions fork or playback fork). */
 		while((child = waitpid(-1, & status, WNOHANG | WUNTRACED | WCONTINUED)) > 0) {
 			if(child == subfork)
@@ -394,12 +393,14 @@ int main(int argc, char ** argv) {
 					configured, wait that many seconds before playing the next
 					track.
 				*/
-				if(playnext && haskey(& rc, "gap")) {
+				if(playnext && enabled(INTERRUPTED) && haskey(& rc, "gap")) {
 					int gap = atoi(value(& rc, "gap"));
 
 					if(gap > 0)
 						sleep(gap);
 				}
+
+				disable(INTERRUPTED);
 
 				if(play(& playlist)) {
 					time(& changeTime);
@@ -590,8 +591,10 @@ static void forcequit(int sig) {
 
 
 static void playsig(int sig) {
-	if(sig == SIGUSR2)
+	if(sig == SIGUSR2) {
 		error = !0;
+		enable(INTERRUPTED);
+	}
 }
 
 

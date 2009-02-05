@@ -437,6 +437,7 @@ int rate(const char * rating) {
 				);
 
 			case 'S':
+				enabled(INTERRUPTED);
 				kill(playfork, SIGUSR1);
 				return !0;
 		}
