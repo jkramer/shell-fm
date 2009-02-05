@@ -15,8 +15,14 @@
 #include "settings.h"
 #include "bookmark.h"
 #include "getln.h"
+#include "util.h"
+#include "strary.h"
 
 
+int cmpdigit(const void *, const void *);
+
+
+/* Save a stream URL with the given number as bookmark. */
 void setmark(const char * streamURL, int n) {
 	FILE * fd;
 	char * bookmarks[10] = { NULL, };
@@ -62,6 +68,7 @@ void setmark(const char * streamURL, int n) {
 	}
 }
 
+/* Get bookmarked stream. */
 char * getmark(int n) {
 	FILE * fd = fopen(rcpath("bookmarks"), "r");
 	char * streamURL = NULL;
@@ -95,16 +102,23 @@ char * getmark(int n) {
 }
 
 void printmarks(void) {
-	FILE * fd = fopen(rcpath("bookmarks"), "r");
-	int ch;
+	char ** list = slurp(rcpath("bookmarks"));
+	unsigned n;
 
-	if(!fd) {
+	if(list == NULL) {
 		puts("No bookmarks.");
 		return;
 	}
-	
-	while(!feof(fd) && (ch = fgetc(fd)) > 0)
-		fputc(ch, stdout);
 
-	fclose(fd);
+	qsort(list, count(list), sizeof(char *), cmpdigit);
+	
+	for(n = 0; list[n] != NULL; ++n)
+		puts(list[n]);
+
+	purge(list);
+}
+
+
+int cmpdigit(const void * a, const void * b) {
+	return (** (char **) a) - (** (char **) b);
 }
