@@ -89,7 +89,7 @@ int parsexspf(struct playlist * list, const char * xml) {
 
 		while((track = strcasestr(ptr, "<track>")) != NULL) {
 			struct tracknode * node = NULL;
-			char * next = strcasestr(track + 7, "<track>");
+			char * next = strcasestr(track + 7, "<track>"), * duration;
 
 			const char * tags [] = {
 				"location", "title", "album", "creator", "duration", "image",
@@ -147,6 +147,13 @@ int parsexspf(struct playlist * list, const char * xml) {
 
 			trim(list->title);
 			set(& node->track, "station", list->title);
+
+			duration = strdup(value(& node->track, "duration"));
+			if(duration != NULL) {
+				duration[strlen(duration) - 3] = 0;
+				set(& node->track, "duration", duration);
+			}
+
 			push(list, node);
 
 			++tracks;

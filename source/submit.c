@@ -60,7 +60,7 @@ int enqueue(struct hash * track) {
 
 	snprintf(timestamp, sizeof(timestamp), "%lu", time(NULL));
 	snprintf(lastid, sizeof(lastid), "L%s", value(track, "lastfm:trackauth"));
-	snprintf(duration, sizeof(duration), "%d", atoi(value(track, "duration")) / 1000);
+	snprintf(duration, sizeof(duration), "%d", atoi(value(track, "duration")));
 
 	set(& post, "a", value(track, "creator"));
 	set(& post, "t", value(track, "title"));

@@ -326,7 +326,7 @@ int main(int argc, char ** argv) {
 			if(enabled(RTP)) {
 				unsigned duration, played, minimum;
 
-				duration = atoi(value(& track, "duration")) / 1000;
+				duration = atoi(value(& track, "duration"));
 				played = time(NULL) - changeTime - pauselength;
 
 				/* Allow user to specify minimum playback length (min. 50%). */
@@ -477,7 +477,7 @@ int main(int argc, char ** argv) {
 			signed remain;
 			char remstr[32];
 
-			duration = atoi(value(& track, "duration")) / 1000;
+			duration = atoi(value(& track, "duration"));
 
 			remain = (changeTime + duration) - time(NULL) + pauselength;
 
