@@ -69,6 +69,7 @@ void interface(int interactive) {
 
 			case 'B':
 				puts(rate("B") ? "Banned." : "Sorry, failed.");
+				enable(INTERRUPTED);
 				kill(playfork, SIGUSR1);
 				break;
 
@@ -413,6 +414,7 @@ int rate(const char * rating) {
 		switch(rating[0]) {
 			case 'B':
 				kill(playfork, SIGUSR1);
+				enable(INTERRUPTED);
 				return xmlrpc(
 					"banTrack",
 					"ss",
@@ -437,7 +439,7 @@ int rate(const char * rating) {
 				);
 
 			case 'S':
-				enabled(INTERRUPTED);
+				enable(INTERRUPTED);
 				kill(playfork, SIGUSR1);
 				return !0;
 		}

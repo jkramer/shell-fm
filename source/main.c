@@ -393,7 +393,7 @@ int main(int argc, char ** argv) {
 					configured, wait that many seconds before playing the next
 					track.
 				*/
-				if(playnext && enabled(INTERRUPTED) && haskey(& rc, "gap")) {
+				if(playnext && !enabled(INTERRUPTED) && haskey(& rc, "gap")) {
 					int gap = atoi(value(& rc, "gap"));
 
 					if(gap > 0)

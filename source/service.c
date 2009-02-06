@@ -188,7 +188,7 @@ int station(const char * stationURL) {
 	assert(currentStation != NULL);
 
 	if(retval && playfork) {
-		/* enable(STOPPED); */
+		enable(INTERRUPTED);
 		kill(playfork, SIGUSR1);
 	}
 
