@@ -10,7 +10,7 @@ ifeq ($(shell uname -s), NetBSD)
 	LDFLAGS += -lossaudio
 endif
 LIBAO	:= $(shell pkg-config --exists ao && echo -DLIBAO && pkg-config ao --cflags)
-CFLAGS  := -Os -Wall -W -I./include/ $(LIBAO) $(shell pkg-config mad --cflags)
+CFLAGS  := $(CFLAGS) -Os -Wall -W -I./include/ $(LIBAO) $(shell pkg-config mad --cflags)
 
 .PHONY: clean tags cscope
 
