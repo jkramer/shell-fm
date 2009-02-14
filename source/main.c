@@ -458,7 +458,7 @@ int main(int argc, char ** argv) {
 
 					/* Run a command with our track data. */
 					if(haskey(& rc, "np-cmd"))
-						run(meta(value(& rc, "np-cmd"), 0, & track));
+						run(meta(value(& rc, "np-cmd"), M_SHELLESC, & track));
 				} else
 					changeTime = 0;
 			}
