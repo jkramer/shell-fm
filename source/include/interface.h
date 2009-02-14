@@ -9,6 +9,7 @@
 
 #define M_COLORED   0x1
 #define M_RELAXPATH 0x2
+#define M_SHELLESC	0x4
 
 extern const char * meta(const char *, int, struct hash *);
 extern void interface(int);

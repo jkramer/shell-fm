@@ -42,6 +42,8 @@ extern time_t pausetime;
 
 struct hash track;
 
+char * shellescape(const char *);
+
 void interface(int interactive) {
 	if(interactive) {
 		int key, result;
@@ -305,7 +307,7 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 	unsigned length = 0, x = 0;
 
 	/* Switch off coloring when in batch mode */
-	if (batch)
+	if(batch)
 		flags &= ~M_COLORED;
 
 	if(!fmt)
@@ -333,14 +335,17 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 
 			register unsigned i = sizeof(keys) / sizeof(char *);
 
+			/* Look for a track value with that format flag. */
 			while(i--) {
 				if(fmt[x] == keys[i][0]) {
-					const char * val = value(track, keys[i] + 1), * color = NULL;
-					char *val2;
+					char * val = strdup(value(track, keys[i] + 1));
+					const char * color = NULL;
+
 					if(flags & M_COLORED) {
 						char colorkey[64] = { 0 };
 						snprintf(colorkey, sizeof(colorkey), "%c-color", keys[i][0]);
 						color = value(& rc, colorkey);
+
 						if(color) {
 							/* Strip leading spaces from end of color (Author: Ondrej Novy) */
 							char * color_st = strdup(color);
@@ -358,19 +363,24 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 					}
 
 					if((flags & M_RELAXPATH) && val) {
-						unsigned j;
+						unsigned n;
 						size_t l = strlen(val);
 
-						val2 = malloc(l+1);
-						if(val2) {
-							for(j = 0; j <= l; j++)
-								val2[j] = (val[j] == '/') ? '|' : val[j];
+						for(n = 0; n < l; ++n) {
+							if(val[n] == '/')
+								val[n] = '|';
 						}
-					} else
-						val2 = (char *)val;
-					length = strlen(strncat(string, val2 ? val2 : "(unknown)", remn));
-					if(flags & M_RELAXPATH)
-						free(val2);
+					}
+
+					if(flags & M_SHELLESC) {
+						char * escaped = shellescape(val);
+						free(val);
+						val = escaped;
+					}
+
+					length = strlen(strncat(string, val ? val : "(unknown)", remn));
+
+					free(val);
 
 					if(color)
 						length = strlen(strncat(string, "\x1B[0m", remn));
@@ -386,6 +396,7 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 	return string;
 }
 #undef remn
+
 
 void run(const char * cmd) {
 	if(!fork()) {
@@ -446,4 +457,28 @@ int rate(const char * rating) {
 	}
 
 	return 0;
+}
+
+
+char * shellescape(const char * string) {
+	char * escaped;
+	unsigned length = 0, n, size;
+
+	assert(string != NULL);
+
+	size = strlen(string) * 2 + 1;
+	escaped = malloc(size);
+	memset(escaped, 0, size);
+
+	assert(string != NULL);
+
+	for(n = 0; n < strlen(string); ++n) {
+		if(!isalnum(string[n]))
+			escaped[length++] = '\\';
+
+		escaped[length++] = string[n];
+		escaped[length] = 0;
+	}
+
+	return escaped;
 }
