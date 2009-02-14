@@ -400,18 +400,7 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 
 void run(const char * cmd) {
 	if(!fork()) {
-		FILE * fd = popen(cmd, "r");
-		if(!fd)
-			exit(EXIT_FAILURE);
-		else {
-			int ch;
-
-			while((ch = fgetc(fd)) != EOF)
-				fputc(ch, stdout);
-
-			fflush(stdout);
-			_exit(pclose(fd));
-		}
+        _exit(system(cmd));
 	}
 }
 
