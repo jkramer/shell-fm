@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <unistd.h>
 
 #if (defined(__NetBSD__) || defined(__OpenBSD__))
 #include <soundcard.h>
@@ -43,6 +44,8 @@ signed adjust(signed deviation, int device) {
 
 		/* Write volume. */
 		ioctl(fd, MIXER_WRITE(device), & volume);
+
+		close(fd);
 
 		return volume;
 	}
