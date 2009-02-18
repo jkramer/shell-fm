@@ -101,8 +101,23 @@ int station(const char * stationURL) {
 	delayquit = 0;
 
 	if(playfork && haskey(& rc, "delay-change")) {
+		if(nextstation) {
+			/*
+			  Cancel station change if url is empty or equal to the current
+			  station.
+			*/
+			free(nextstation);
+			nextstation = NULL;
+
+			if(!strlen(stationURL) || !strcmp(stationURL, currentStation)) {
+				puts("Station change cancelled.");
+				return 0;
+			}
+		}
+
 		puts("\rDelayed.");
 		nextstation = strdup(stationURL);
+
 		return 0;
 	}
 
@@ -165,7 +180,8 @@ int station(const char * stationURL) {
 		}
 
 		expand(& playlist);
-	} else {
+	}
+	else {
 		char * xml = join(response, 0);
 
 		response = NULL;
