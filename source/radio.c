@@ -75,13 +75,11 @@ void radioprompt(const char * prompt) {
 	if(setup.history)
 		purge(setup.history);
 
-	if(strlen(url)) {
-		decode(url, & decoded);
+	decode(url, & decoded);
 
-		station(decoded);
+	station(decoded);
 
-		free(decoded);
-	}
+	free(decoded);
 }
 
 
