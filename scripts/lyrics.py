@@ -72,14 +72,14 @@ class LyricWiki(LyricSource):
 			return (False, "unexpected path reached in LyricWiki.get_html")
 
 	def filter_html_markers(self, html):
-		rules = ( ('<br />', '\n'),
-				  ('<br>', '\n'),
+		rules = ( ('<br />', '\n  '),
+				  ('<br>', '\n  '),
 				  ('&gt;', '>'),
 				  ('&lt;', '<'),
 				  ('&nbsp;', ' '))
 		for (x, y) in rules:
 			html = html.replace(x, y)
-		return html
+		return '  ' + html
 
 	def parse_lyrics(self, html, url):
 		instrumental = html.find('This song is an instrumental.')
