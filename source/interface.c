@@ -276,7 +276,7 @@ void interface(int interactive) {
 			default:
 				snprintf(customkey, sizeof(customkey), "key0x%02X", key & 0xFF);
 				if(haskey(& rc, customkey))
-					run(meta(value(& rc, customkey), 0, & track));
+					run(meta(value(& rc, customkey), M_SHELLESC, & track));
 		}
 	}
 }

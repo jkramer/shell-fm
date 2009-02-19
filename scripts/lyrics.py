@@ -15,10 +15,10 @@
 #   To enable the plugin you must have a configuration file.
 #	1.Create a file named shell-fm.rc in the ~/.shell-fm/ directory.
 #	2.Put the following line in shell-fm.rc file :
-#		key0x?? = /usr/bin/python ~/.shell-fm/scripts/lyrics.py "\"%a\"" "\"%t\""
+#		key0x?? = /usr/bin/python ~/.shell-fm/scripts/lyrics.py %a %t
 #	4.Replace ?? with the ASCII hex code of the triggering key you wold like to use.
 #		for example, to use ` (backquote) as a trigger replace ?? with 60 as bellow:
-#		key0x60 = /usr/bin/python ~/.shell-fm/scripts/lyrics.py "\"%a\"" "\"%t\""
+#		key0x60 = /usr/bin/python ~/.shell-fm/scripts/lyrics.py %a %t
 
 
 
@@ -49,9 +49,6 @@ class LyricWiki(LyricSource):
 		self.URL = 'http://lyricwiki.org/'
 	
 	def canonical(self, str):
-		# remove start and end quotes
-		str = str[1:len(str)-1]
-
 		# capitalize every word after an ' ' and
 		# replace ' ' with '_'
 		return "_".join(map((lambda x : x.capitalize()), str.split(' ')))
