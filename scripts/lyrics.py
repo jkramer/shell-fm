@@ -1,4 +1,4 @@
-#!usr/bin/python
+#!/usr/bin/env python
 
 
 # Copyright (C) 2009 by Silviu Grijincu <silviu.grijincu@gmail.com>.
@@ -62,7 +62,7 @@ class LyricWiki(LyricSource):
 			return (True, html)
 		except HTTPError, e:
 			errmsg = 'The server couldn\'t fulfill the request for ' + url
-			errmsg += 'Error code: ' + e.code
+			errmsg += 'Error code: ' + str(e.code)
 			return (False, errmsg)
 		except URLError, e:
 			errmsg = 'We failed to reach the server ' + url
