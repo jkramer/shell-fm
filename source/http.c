@@ -334,11 +334,11 @@ char ** cache(const char * url, const char * name, int refresh) {
 		expiry = atoi(value(& rc, "expiry"));
 
 	memset(path, (char) 0, sizeof(path));
-	snprintf(path, sizeof(path), "%s/.shell-fm/cache", getenv("HOME"));
+	strncpy(path, rcpath("cache"), sizeof(path));
 	if(access(path, W_OK | X_OK))
 		mkdir(path, 0700);
 	
-	snprintf(path, sizeof(path), "%s/.shell-fm/cache/%s", getenv("HOME"), name);
+	snprintf(path, sizeof(path), "%s/%s", rcpath("cache"), name);
 
 	if(!refresh) {
 		if(access(path, R_OK | W_OK))
