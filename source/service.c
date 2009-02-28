@@ -36,7 +36,6 @@ pid_t playfork = 0; /* PID of the decoding & playing process, if running */
 struct playlist playlist;
 char * currentStation = NULL;
 
-
 int authenticate(const char * username, const char * password) {
 	const unsigned char * md5;
 	char hexmd5[32 + 1] = { 0 }, url[512] = { 0 }, ** response;
@@ -93,7 +92,7 @@ int authenticate(const char * username, const char * password) {
 
 
 int station(const char * stationURL) {
-	char url[512] = { 0 }, * encodedURL = NULL, ** response;
+	char url[512] = { 0 }, * encodedURL = NULL, ** response, name[512];
 	unsigned i = 0, retval = !0, regular = !0;
 	const char * fmt;	
 	const char * types[4] = {"play", "preview", "track", "playlist"};
@@ -176,9 +175,18 @@ int station(const char * stationURL) {
 	if(regular) {
 		for(i = 0; response[i]; ++i) {
 			char status[64] = { 0 };
+
 			if(sscanf(response[i], "response=%63[^\r\n]", status) > 0)
 				if(!strncmp(status, "FAILED", 6))
 					retval = 0;
+
+			if(sscanf(response[i], "stationname=%127[^\r\n]", name) > 0) {
+				if(playlist.title != NULL)
+					free(playlist.title);
+
+				decode(name, & playlist.title);
+				unhtml(playlist.title);
+			}
 		}
 
 		purge(response);
