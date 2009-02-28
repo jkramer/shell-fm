@@ -128,7 +128,7 @@ int station(const char * stationURL) {
 		return 0;
 	}
 
-	if(!stationURL)
+	if(!stationURL || !strlen(stationURL))
 		return 0;
 
 	if(!strncasecmp(stationURL, "lastfm://", 9))
