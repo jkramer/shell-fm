@@ -115,9 +115,19 @@ int station(const char * stationURL) {
 			}
 		}
 
+		/* Do nothing if the station is already played. */
+		else if(currentStation && !strcmp(currentStation, stationURL)) {
+			return 0;
+		}
+
 		puts("\rDelayed.");
 		nextstation = strdup(stationURL);
 
+		return 0;
+	}
+
+	/* Do nothing if the station is already played. */
+	else if(currentStation && !strcmp(currentStation, stationURL)) {
 		return 0;
 	}
 
