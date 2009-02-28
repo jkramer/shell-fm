@@ -151,7 +151,7 @@ char ** fetch(const char * url, FILE ** pHandle, const char * post, const char *
 
 	if(pHandle) {
 		* pHandle = fd;
-		if(!enabled(QUIET))
+		if(!batch && !enabled(QUIET))
 			fputs("\r   \r", stderr);
 
 		return NULL;
@@ -181,7 +181,7 @@ char ** fetch(const char * url, FILE ** pHandle, const char * post, const char *
 	
 	fshutdown(& fd);
 
-	if(!enabled(QUIET))
+	if(!batch && !enabled(QUIET))
 		fputs("\r   \r", stderr);
 	return resp;
 }
