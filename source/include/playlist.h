@@ -19,7 +19,7 @@ struct playlist {
 };
 
 extern int expand(struct playlist *);
-extern int parsexspf(struct playlist *, const char *);
+extern int parsexspf(struct playlist *, char *);
 
 extern void freelist(struct playlist *);
 extern void freenode(struct tracknode **);

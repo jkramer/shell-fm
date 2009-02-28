@@ -104,6 +104,8 @@ mkpath(char *path)
 }
 
 int playback(FILE * streamfd) {
+	const char * freetrack = NULL;
+
 	killed = 0;
 	signal(SIGUSR1, sighand);
 
@@ -161,8 +163,10 @@ int playback(FILE * streamfd) {
 		ioctl(data.audiofd, SOUND_PCM_WRITE_BITS, & arg);
 #endif
 
-		if(haskey(& track, "freeTrackURL") && haskey(& rc, "download")) {
-			char *dnam;
+		freetrack = value(& track, "freeTrackURL");
+
+		if(freetrack && strlen(freetrack) > 0 && haskey(& rc, "download")) {
+			char * dnam;
 			int rv;
 
 			data.path = strdup(meta(value(& rc, "download"), M_RELAXPATH, & track));
