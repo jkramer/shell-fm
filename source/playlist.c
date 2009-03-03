@@ -65,109 +65,92 @@ void trim(char* string){
 }
 
 
-int parsexspf(struct playlist * list, const char * xml) {
-	char * ptr;
+int parsexspf(struct playlist * list, char * xml) {
+	char * ptr = xml;
 	unsigned i, tracks = 0;
+	char * track;
 
 	assert(list != NULL);
 	assert(xml != NULL);
 
-	if((ptr = strcasestr(xml, "<title>")) != NULL) {
-		char * track, * radio = NULL;
+	while((track = strcasestr(ptr, "<track>")) != NULL) {
+		struct tracknode * node = NULL;
+		char * next = strcasestr(track + 7, "<track>"), * duration;
 
-		radio = strndup(ptr + 7, strcasestr(xml, "</title>") - ptr - 7);
-		assert(radio != NULL);
+		const char * tags [] = {
+			"location", "title", "album", "creator", "duration", "image",
+			"lastfm:trackauth",
+		};
 
-		if(list->title != NULL) {
-			free(list->title);
-			list->title = NULL;
-		}
-
-		decode(radio, & list->title);
-		unhtml(list->title);
-		free(radio);
-
-		while((track = strcasestr(ptr, "<track>")) != NULL) {
-			struct tracknode * node = NULL;
-			char * next = strcasestr(track + 7, "<track>"), * duration;
-
-			const char * tags [] = {
-				"location", "title", "album", "creator", "duration", "image",
-				"lastfm:trackauth",
-			};
-
-			const char * links [] = { "artistpage", "albumpage", "trackpage", "freeTrackURL", };
+		const char * links [] = { "artistpage", "albumpage", "trackpage", "freeTrackURL", };
 
 
-			if(next)
-				* (next - 1) = 0;
+		if(next)
+			* (next - 1) = 0;
 
-			node = malloc(sizeof(struct tracknode));
-			assert(node != NULL);
+		node = malloc(sizeof(struct tracknode));
+		assert(node != NULL);
 
-			memset(node, 0, sizeof(struct tracknode));
+		memset(node, 0, sizeof(struct tracknode));
 
-			for(i = 0; i < (sizeof(tags) / sizeof(char *)); ++i) {
-				char begin[32] = { 0 }, end[32] = { 0 };
+		for(i = 0; i < (sizeof(tags) / sizeof(char *)); ++i) {
+			char begin[32] = { 0 }, end[32] = { 0 };
 
-				sprintf(begin, "<%s>", tags[i]);
-				sprintf(end, "</%s>", tags[i]);
+			sprintf(begin, "<%s>", tags[i]);
+			sprintf(end, "</%s>", tags[i]);
 
-				if((ptr = strcasestr(track, begin)) != NULL) {
-					char * text = strndup(
+			if((ptr = strcasestr(track, begin)) != NULL) {
+				char * text = strndup(
 						ptr + strlen(begin),
 						(strcasestr(ptr, end)) - (ptr + strlen(begin))
-					);
+						);
 
-					assert(text != NULL);
+				assert(text != NULL);
 
-					unhtml(text);
-					set(& node->track, tags[i], text);
-					free(text);
-				}
+				unhtml(text);
+				set(& node->track, tags[i], text);
+				free(text);
 			}
-
-			for(i = 0; i < (sizeof(links) / sizeof(char *)); ++i) {
-				char begin[64] = { 0 };
-
-				sprintf(begin, "<link rel=\"http://www.last.fm/%s\">", links[i]);
-
-				if((ptr = strcasestr(track, begin)) != NULL) {
-					char * text = strndup(
-						ptr + strlen(begin),
-						(strcasestr(ptr, "</link>")) - (ptr + strlen(begin))
-					);
-
-					assert(text != NULL);
-
-					set(& node->track, links[i], text);
-					free(text);
-				}
-			}
-
-			trim(list->title);
-			set(& node->track, "station", list->title);
-
-			duration = strdup(value(& node->track, "duration"));
-			if(duration != NULL) {
-				duration[strlen(duration) - 3] = 0;
-				set(& node->track, "duration", duration);
-			}
-
-			push(list, node);
-
-			++tracks;
-
-			if(!next)
-				break;
-
-			ptr = next;
 		}
 
-		return !0;
+		for(i = 0; i < (sizeof(links) / sizeof(char *)); ++i) {
+			char begin[64] = { 0 };
+
+			sprintf(begin, "<link rel=\"http://www.last.fm/%s\">", links[i]);
+
+			if((ptr = strcasestr(track, begin)) != NULL) {
+				char * text = strndup(
+						ptr + strlen(begin),
+						(strcasestr(ptr, "</link>")) - (ptr + strlen(begin))
+						);
+
+				assert(text != NULL);
+
+				set(& node->track, links[i], text);
+				free(text);
+			}
+		}
+
+		trim(list->title);
+		set(& node->track, "station", list->title);
+
+		duration = strdup(value(& node->track, "duration"));
+		if(duration != NULL) {
+			duration[strlen(duration) - 3] = 0;
+			set(& node->track, "duration", duration);
+		}
+
+		push(list, node);
+
+		++tracks;
+
+		if(!next)
+			break;
+
+		ptr = next;
 	}
 
-	return 0;
+	return 1;
 }
 
 
