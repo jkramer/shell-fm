@@ -17,6 +17,7 @@
 #include "getln.h"
 #include "util.h"
 #include "strary.h"
+#include "globals.h"
 
 
 int cmpdigit(const void *, const void *);
@@ -65,6 +66,8 @@ void setmark(const char * streamURL, int n) {
 			}
 
 		fclose(fd);
+		if(!enabled(QUIET))
+			puts("Bookmark saved.");
 	}
 }
 

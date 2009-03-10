@@ -86,6 +86,13 @@ void makercd(void) {
 const char * rcpath(const char * file) {
 	static char path[4096] = { 0 };
 	memset(path, 0, sizeof(path));
-	snprintf(path, sizeof(path), "%s/.shell-fm/%s", getenv("HOME"), file);
+
+	if(getenv("SHELL_FM_HOME") != NULL) {
+		snprintf(path, sizeof(path), "%s/%s", getenv("SHELL_FM_HOME"), file);
+	}
+	else {
+		snprintf(path, sizeof(path), "%s/.shell-fm/%s", getenv("HOME"), file);
+	}
+
 	return path;
 }

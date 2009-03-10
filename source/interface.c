@@ -71,6 +71,7 @@ void interface(int interactive) {
 
 			case 'B':
 				puts(rate("B") ? "Banned." : "Sorry, failed.");
+				fflush(stdout);
 				enable(INTERRUPTED);
 				kill(playfork, SIGUSR1);
 				break;
@@ -177,6 +178,7 @@ void interface(int interactive) {
 			case 'H':
 				if(playfork && currentStation) {
 					puts("What number do you want to bookmark this stream as? [0-9]");
+					fflush(stdout);
 					key = fetchkey(5000000);
 					setmark(currentStation, key - 0x30);
 				}

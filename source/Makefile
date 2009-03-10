@@ -1,24 +1,38 @@
-SOURCE	:= $(wildcard *.c)
+MAIN	:= main.c
+SOURCE	:= $(filter-out $(MAIN),$(wildcard *.c))
 OBJECT	:= $(subst .c,.o,$(SOURCE))
 BINARY	:= shell-fm
-LDFLAGS := $(shell pkg-config --exists ao && pkg-config ao --libs) \
-	$(shell pkg-config mad --libs)
+LIB		:= libshellfm.so
+STATIC	:= libshellfm.a
+
 ifeq ($(shell uname -s), OpenBSD)
 	LDFLAGS += -lossaudio
 endif
 ifeq ($(shell uname -s), NetBSD)
 	LDFLAGS += -lossaudio
 endif
-LIBAO	:= $(shell pkg-config --exists ao && echo -DLIBAO && pkg-config ao --cflags)
-CFLAGS  := $(CFLAGS) -Os -Wall -W -I./include/ $(LIBAO) $(shell pkg-config mad --cflags)
+
+CFLAGS  += -Os -Wall -W -I./include/ -DLIBAO 
+LDFLAGS += -lmad -lao
 
 .PHONY: clean tags cscope
 
-shell-fm	: $(OBJECT)
-	$(CC) -o $(BINARY) $(CFLAGS) $(OBJECT) $(LDFLAGS)
+all	: shell-fm
+
+objects	: $(SOURCE)
+	$(CC) $(CFLAGS) -fPIC -c $(SOURCE)	
+
+$(LIB)	: $(OBJECT)
+	$(CC) -shared -Wl,-soname,$(LIB) -o $(LIB) $(OBJECT) 
+
+$(STATIC) : $(OBJECT)
+	$(AR) -cvq $(STATIC) $(OBJECT)
+
+$(BINARY)	: $(STATIC)
+	$(CC) -o $(BINARY) $(CFLAGS) $(MAIN) $(LDFLAGS) $(STATIC)
 
 clean		:
-	rm -f $(OBJECT) $(BINARY)
+	rm -f $(OBJECT) $(BINARY) $(LIB) $(STATIC)
 
 tags cscope	:
 	$(MAKE) -C .. $@

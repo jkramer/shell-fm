@@ -45,6 +45,13 @@
 #  endif
 #endif
 
+#if !defined(WCONTINUED) || !defined(WIFCONTINUED)
+#   undef  WCONTINUED
+#   define WCONTINUED   0
+#   undef  WIFCONTINUED
+#   define WIFCONTINUED(wstat)  (0)
+#endif
+
 unsigned flags = RTP;
 time_t changeTime = 0, pausetime = 0;
 char * nextstation = NULL;
@@ -154,7 +161,12 @@ int main(int argc, char ** argv) {
 		puts("Shell.FM v" PACKAGE_VERSION ", (C) 2006-2009 by Jonas Kramer");
 		puts("Published under the terms of the GNU General Public License (GPL).");
 
+#ifndef TUXBOX 
 		puts("\nPress ? for help.\n");
+#else
+		puts("Compiled for the use with Shell.FM Wrapper.\n");
+#endif
+		fflush(stdout);
 	}
 	
 
