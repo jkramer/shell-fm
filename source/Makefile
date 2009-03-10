@@ -2,7 +2,7 @@ MAIN	:= main.c
 SOURCE	:= $(filter-out $(MAIN),$(wildcard *.c))
 OBJECT	:= $(subst .c,.o,$(SOURCE))
 BINARY	:= shell-fm
-LIB		:= libshellfm.so
+LIB	:= libshellfm.so
 STATIC	:= libshellfm.a
 
 ifeq ($(shell uname -s), OpenBSD)
@@ -12,8 +12,11 @@ ifeq ($(shell uname -s), NetBSD)
 	LDFLAGS += -lossaudio
 endif
 
-CFLAGS  += -Os -Wall -W -I./include/ -DLIBAO 
-LDFLAGS += -lmad -lao
+CFLAGS  += -Os -Wall -W -I./include/ -DLIBAO \
+	   $(shell pkg-config --cflags mad) \
+	   $(shell pkg-config --cflags ao)
+LDFLAGS += $(shell pkg-config --libs mad) \
+	   $(shell pkg-config --libs ao)
 
 .PHONY: clean tags cscope
 
