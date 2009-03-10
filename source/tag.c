@@ -26,6 +26,7 @@
 #include "tag.h"
 #include "xmlrpc.h"
 #include "util.h"
+#include "globals.h"
 
 char ** popular = NULL;
 
@@ -246,6 +247,9 @@ void sendtag(char key, char * tagstring, struct hash data) {
 					);
 			break;
 	}
+
+	if(!enabled(QUIET))
+		puts(result ? "Tagged." : "Sorry, failed.");
 
 	purge(splt);
 	splt = NULL;

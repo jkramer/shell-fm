@@ -22,13 +22,20 @@ static int usercomplete(char *, const unsigned, int);
 
 void recommend(struct hash track) {
 	char key, * message = NULL, * recipient = NULL;
-	unsigned result = 0, length = 0;
+	unsigned result = 0;
 
 	struct prompt setup = {
 		.prompt = "Recipient: ",
 		.line = NULL,
 		.history = NULL,
 		.callback = usercomplete,
+	};
+
+	struct prompt comment = {
+		.prompt = "Comment: ",
+		.line = NULL,
+		.history = NULL,
+		.callback = NULL,
 	};
 
 	if(!track.content)
@@ -49,8 +56,7 @@ void recommend(struct hash track) {
 	purge(users);
 	users = NULL;
 
-	fputs("Comment: ", stderr);
-	getln(& message, & length, stdin);
+	message = readline(& comment);
 
 	switch(key) {
 		case 'a':

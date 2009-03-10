@@ -13,6 +13,10 @@
 #include "util.h"
 #include "getln.h"
 
+#if (defined(TUXBOX) || defined(PPC))
+#include <ctype.h>
+#endif
+
 /*
 	Takes the path of a file as argument, reads the file and returns an array
 	of strings containing the lines of the file.
@@ -120,6 +124,49 @@ char * strndup(const char * src, size_t len) {
 	}
 
 	return tmp;
+}
+
+#endif
+
+#if (defined(TUXBOX) || defined(PPC))
+
+/* On a few system like a PPC based Dreambox libc does not include strcasestr ... */
+
+char * strcasestr(const char * haystack, const char * needle) {
+    int nlength;
+    int mlength;
+
+	assert(needle != NULL);
+	assert(haystack != NULL);
+
+	nlength = strlen(needle);
+
+    if(nlength == 0)
+		return NULL;
+
+	mlength = strlen(haystack) - nlength + 1;
+
+    /* If needle is bigger than haystack, can't match. */
+    if(mlength < 0)
+		return NULL;
+
+    while(mlength) {
+        /* See if the needle matches the start of the haystack. */
+        int i;
+        for(i = 0; i < nlength; i++) {
+            if(tolower(haystack[i]) != tolower(needle[i]))
+                break;
+        }
+
+        /* If it matched along the whole needle length, we found it. */
+        if(i == nlength)
+            return (char *) haystack;
+
+        mlength--;
+        haystack++;
+    }
+
+    return NULL;
 }
 
 #endif
