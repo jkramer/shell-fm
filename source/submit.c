@@ -58,7 +58,7 @@ int enqueue(struct hash * track) {
 	queue = realloc(queue, sizeof(struct hash) * (qlength + 1));
 	assert(queue != NULL);
 
-	snprintf(timestamp, sizeof(timestamp), "%lu", time(NULL));
+	snprintf(timestamp, sizeof(timestamp), "%lu", (unsigned long) time(NULL));
 	snprintf(lastid, sizeof(lastid), "L%s", value(track, "lastfm:trackauth"));
 	snprintf(duration, sizeof(duration), "%d", atoi(value(track, "duration")));
 
@@ -197,7 +197,7 @@ static int handshake(const char * user, const char * password) {
 	assert(user != NULL);
 	assert(password != NULL);
 
-	snprintf(temp, sizeof(temp), "%s%lu", password, timestamp);
+	snprintf(temp, sizeof(temp), "%s%lu", password, (unsigned long) timestamp);
 	md5 = MD5((unsigned char *) temp, strlen(temp));
 
 	for(i = 0; i < 16; ++i)
