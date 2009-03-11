@@ -383,13 +383,14 @@ int main(int argc, char ** argv) {
 				playnext = 0;
 				disable(CHANGED);
 
-				station(nextstation);
+				if(!station(nextstation))
+					enable(STOPPED);
 
 				free(nextstation);
 				nextstation = NULL;
 			}
 
-			if(!playlist.left) {
+			if(!enabled(STOPPED) && !playlist.left) {
 				expand(& playlist);
 				if(!playlist.left) {
 					puts("No tracks left.");
