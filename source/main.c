@@ -286,7 +286,7 @@ int main(int argc, char ** argv) {
 	/* Play default radio, if specified. */
 	if(haskey(& rc, "default-radio"))
 		station(value(& rc, "default-radio"));
-	else
+	else if(!background)
 		radioprompt("radio url> ");
 
 	/* The main loop. */
