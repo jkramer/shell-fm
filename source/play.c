@@ -176,10 +176,15 @@ int playback(FILE * streamfd) {
 			rv = dnam ? mkpath(dirname(dnam)) : -1;
 			free(dnam);
 
-			data.dump = (rv == 0) ? fopen(data.path, "w") : NULL;
+			if(access(data.path, R_OK) == -1) {
+				data.dump = (rv == 0) ? fopen(data.path, "w") : NULL;
 
-			if(!data.dump)
-				fprintf(stderr, "Can't write download to %s.\n", data.path);
+				if(!data.dump)
+					fprintf(stderr, "Can't write download to %s.\n", data.path);
+			}
+			else {
+				data.dump = NULL;
+			}
 		}
 
 		mad_decoder_init(& dec, & data, input, NULL, NULL, output, NULL, NULL);
