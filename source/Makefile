@@ -11,6 +11,9 @@ endif
 ifeq ($(shell uname -s), NetBSD)
 	LDFLAGS += -lossaudio
 endif
+ifeq ($(shell uname -s), Darwin)
+	CFLAGS += -D__darwin__
+endif
 
 CFLAGS  += -Os -Wall -W -I./include/ -DLIBAO \
 	   $(shell pkg-config --cflags mad) \
