@@ -25,6 +25,7 @@
 #include "mix.h"
 
 signed adjust(signed deviation, int device) {
+#if defined(MIXER_READ) && defined(MIXER_WRITE)
 	signed fd = open("/dev/mixer", O_RDONLY | O_NONBLOCK), volume;
 
 	if(fd == -1) {
@@ -49,4 +50,7 @@ signed adjust(signed deviation, int device) {
 
 		return volume;
 	}
+#else
+        return 0;
+#endif
 }
