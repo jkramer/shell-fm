@@ -34,7 +34,6 @@
 #include "xmlrpc.h"
 #include "recommend.h"
 #include "util.h"
-#include "mix.h"
 
 #include "globals.h"
 
@@ -215,19 +214,17 @@ void interface(int interactive) {
 				break;
 
 			case '+':
-				adjust(+STEP, VOL);
+				if(volume < MAX_VOLUME)
+					volume += 1;
+				if(playpipe != 0)
+					write(playpipe, &key, 1);
 				break;
 
 			case '-':
-				adjust(-STEP, VOL);
-				break;
-
-			case '*':
-				adjust(+STEP, PCM);
-				break;
-
-			case '/':
-				adjust(-STEP, PCM);
+				if(volume > 0)
+					volume -= 1;
+				if(playpipe != 0)
+					write(playpipe, &key, 1);
 				break;
 
 			case 'u':
@@ -250,9 +247,8 @@ void interface(int interactive) {
 					"r = change radio station          | R = recommend track/artist/album\n"
 					"S = stop                          | s = similiar artist\n"
 					"T = tag track/artist/album        | u = show upcoming tracks in playlist\n"
-					"U = unlove track                  | + = increase volume (vol)\n"
-					"- = decrease volume (vol)         | * = increase volume (pcm)\n"
-					"/ = decrease volume (pcm)\n",
+					"U = unlove track                  | + = increase volume\n"
+					"- = decrease volume\n",
 					stderr
 				);
 				break;

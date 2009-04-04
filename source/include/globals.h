@@ -20,11 +20,15 @@ extern int batch;
 /* Forks. */
 extern pid_t playfork, subfork;
 
+extern int playpipe;
+extern unsigned char volume;
+
 extern char * currentStation; /* Name of the current station. */
 
 extern unsigned submitting; /* Number of tracks currently submitted. */
 extern time_t pausetime; /* Pause start time. */
 
+#define MAX_VOLUME 64
 
 extern unsigned flags;
 

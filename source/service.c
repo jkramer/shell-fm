@@ -32,6 +32,7 @@
 struct hash data; /* Warning! MUST be bzero'd ASAP or we're all gonna die! */
 
 pid_t playfork = 0; /* PID of the decoding & playing process, if running */
+int playpipe = 0;
 
 struct playlist playlist;
 char * currentStation = NULL;
@@ -260,9 +261,13 @@ int play(struct playlist * list) {
 	for(i = 0; i < (sizeof(keys) / sizeof(char *)); ++i)
 		set(& track, keys[i], value(& list->track->track, keys[i]));
 
+	int pipefd[2];
+	if(pipe(pipefd) != 0)
+		return !0;
 	playfork = fork();
 
 	if(!playfork) {
+		close(pipefd[1]);
 		FILE * fd = NULL;
 		const char * location = value(& list->track->track, "location");
 
@@ -274,14 +279,19 @@ int play(struct playlist * list) {
 			fetch(location, & fd, NULL, NULL);
 
 			if(fd != NULL) {
-				if(!playback(fd))
+				if(!playback(fd, pipefd[0]))
 					kill(getppid(), SIGUSR2);
+				close(pipefd[0]);
 				fshutdown(& fd);
 			}
 		}
 
 		exit(EXIT_SUCCESS);
 	}
+	close(pipefd[0]);
+	if(playpipe != 0)
+		close(playpipe);
+	playpipe = pipefd[1];
 
 	return !0;
 }

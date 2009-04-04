@@ -58,6 +58,7 @@ struct stream {
 
 	FILE * dump;
 	char * path;
+	int pipefd;
 };
 
 #define BUFSIZE (32*1024)
@@ -67,6 +68,8 @@ static enum mad_flow output(void *, const struct mad_header *, struct mad_pcm *)
 inline signed scale(mad_fixed_t);
 
 int killed = 0;
+
+unsigned char volume = MAX_VOLUME;
 
 static void sighand(int);
 
@@ -103,7 +106,7 @@ mkpath(char *path)
 	return (0);
 }
 
-int playback(FILE * streamfd) {
+int playback(FILE * streamfd, int pipefd) {
 	const char * freetrack = NULL;
 
 	killed = 0;
@@ -129,6 +132,8 @@ int playback(FILE * streamfd) {
 
 		data.streamfd = streamfd;
 		data.parent = getppid();
+		data.pipefd = pipefd;
+		fcntl(pipefd, F_SETFL, O_NONBLOCK);
 
 #ifdef LIBAO
 		data.driver_id = ao_default_driver_id();
@@ -298,6 +303,25 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 	return MAD_FLOW_CONTINUE;
 }
 
+static void read_from_pipe(int pipefd) {
+	char readchar;
+	ssize_t readcount;
+
+	while((readcount = read(pipefd, &readchar, 1)) > 0) {
+		switch(readchar) {
+			// update this process's copy of the volume level
+			case '+':
+				if(volume < MAX_VOLUME)
+					volume += 1;
+				break;
+			case '-':
+				if(volume > 0)
+					volume -= 1;
+				break;
+		}
+	}
+}
+
 #ifdef LIBAO
 static enum mad_flow output(
 		void * data,
@@ -328,6 +352,7 @@ static enum mad_flow output(
 	stream_ptr = stream = malloc(pcm->length * (pcm->channels == 2 ? 4 : 2));
 
 	assert(stream != NULL);
+	read_from_pipe(ptr->pipefd);
 	
 	while(nsample--) {
 		signed int sample;
@@ -373,6 +398,7 @@ static enum mad_flow output(
 	mad_fixed_t * left = pcm->samples[0], * right = pcm->samples[1];
 
 	head = NULL;
+	read_from_pipe(ptr->pipefd);
 
 	arg = rate;
 	ioctl(ptr->audiofd, SOUND_PCM_WRITE_RATE, & arg);
@@ -413,7 +439,7 @@ inline signed scale(register mad_fixed_t sample) {
 	else if(sample < -MAD_F_ONE)
 		sample = -MAD_F_ONE;
 
-	return sample >> (MAD_F_FRACBITS + 1 - 16);
+	return (sample >> (MAD_F_FRACBITS + 1 - 16)) * volume / MAX_VOLUME;
 }
 
 static void sighand(int sig) {
