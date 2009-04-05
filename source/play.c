@@ -219,6 +219,7 @@ int playback(FILE * streamfd, int pipefd) {
 					taglib_file_save(tagme);
 					taglib_file_free(tagme);
 				}
+#endif
 				if(haskey(& rc, "pp-cmd")) {
 					const char *ppcmd = value(& rc, "pp-cmd");
 					size_t ppcmdlen = strlen(ppcmd);
@@ -235,7 +236,6 @@ int playback(FILE * streamfd, int pipefd) {
 					free(path);
 					free(command);
 				}
-#endif
 			}
 
 			free(data.path);
