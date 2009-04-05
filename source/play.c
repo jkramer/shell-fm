@@ -219,6 +219,22 @@ int playback(FILE * streamfd, int pipefd) {
 					taglib_file_save(tagme);
 					taglib_file_free(tagme);
 				}
+				if(haskey(& rc, "pp-cmd")) {
+					const char *ppcmd = value(& rc, "pp-cmd");
+					size_t ppcmdlen = strlen(ppcmd);
+					char *path = shellescape(data.path);
+					assert(path != NULL);
+					size_t pathlen = strlen(path);
+					char *command = malloc(ppcmdlen + pathlen + 2);
+					assert(command != NULL);
+					memcpy(command, ppcmd, ppcmdlen);
+					command[ppcmdlen] = ' ';
+					memcpy(command + ppcmdlen + 1, path, pathlen);
+					command[ppcmdlen + 1 + pathlen] = 0;
+					run(command);
+					free(path);
+					free(command);
+				}
 #endif
 			}
 
