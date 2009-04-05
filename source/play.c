@@ -45,6 +45,10 @@
 #include "interface.h"
 #include "globals.h"
 
+#ifdef TAGLIB
+#include <taglib/tag_c.h>
+#endif
+
 struct stream {
 	FILE * streamfd;
 #ifdef LIBAO
@@ -202,8 +206,21 @@ int playback(FILE * streamfd, int pipefd) {
 		if(data.dump) {
 			fclose(data.dump);
 
-			if(killed)
+			if(killed) {
 				unlink(data.path);
+			} else {
+#ifdef TAGLIB
+				TagLib_File *tagme = taglib_file_new(data.path);
+				if(tagme != NULL) {
+					TagLib_Tag *tag = taglib_file_tag(tagme);
+					taglib_tag_set_title(tag, value(&track, "title"));
+					taglib_tag_set_artist(tag, value(&track, "creator"));
+					taglib_tag_set_album(tag, value(&track, "album"));
+					taglib_file_save(tagme);
+					taglib_file_free(tagme);
+				}
+#endif
+			}
 
 			free(data.path);
 		}
