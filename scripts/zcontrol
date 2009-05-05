@@ -1,4 +1,4 @@
-#!/usr/bin/zsh
+#!/usr/bin/env zsh
 # zcontrol, shell-fm remote control script. Copyright (C) 2006 by Jonas Kramer.
 # Published under the terms of the GNU General Public License (GPL).
 
