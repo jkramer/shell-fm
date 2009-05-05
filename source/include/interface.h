@@ -19,5 +19,6 @@ extern int fetchkey(unsigned);
 extern void shownp(void);
 extern void tag(struct hash);
 extern int rate(const char *);
+extern char * shellescape(const char *);
 
 #endif

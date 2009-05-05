@@ -15,9 +15,10 @@ syn match ShellFMEquals /=/ skipwhite
             \ nextgroup=ShellFMValue
 
 syn keyword ShellFMKnownKey contained
-            \ username password default-radio np-file np-file-format np-cmd bind port extern
-            \ proxy expiry device title-format minimum delay-change screen-format
-            \ term-format download gap discovery preview-format screen-format term-format unix
+            \ username password default-radio np-file np-file-format np-cmd
+            \ pp-cmd bind port extern proxy expiry device title-format minimum
+            \ delay-change screen-format term-format download gap discovery
+            \ preview-format screen-format term-format unix
 
 syn match ShellFMColorKey /\<[atldsSALTR]-color\>/ contained
 

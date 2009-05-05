@@ -45,6 +45,10 @@
 #include "interface.h"
 #include "globals.h"
 
+#ifdef TAGLIB
+#include <taglib/tag_c.h>
+#endif
+
 struct stream {
 	FILE * streamfd;
 #ifdef LIBAO
@@ -202,8 +206,37 @@ int playback(FILE * streamfd, int pipefd) {
 		if(data.dump) {
 			fclose(data.dump);
 
-			if(killed)
+			if(killed) {
 				unlink(data.path);
+			} else {
+#ifdef TAGLIB
+				TagLib_File *tagme = taglib_file_new(data.path);
+				if(tagme != NULL) {
+					TagLib_Tag *tag = taglib_file_tag(tagme);
+					taglib_tag_set_title(tag, value(&track, "title"));
+					taglib_tag_set_artist(tag, value(&track, "creator"));
+					taglib_tag_set_album(tag, value(&track, "album"));
+					taglib_file_save(tagme);
+					taglib_file_free(tagme);
+				}
+#endif
+				if(haskey(& rc, "pp-cmd")) {
+					const char *ppcmd = value(& rc, "pp-cmd");
+					size_t ppcmdlen = strlen(ppcmd);
+					char *path = shellescape(data.path);
+					assert(path != NULL);
+					size_t pathlen = strlen(path);
+					char *command = malloc(ppcmdlen + pathlen + 2);
+					assert(command != NULL);
+					memcpy(command, ppcmd, ppcmdlen);
+					command[ppcmdlen] = ' ';
+					memcpy(command + ppcmdlen + 1, path, pathlen);
+					command[ppcmdlen + 1 + pathlen] = 0;
+					run(command);
+					free(path);
+					free(command);
+				}
+			}
 
 			free(data.path);
 		}

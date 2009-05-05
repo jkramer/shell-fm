@@ -21,6 +21,11 @@ CFLAGS  += -Os -Wall -W -I./include/ -DLIBAO \
 LDFLAGS += $(shell pkg-config --libs mad) \
 	   $(shell pkg-config --libs ao)
 
+ifeq ($(shell pkg-config --exists taglib_c && echo 1), 1)
+	CFLAGS  += $(shell pkg-config --cflags taglib_c) -DTAGLIB
+	LDFLAGS += $(shell pkg-config --libs taglib_c)
+endif
+
 .PHONY: clean tags cscope
 
 all	: shell-fm
