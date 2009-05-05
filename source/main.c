@@ -83,6 +83,10 @@ int main(int argc, char ** argv) {
 	if(haskey(& rc, "discovery"))
 		enable(DISCOVERY);
 
+	/* If "daemon" is set in the configuration, enable daemon mode by default. */
+	if(haskey(& rc, "daemon"))
+		background = !0;
+
 	/* Get proxy environment variable. */
 	if((proxy = getenv("http_proxy")) != NULL)
 		set(& rc, "proxy", proxy);
@@ -92,7 +96,7 @@ int main(int argc, char ** argv) {
 	while(-1 != (option = getopt(argc, argv, ":dbhi:p:D:y:")))
 		switch(option) {
 			case 'd': /* Daemonize. */
-				background = !0;
+				background = !background;
 				break;
 
 			case 'i': /* IP to bind network interface to. */
