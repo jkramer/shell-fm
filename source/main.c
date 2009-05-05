@@ -144,12 +144,7 @@ int main(int argc, char ** argv) {
 	if(optind > 0 && optind < argc && argv[optind]) {
 		const char * station = argv[optind];
 
-		if(0 != strncmp(station, "lastfm://", 9)) {
-			fprintf(stderr, "Not a valid lastfm url: %s\n\n", station);
-			++nerror;
-		} else {
-			set(& rc, "default-radio", station);
-		}
+		set(& rc, "default-radio", station);
 	}
 
 	
