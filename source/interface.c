@@ -317,77 +317,82 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 		if(fmt[x] != '%')
 			string[length++] = fmt[x++];
 		else if(fmt[++x]) {
-			const char * keys [] = {
-				"acreator",
-				"ttitle",
-				"lalbum",
-				"Aartistpage",
-				"Ttrackpage",
-				"Lalbumpage",
-				"dduration",
-				"sstation",
-				"SstationURL",
-				"Rremain",
-				"Iimage"
-			};
-
-			register unsigned i = sizeof(keys) / sizeof(char *);
-
-			/* Look for a track value with that format flag. */
-			while(i--) {
-				if(fmt[x] == keys[i][0]) {
-					char * val = strdup(value(track, keys[i] + 1));
-					const char * color = NULL;
-
-					if(flags & M_COLORED) {
-						char colorkey[64] = { 0 };
-						snprintf(colorkey, sizeof(colorkey), "%c-color", keys[i][0]);
-						color = value(& rc, colorkey);
-
-						if(color) {
-							/* Strip leading spaces from end of color (Author: Ondrej Novy) */
-							char * color_st = strdup(color);
-							size_t len = strlen(color_st) - 1;
-
-							assert(color_st != NULL);
-
-							while(isspace(color_st[len]) && len > 0) {
-								color_st[len] = 0;
-								len--;
-							}
-							length += snprintf(string + length, remn, "\x1B[%sm", color_st);
-							free(color_st);
-						}
-					}
-
-					if((flags & M_RELAXPATH) && val) {
-						unsigned n;
-						size_t l = strlen(val);
-
-						for(n = 0; n < l; ++n) {
-							if(val[n] == '/')
-								val[n] = '|';
-						}
-					}
-
-					if(flags & M_SHELLESC) {
-						char * escaped = shellescape(val);
-						free(val);
-						val = escaped;
-					}
-
-					length = strlen(strncat(string, val ? val : "(unknown)", remn));
-
-					free(val);
-
-					if(color)
-						length = strlen(strncat(string, "\x1B[0m", remn));
-
-					break;
-				}
+			if(fmt[x] == '%') {
+				string[length++] = fmt[x++];
 			}
+			else {
+				const char * keys [] = {
+					"acreator",
+					"ttitle",
+					"lalbum",
+					"Aartistpage",
+					"Ttrackpage",
+					"Lalbumpage",
+					"dduration",
+					"sstation",
+					"SstationURL",
+					"Rremain",
+					"Iimage"
+				};
 
-			++x;
+				register unsigned i = sizeof(keys) / sizeof(char *);
+
+				/* Look for a track value with that format flag. */
+				while(i--) {
+					if(fmt[x] == keys[i][0]) {
+						char * val = strdup(value(track, keys[i] + 1));
+						const char * color = NULL;
+
+						if(flags & M_COLORED) {
+							char colorkey[64] = { 0 };
+							snprintf(colorkey, sizeof(colorkey), "%c-color", keys[i][0]);
+							color = value(& rc, colorkey);
+
+							if(color) {
+								/* Strip leading spaces from end of color (Author: Ondrej Novy) */
+								char * color_st = strdup(color);
+								size_t len = strlen(color_st) - 1;
+
+								assert(color_st != NULL);
+
+								while(isspace(color_st[len]) && len > 0) {
+									color_st[len] = 0;
+									len--;
+								}
+								length += snprintf(string + length, remn, "\x1B[%sm", color_st);
+								free(color_st);
+							}
+						}
+
+						if((flags & M_RELAXPATH) && val) {
+							unsigned n;
+							size_t l = strlen(val);
+
+							for(n = 0; n < l; ++n) {
+								if(val[n] == '/')
+									val[n] = '|';
+							}
+						}
+
+						if(flags & M_SHELLESC) {
+							char * escaped = shellescape(val);
+							free(val);
+							val = escaped;
+						}
+
+						length = strlen(strncat(string, val ? val : "(unknown)", remn));
+
+						free(val);
+
+						if(color)
+							length = strlen(strncat(string, "\x1B[0m", remn));
+
+						break;
+					}
+				}
+
+				++x;
+			}
 		}
 	}
 
