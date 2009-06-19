@@ -114,6 +114,12 @@ Jump to the similar artists radio stream of the currently played tracks artist.
 Tag the currently played track/artist/album. Tabulator key completes known
 tags.
 .TP
+.B U
+Unlove the currently played track.
+.TP
+.B u
+Print upcoming tracks in playlist.
+.TP
 .B +
 Increase volume.
 .TP
@@ -159,6 +165,9 @@ track into the given file, whenever a new track is played.
 .B np-file-format = format-string
 This defines how the information written to your now-playing file will look
 like. There are several format flags available. Have a look at the
+.TP
+.B preview-format = format-string
+Format of the track information in the playlist preview (key 'u').
 .B FORMAT FLAGS
 section for the details.
 .TP
@@ -210,6 +219,15 @@ shell-fm remotely (or from local scripts, see
 above). Check the
 .B NETWORK INTERFACE COMMANDS
 section below for a list of known commands.
+.B NOTE:
+The network interface has no user authentication, so anyone with access to your
+network/host can control shell-fm. Use it only if you really need to control
+shell-fm over a network. Otherwise use the UNIX socket interface (see below).
+.TP
+.B unix = path
+If this is set to a proper path, on that path a UNIX socket will be created for
+local "remote" control. This socket interface takes the same commands as the
+TCP socket interface (see above).
 .TP
 .B port = port-number
 With this option you can change the port shell-fm will listen on (if
