@@ -6,7 +6,7 @@
 # Published under the terms of the GNU General Public License (GPL).
 
 echo -ne "FG/BG\t"
-for bg in `seq 30 37`; do echo -ne "   $bg   "; done
+for bg in `seq 40 47`; do echo -ne "   $bg   "; done
 
 for fg in `seq 30 37`; do
 	echo -ne "\n$fg (N)\t"
