@@ -411,6 +411,7 @@ static enum mad_flow output(
 #endif
 		}
 	}
+
 	ao_play(ptr->device, stream, pcm->length * (pcm->channels == 2 ? 4 : 2));
 	free(stream);
 
@@ -438,14 +439,20 @@ static enum mad_flow output(
 	arg = nchan;
 	ioctl(ptr->audiofd, SOUND_PCM_WRITE_CHANNELS, & arg);
 
+	unsigned char * words, * word;
+
+	words = malloc(nsample * 4);
+	assert(words != NULL);
+
+	word = words;
+
 	while(nsample--) {
 		signed sample;
-		unsigned char word[2];
 
 		sample = scale(* left++);
 		word[0] = (unsigned char) (sample & 0xFF);
 		word[1] = (unsigned char) ((sample >> 8) & 0xFF);
-		write(ptr->audiofd, word, 2);
+		word += 2;
 
 		if(nchan == 2) {
 			sample = scale(* right++);
@@ -453,9 +460,12 @@ static enum mad_flow output(
 			word[0] = (unsigned char) (sample & 0xFF);
 			word[1] = (unsigned char) ((sample >> 8) & 0xFF);
 
-			write(ptr->audiofd, word, 2);
+			word += 2;
 		}
 	}
+
+	write(ptr->audiofd, words, word - words);
+	free(words);
 
 	if(killed)
 		return MAD_FLOW_STOP;
