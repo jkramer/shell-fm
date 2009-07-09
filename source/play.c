@@ -63,6 +63,9 @@ struct stream {
 	FILE * dump;
 	char * path;
 	int pipefd;
+
+	int timeout;
+	int preload;
 };
 
 #define BUFSIZE (32*1024)
@@ -70,6 +73,7 @@ struct stream {
 static enum mad_flow input(void *, struct mad_stream *);
 static enum mad_flow output(void *, const struct mad_header *, struct mad_pcm *);
 inline signed scale(mad_fixed_t);
+static int timed_read(int, unsigned char *, int, int);
 
 int killed = 0;
 
@@ -133,6 +137,24 @@ int playback(FILE * streamfd, int pipefd) {
 #endif
 
 		memset(& data, 0, sizeof(struct stream));
+
+		/*
+			Check if there's a stream timeout configured and set it up for timed
+			reads later.
+		*/
+		data.timeout = -1;
+		if(value(& rc, "stream-timeout")) {
+			const char * timeout = value(& rc, "stream-timeout");
+			data.timeout = atoi(timeout);
+
+			if(data.timeout <= 0) {
+				if(data.timeout < 0) 
+					fputs("Invalid stream-timeout.\n", stderr);
+
+				data.timeout = -1;
+			}
+		}
+
 
 		data.streamfd = streamfd;
 		data.parent = getppid();
@@ -282,12 +304,11 @@ int playback(FILE * streamfd, int pipefd) {
 }
 
 static enum mad_flow input(void * data, struct mad_stream * stream) {
-	static unsigned nbyte = 0;
-	static int preload = 0;
 	static unsigned char buf[BUFSIZE + 1] = { 0 };
-
 	struct stream * ptr = (struct stream *) data;
-	unsigned remnbyte = 0;
+
+	static int nbyte = 0;
+	int remnbyte = 0;
 
 	if(feof(ptr->streamfd))
 		return MAD_FLOW_STOP;
@@ -297,14 +318,20 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 		memmove(buf, stream->next_frame, remnbyte);
 	}
 
-	if(preload) {
-		nbyte = read(fileno(ptr->streamfd), buf + remnbyte, BUFSIZE - remnbyte);
+	if(ptr->preload) {
+		nbyte = timed_read(fileno(ptr->streamfd), buf + remnbyte, BUFSIZE - remnbyte, ptr->timeout);
+
+		if(nbyte == -1) {
+			fputs("Stream timed out.\n", stderr);
+		}
+
 		if(ptr->dump)
 			fwrite(buf + remnbyte, sizeof(buf[0]), nbyte, ptr->dump);
 	}
 	else {
 		while(nbyte < BUFSIZE) {
-			int retval = read(fileno(ptr->streamfd), buf + nbyte, BUFSIZE - nbyte);
+			int retval = timed_read(fileno(ptr->streamfd), buf + nbyte, BUFSIZE - nbyte, ptr->timeout);
+
 			if(retval <= 0)
 				break;
 
@@ -313,10 +340,15 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 
 			nbyte += retval;
 		}
-		preload = !0;
+
+		if(!nbyte) {
+			fputs("Stream timed out while trying to preload data.\n", stderr);
+		}
+
+		ptr->preload = !0;
 	}
 	
-	if(!nbyte)
+	if(nbyte <= 0)
 		return MAD_FLOW_STOP;
 
 	nbyte += remnbyte;
@@ -488,4 +520,29 @@ inline signed scale(register mad_fixed_t sample) {
 static void sighand(int sig) {
 	if(sig == SIGUSR1)
 		killed = !0;
+}
+
+
+static int timed_read(int fd, unsigned char * p, int count, int timeout) {
+	fd_set fdset;
+	struct timeval tv;
+	struct timeval * tvp = & tv;
+
+	FD_ZERO(& fdset);
+	FD_SET(fd, & fdset);
+
+	if(timeout <= 0) {
+		tvp = NULL;
+	}
+	else {
+		tv.tv_usec = 0;
+		tv.tv_sec = timeout;
+	}
+
+	if(select(fd + 1, & fdset, NULL, NULL, tvp) > 0) {
+		return read(fd, p, count);
+	}
+
+	fprintf(stderr, "Track stream timed out (%d).\n", timeout);
+	return -1;
 }
