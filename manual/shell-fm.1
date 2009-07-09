@@ -294,6 +294,13 @@ tracks.
 .TP
 .B discovery = something
 Enable discovery mode by default.
+.TP
+.B stream-timeout = seconds
+Users reported that in some regions in the world, Last.FM servers sometimes
+pretend to stream a track but then don't send anything, which makes shell-fm
+hang forever waiting for the track data. If you have that problem, use this
+option to define a stream timeout. When shell-fm is waiting for stream data, it
+will wait that many seconds and then skip to the next track.
 .SH FORMAT FLAGS
 There are several format flags allowed for some options. Here is the list.
 .TP
