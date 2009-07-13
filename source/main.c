@@ -542,8 +542,6 @@ static void cleanup(void) {
 	canon(!0);
 	rmsckif();
 
-	unlinknp();
-
 	if(haskey(& rc, "unix") && getpid() == ppid)
 		unlink(value(& rc, "unix"));
 
