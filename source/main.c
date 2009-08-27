@@ -83,6 +83,10 @@ int main(int argc, char ** argv) {
 	if(haskey(& rc, "discovery"))
 		enable(DISCOVERY);
 
+	/* Disable RTP if option "no-rtp" is set to something. */
+	if(value(& rc, "no-rtp"))
+		disable(RTP);
+
 	/* If "daemon" is set in the configuration, enable daemon mode by default. */
 	if(haskey(& rc, "daemon"))
 		background = !0;
