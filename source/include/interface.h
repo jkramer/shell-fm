@@ -20,5 +20,7 @@ extern void shownp(void);
 extern void tag(struct hash);
 extern int rate(const char *);
 extern char * shellescape(const char *);
+extern void quit();
+extern void unlinknp();
 
 #endif

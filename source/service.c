@@ -238,6 +238,7 @@ int station(const char * stationURL) {
 */
 int play(struct playlist * list) {
 	unsigned i;
+	int pipefd[2];
 	char * keys [] = {
 		"creator", "title", "album", "duration", "station",
 		"lastfm:trackauth", "trackpage", "artistpage", "albumpage",
@@ -261,16 +262,16 @@ int play(struct playlist * list) {
 	for(i = 0; i < (sizeof(keys) / sizeof(char *)); ++i)
 		set(& track, keys[i], value(& list->track->track, keys[i]));
 
-	int pipefd[2];
 	if(pipe(pipefd) != 0)
 		return !0;
+
 	playfork = fork();
 
 	if(!playfork) {
-		close(pipefd[1]);
 		FILE * fd = NULL;
 		const char * location = value(& list->track->track, "location");
 
+		close(pipefd[1]);
 		rmsckif();
 
 		subfork = 0;
@@ -279,8 +280,13 @@ int play(struct playlist * list) {
 			fetch(location, & fd, NULL, NULL);
 
 			if(fd != NULL) {
+				/*
+					If there was an error, tell the main process about it by
+					sending SIGUSR2.
+				*/
 				if(!playback(fd, pipefd[0]))
 					kill(getppid(), SIGUSR2);
+
 				close(pipefd[0]);
 				fshutdown(& fd);
 			}
@@ -288,9 +294,12 @@ int play(struct playlist * list) {
 
 		exit(EXIT_SUCCESS);
 	}
+
 	close(pipefd[0]);
+
 	if(playpipe != 0)
 		close(playpipe);
+
 	playpipe = pipefd[1];
 
 	return !0;

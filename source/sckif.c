@@ -237,7 +237,7 @@ void execcmd(const char * cmd, char * reply) {
 			break;
 
 		case 4:
-			exit(EXIT_SUCCESS);
+			quit();
 
 		case 5:
 			if(* (cmd + 5))

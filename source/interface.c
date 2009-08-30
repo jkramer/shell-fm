@@ -39,6 +39,8 @@
 
 extern time_t pausetime;
 
+void unlinknp(void);
+
 struct hash track;
 
 char * shellescape(const char *);
@@ -90,8 +92,7 @@ void interface(int interactive) {
 				break;
 
 			case 'Q':
-				unlink(rcpath("session"));
-				exit(EXIT_SUCCESS);
+				quit();
 
 			case 'i':
 				if(playfork) {
@@ -473,4 +474,20 @@ char * shellescape(const char * string) {
 	}
 
 	return escaped;
+}
+
+
+void quit() {
+	unlink(rcpath("session"));
+	unlinknp();
+	exit(EXIT_SUCCESS);
+}
+
+void unlinknp(void) {
+	/* Remove now-playing file. */
+	if(haskey(& rc, "np-file")) {
+		const char * np = value(& rc, "np-file");
+		if(np != NULL)
+			unlink(np);
+	}
 }

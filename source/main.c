@@ -63,7 +63,6 @@ static void forcequit(int);
 static void help(const char *, int);
 static void playsig(int);
 static void stopsig(int);
-static void unlinknp(void);
 
 pid_t ppid = 0;
 
@@ -317,8 +316,7 @@ int main(int argc, char ** argv) {
 						unlinknp();
 
 						if(delayquit) {
-							unlink(rcpath("session"));
-							exit(EXIT_SUCCESS);
+							quit();
 						}
 					}
 					pausetime = 0;
@@ -601,7 +599,7 @@ static void cleanup(void) {
 static void forcequit(int sig) {
 	if(sig == SIGINT) {
 		fputs("Try to press Q next time you want to quit.\n", stderr);
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 }
 
@@ -623,11 +621,3 @@ static void stopsig(int sig) {
 	}
 }
 
-static void unlinknp(void) {
-	/* Remove now-playing file. */
-	if(haskey(& rc, "np-file")) {
-		const char * np = value(& rc, "np-file");
-		if(np != NULL)
-			unlink(np);
-	}
-}
