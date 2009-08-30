@@ -1,27 +1,56 @@
- SHELL.FM RELEASE NOTES 0.6 - 2008-09-04
+
+SHELL.FM RELEASE NOTES 0.7 - 2008-08-30
+
+Changes:
+ * Added "screen-format" option to set GNU screen window titles on track change.
+ * When "term-format" is set to a format string, shell-fm will set the terminals window title on track-change now.
+ * When option "download" is set to a path including format flags, free tracks are saved and tagged (with taglib support)
+ * Prompt for radio URI on startup if no default radio is set and no URI is given as command line argument.
+ * Added "gap" option for sleeping between tracks.
+ * Added delayed quit ('q', works only if delay-change is set).
+ * Delay of station changes works for bookmarks now.
+ * Bookmark list is sorted.
+ * Empty station cancels delayed station change.
+ * $SHELL_FM_HOME is used as base directory instead of ~/.shell-fm/, if set.
+ * Add pp-cmd that runs after a track is saved.
+ * Small playback buffer to decrease CPU load when playing without libao.
+ * Disable RTP at startup if "no-rtp" is set to something in the configuration.
+
+
+Authors / Contributors:
+ * Benoît Rouits
+ * Csaba Henk
+ * Matthew Donoughe
+ * Matthias Goebl
+ * Mike Kelly
+ * Silviu Grijincu
+ * Stepan Kasal
+ * Cedric
+ * Jonas Kramer
+
+
+SHELL.FM RELEASE NOTES 0.6 - 2008-09-04
 
 Many thanks to the contributors to this release:
-	* Mike Kelly (fixes for FreeBSD)
-	* Lars-Dominik Braun (bug fixes)
-	* Rodrigo Tartajo (small improvements)
-	* Guillaume Pinot (patches for OpenBSD)
-	* Alexander Monakov (meta flags in extern option)
-	* Wirt Wolff (manual update)
-	* Åke Forslund (bug fix)
+ * Mike Kelly (fixes for FreeBSD)
+ * Lars-Dominik Braun (bug fixes)
+ * Rodrigo Tartajo (small improvements)
+ * Guillaume Pinot (patches for OpenBSD)
+ * Alexander Monakov (meta flags in extern option)
+ * Wirt Wolff (manual update)
+ * Åke Forslund (bug fix)
 
 New features:
-	* delayed station change:
-		'r', 's' and 'f' wait until the currently played track ends before
-		changing to the next station if "delay-change" is set.
-	* playlist preview:
-		'u' prints upcoming tracks in the station queue, with 'E' you can
-		manually load the next bunch of tracks of the playlist.
-		With 'preview-format' you can change the format of the track list.
-	* 'discovery' in the configuration lets you enable discovery mode by
-	  default.
-	* UNIX socket support for local "remote" control (check manual).
-	* Directories ~/.shell-fm/ and ~/.shell-fm/cache are created
-	  automatically.
-	* 'extern' option has support for format flags.
-	* Better support for *BSD.
-	* Some minor improvements and bug fixes.
+ * delayed station change:
+	'r', 's' and 'f' wait until the currently played track ends before
+	changing to the next station if "delay-change" is set.
+ * playlist preview:
+	'u' prints upcoming tracks in the station queue, with 'E' you can
+	manually load the next bunch of tracks of the playlist.
+	With 'preview-format' you can change the format of the track list.
+ * 'discovery' in the configuration lets you enable discovery mode by default.
+ * UNIX socket support for local "remote" control (check manual).
+ * Directories ~/.shell-fm/ and ~/.shell-fm/cache are created automatically.
+ * 'extern' option has support for format flags.
+ * Better support for *BSD.
+ * Some minor improvements and bug fixes.
