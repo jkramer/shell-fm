@@ -265,7 +265,7 @@ int playback(FILE * streamfd, int pipefd) {
 
 	} else {
 		pid_t ppid = getppid(), cpid = 0;
-		const char * cmd = meta(value(& rc, "extern"), 0, & track);
+		const char * cmd = meta(value(& rc, "extern"), M_SHELLESC, & track);
 		FILE * ext = openpipe(cmd, & cpid);
 		unsigned char * buf;
 
