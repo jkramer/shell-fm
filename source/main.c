@@ -154,9 +154,17 @@ int main(int argc, char ** argv) {
 	if(nerror)
 		help(argv[0], EXIT_FAILURE);
 
+#ifdef EXTERN_ONLY
+	/* Abort if EXTERN_ONLY is defined and no extern command is present */
+	if(!haskey(& rc, "extern")) {
+		fputs("Can't continue without extern command.\n", stderr);
+		exit(EXIT_FAILURE);
+	}
+#else
 #ifndef LIBAO
 	if(!haskey(& rc, "device"))
 		set(& rc, "device", "/dev/audio");
+#endif
 #endif
 
 	if(!background) {

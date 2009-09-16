@@ -8,8 +8,6 @@
 
 #define _GNU_SOURCE
 
-#include <mad.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,6 +20,9 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <assert.h>
+
+#ifndef EXTERN_ONLY
+#include <mad.h>
 
 #ifdef LIBAO
 #include <ao/ao.h>
@@ -39,16 +40,18 @@
 
 #endif
 
+#ifdef TAGLIB
+#include <taglib/tag_c.h>
+#endif
+#endif
+
 #include "settings.h"
 #include "pipe.h"
 #include "play.h"
 #include "interface.h"
 #include "globals.h"
 
-#ifdef TAGLIB
-#include <taglib/tag_c.h>
-#endif
-
+#ifndef EXTERN_ONLY
 struct stream {
 	FILE * streamfd;
 #ifdef LIBAO
@@ -67,13 +70,16 @@ struct stream {
 	int timeout;
 	int preload;
 };
+#endif
 
 #define BUFSIZE (32*1024)
 
+#ifndef EXTERN_ONLY
 static enum mad_flow input(void *, struct mad_stream *);
 static enum mad_flow output(void *, const struct mad_header *, struct mad_pcm *);
 inline signed scale(mad_fixed_t);
 static int timed_read(int, unsigned char *, int, int);
+#endif
 
 int killed = 0;
 
@@ -115,12 +121,13 @@ mkpath(char *path)
 }
 
 int playback(FILE * streamfd, int pipefd) {
-	const char * freetrack = NULL;
-
 	killed = 0;
 	signal(SIGUSR1, sighand);
 
+#ifndef EXTERN_ONLY
 	if(!haskey(& rc, "extern")) {
+		const char * freetrack = NULL;
+
 		struct stream data;
 		struct mad_decoder dec;
 
@@ -262,8 +269,10 @@ int playback(FILE * streamfd, int pipefd) {
 
 			free(data.path);
 		}
-
-	} else {
+	}
+	else
+#endif
+	{
 		pid_t ppid = getppid(), cpid = 0;
 		const char * cmd = meta(value(& rc, "extern"), M_SHELLESC, & track);
 		FILE * ext = openpipe(cmd, & cpid);
@@ -303,6 +312,12 @@ int playback(FILE * streamfd, int pipefd) {
 	return !0;
 }
 
+static void sighand(int sig) {
+	if(sig == SIGUSR1)
+		killed = !0;
+}
+
+#ifndef EXTERN_ONLY
 static enum mad_flow input(void * data, struct mad_stream * stream) {
 	static unsigned char buf[BUFSIZE + 1] = { 0 };
 	struct stream * ptr = (struct stream *) data;
@@ -517,12 +532,6 @@ inline signed scale(register mad_fixed_t sample) {
 	return (sample >> (MAD_F_FRACBITS + 1 - 16)) * volume / MAX_VOLUME;
 }
 
-static void sighand(int sig) {
-	if(sig == SIGUSR1)
-		killed = !0;
-}
-
-
 static int timed_read(int fd, unsigned char * p, int count, int timeout) {
 	fd_set fdset;
 	struct timeval tv;
@@ -546,3 +555,4 @@ static int timed_read(int fd, unsigned char * p, int count, int timeout) {
 	fprintf(stderr, "Track stream timed out (%d).\n", timeout);
 	return -1;
 }
+#endif
