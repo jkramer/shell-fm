@@ -143,7 +143,7 @@ int playback(FILE * streamfd, int pipefd) {
 			reads later.
 		*/
 		data.timeout = -1;
-		if(value(& rc, "stream-timeout")) {
+		if(haskey(& rc, "stream-timeout")) {
 			const char * timeout = value(& rc, "stream-timeout");
 			data.timeout = atoi(timeout);
 
