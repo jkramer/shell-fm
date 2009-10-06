@@ -307,6 +307,8 @@ int playback(FILE * streamfd, int pipefd) {
 
 		free(buf);
 		fclose(ext);
+
+		waitpid(cpid, NULL, 0);
 	}
 
 	return !0;
