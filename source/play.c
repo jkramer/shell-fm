@@ -342,7 +342,7 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 			fputs("Stream timed out.\n", stderr);
 		}
 
-		if(ptr->dump)
+		else if(ptr->dump)
 			fwrite(buf + remnbyte, sizeof(buf[0]), nbyte, ptr->dump);
 	}
 	else {
