@@ -102,6 +102,11 @@ char * oldtags(char key, struct hash track) {
 
 	if(key == 'l') {
 		encode(value(& track, "album"), & arg);
+		/* don't request tags for a not-existing album */
+		if(!strlen(arg)) {
+			free(arg);
+			return NULL;
+		}
 		stripslashes(arg);
 		length += snprintf(url + length, 512 - length, "&album=%s", arg);
 	} else if(key == 't') {
