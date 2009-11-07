@@ -117,7 +117,7 @@ char ** fetch(const char * url, FILE ** pHandle, const char * post, const char *
 		fshutdown(& fd);
 		if(size) {
 			if(validHead != 2)
-				fprintf(stderr, "Invalid HTTP: %s\n", status);
+				fprintf(stderr, "Invalid HTTP: %s  from: %s\n", status, url);
 			else
 				fprintf(stderr, "HTTP Response: %s", status);
 
