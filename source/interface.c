@@ -34,6 +34,7 @@
 #include "xmlrpc.h"
 #include "recommend.h"
 #include "util.h"
+#include "tag.h"
 
 #include "globals.h"
 
@@ -322,75 +323,110 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 				string[length++] = fmt[x++];
 			}
 			else {
-				const char * keys [] = {
-					"acreator",
-					"ttitle",
-					"lalbum",
-					"Aartistpage",
-					"Ttrackpage",
-					"Lalbumpage",
-					"dduration",
-					"sstation",
-					"SstationURL",
-					"Rremain",
-					"Iimage"
-				};
+				char * val = NULL;
+				const char * trackKey = NULL;
+				char taggingItem = 0;
+				const char * color = NULL;
 
-				register unsigned i = sizeof(keys) / sizeof(char *);
-
-				/* Look for a track value with that format flag. */
-				while(i--) {
-					if(fmt[x] == keys[i][0]) {
-						char * val = strdup(value(track, keys[i] + 1));
-						const char * color = NULL;
-
-						if(flags & M_COLORED) {
-							char colorkey[64] = { 0 };
-							snprintf(colorkey, sizeof(colorkey), "%c-color", keys[i][0]);
-							color = value(& rc, colorkey);
-
-							if(color) {
-								/* Strip leading spaces from end of color (Author: Ondrej Novy) */
-								char * color_st = strdup(color);
-								size_t len = strlen(color_st) - 1;
-
-								assert(color_st != NULL);
-
-								while(isspace(color_st[len]) && len > 0) {
-									color_st[len] = 0;
-									len--;
-								}
-								length += snprintf(string + length, remn, "\x1B[%sm", color_st);
-								free(color_st);
-							}
-						}
-
-						if((flags & M_RELAXPATH) && val) {
-							unsigned n;
-							size_t l = strlen(val);
-
-							for(n = 0; n < l; ++n) {
-								if(val[n] == '/')
-									val[n] = '|';
-							}
-						}
-
-						if(flags & M_SHELLESC) {
-							char * escaped = shellescape(val);
-							free(val);
-							val = escaped;
-						}
-
-						length = strlen(strncat(string, val ? val : "(unknown)", remn));
-
-						free(val);
-
-						if(color)
-							length = strlen(strncat(string, "\x1B[0m", remn));
-
+				switch(fmt[x]) {
+					case 'a':
+						trackKey = "creator";
 						break;
+					case 't':
+						trackKey = "title";
+						break;
+					case 'l':
+						trackKey = "album";
+						break;
+					case 'A':
+						trackKey = "artistpage";
+						break;
+					case 'T':
+						trackKey = "trackpage";
+						break;
+					case 'L':
+						trackKey = "albumpage";
+						break;
+					case 'd':
+						trackKey = "duration";
+						break;
+					case 's':
+						trackKey = "station";
+						break;
+					case 'S':
+						trackKey = "stationURL";
+						break;
+					case 'R':
+						trackKey = "remain";
+						break;
+					case 'I':
+						trackKey = "image";
+						break;
+					case 'Z':
+						// artist tags
+						taggingItem = 'a';
+						break;
+					case 'D':
+						// album tags
+						taggingItem = 'l';
+						break;
+					case 'z':
+						// track tags
+						taggingItem = 't';
+						break;
+				}
+				if(trackKey) {
+					val = strdup(value(track, trackKey));
+				} else if(taggingItem) {
+					val = oldtags(taggingItem, * track);
+					if(!val) {
+						val = strdup("");
 					}
 				}
+
+				if(flags & M_COLORED) {
+					char colorkey[64] = { 0 };
+					snprintf(colorkey, sizeof(colorkey), "%c-color", fmt[x]);
+					color = value(& rc, colorkey);
+
+					if(color) {
+						/* Strip leading spaces from end of color (Author: Ondrej Novy) */
+						char * color_st = strdup(color);
+						size_t len = strlen(color_st) - 1;
+
+						assert(color_st != NULL);
+
+						while(isspace(color_st[len]) && len > 0) {
+							color_st[len] = 0;
+							len--;
+						}
+						length += snprintf(string + length, remn, "\x1B[%sm", color_st);
+						free(color_st);
+					}
+				}
+
+				if((flags & M_RELAXPATH) && val) {
+					unsigned n;
+					size_t l = strlen(val);
+
+					for(n = 0; n < l; ++n) {
+						if(val[n] == '/')
+							val[n] = '|';
+					}
+				}
+
+				if(flags & M_SHELLESC) {
+					char * escaped = shellescape(val);
+					free(val);
+					val = escaped;
+				}
+
+				length = strlen(strncat(string, val ? val : "(unknown)", remn));
+
+				free(val);
+
+				if(color)
+					length = strlen(strncat(string, "\x1B[0m", remn));
 
 				++x;
 			}
