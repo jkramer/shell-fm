@@ -120,6 +120,11 @@ int station(const char * stationURL) {
 			return 0;
 		}
 
+		/* Do nothing if the station URL is empty. */
+		else if(!strlen(stationURL)) {
+			return 0;
+		}
+
 		puts("\rDelayed.");
 		nextstation = strdup(stationURL);
 
