@@ -250,7 +250,7 @@ void interface(int interactive) {
 					"S = stop                          | s = similiar artist\n"
 					"T = tag track/artist/album        | u = show upcoming tracks in playlist\n"
 					"U = unlove track                  | + = increase volume\n"
-					"- = decrease volume\n",
+					"- = decrease volume               | C = reload configuration\n",
 					stderr
 				);
 				break;
@@ -271,6 +271,10 @@ void interface(int interactive) {
 				} else {
 					puts("Bookmark not defined.");
 				}
+				break;
+
+			case 'C': /* Reload configuration. */
+				settings(rcpath("shell-fm.rc"), 0);
 				break;
 
 			default:
