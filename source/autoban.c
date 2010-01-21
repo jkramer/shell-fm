@@ -41,7 +41,8 @@ int banned(const char * artist) {
 			if((ptr = strrchr(line, 10)) != NULL)
 				* ptr = (char) 0;
 
-			match = !strncasecmp(line, artist, strlen(line));
+			match = (strlen(line) == strlen(artist))
+				&& !strncasecmp(line, artist, strlen(line));
 		}
 	}
 
