@@ -479,6 +479,8 @@ int main(int argc, char ** argv) {
 
 
 					/* Run a command with our track data. */
+					if(haskey(& rc, "np-unescaped-cmd"))
+						run(meta(value(& rc, "np-unescaped-cmd"), 0, & track));
 					if(haskey(& rc, "np-cmd"))
 						run(meta(value(& rc, "np-cmd"), M_SHELLESC, & track));
 				} else
