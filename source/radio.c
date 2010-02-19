@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2006-2009 by Jonas Kramer.
+	Copyright (C) 2006-2010 by Jonas Kramer.
 	Published under the terms of the GNU General Public License (GPL).
 */
 

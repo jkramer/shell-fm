@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2006-2009 by Jonas Kramer
+	Copyright (C) 2006-2010 by Jonas Kramer
 	Published under the terms of the GNU General Public License (GPL).
 */
 
@@ -168,7 +168,7 @@ int main(int argc, char ** argv) {
 #endif
 
 	if(!background) {
-		puts("Shell.FM v" PACKAGE_VERSION ", (C) 2006-2009 by Jonas Kramer");
+		puts("Shell.FM v" PACKAGE_VERSION ", (C) 2006-2010 by Jonas Kramer");
 		puts("Published under the terms of the GNU General Public License (GPL).");
 
 #ifndef TUXBOX 
@@ -529,7 +529,7 @@ int main(int argc, char ** argv) {
 
 static void help(const char * argv0, int errorCode) {
 	fprintf(stderr,
-		"Shell.FM v" PACKAGE_VERSION ", (C) 2006-2009 by Jonas Kramer\n"
+		"Shell.FM v" PACKAGE_VERSION ", (C) 2006-2010 by Jonas Kramer\n"
 		"Published under the terms of the GNU General Public License (GPL).\n"
 		"\n"
 		"%s [options] [lastfm://url]\n"
