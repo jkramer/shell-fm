@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <stdarg.h>
 
 #include "util.h"
 #include "getln.h"
@@ -110,6 +111,43 @@ int grep(char ** list, char * needle) {
 	}
 
 	return 0;
+}
+
+/* create a new buffer and populate with concatenation of all strings */
+char * strjoin(const char *glue, ...)
+{
+	va_list ap;
+	unsigned total, count, glue_len;
+	const char *str;
+	char *res;
+
+	va_start(ap, glue);
+	total = count = 0;
+	while ((str = va_arg(ap, const char *))) {
+		total += strlen(str);
+		count ++;
+	}
+	va_end(ap);
+
+	glue_len = glue ? strlen(glue) : 0;
+	total += (count - 1) * glue_len;
+	res = (char*)malloc(total + 1);
+	if (!res)
+		return NULL;
+
+	va_start(ap, glue);
+	total = 0;
+	while ((str = va_arg(ap, const char *))) {
+		if (total && glue_len) {
+			memcpy(res + total, glue, glue_len);
+			total += glue_len;
+		}
+		strcpy(res + total, str);
+		total += strlen(str);
+	}
+	va_end(ap);
+
+	return res;
 }
 
 

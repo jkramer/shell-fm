@@ -50,6 +50,7 @@
 #include "play.h"
 #include "interface.h"
 #include "globals.h"
+#include "util.h"
 
 #ifndef EXTERN_ONLY
 struct stream {
@@ -64,7 +65,8 @@ struct stream {
 	pid_t parent;
 
 	FILE * dump;
-	char * path;
+	char * finpath;             // final destination
+	char * tmppath;             // streaming to file
 	int pipefd;
 
 	int timeout;
@@ -207,18 +209,21 @@ int playback(FILE * streamfd, int pipefd) {
 			char * dnam;
 			int rv;
 
-			data.path = strdup(meta(value(& rc, "download"), M_RELAXPATH, & track));
-			assert(data.path != NULL);
+			data.finpath = strdup(meta(value(& rc, "download"), M_RELAXPATH, & track));
+			assert(data.finpath != NULL);
 
-			dnam = strdup(data.path);
+			data.tmppath = strjoin("", data.finpath, ".streaming", NULL);
+			assert(data.tmppath != NULL);
+
+			dnam = strdup(data.tmppath);
 			rv = dnam ? mkpath(dirname(dnam)) : -1;
 			free(dnam);
 
-			if(access(data.path, R_OK) == -1) {
-				data.dump = (rv == 0) ? fopen(data.path, "w") : NULL;
+			if(access(data.tmppath, R_OK) == -1) {
+				data.dump = (rv == 0) ? fopen(data.tmppath, "w") : NULL;
 
 				if(!data.dump)
-					fprintf(stderr, "Can't write download to %s.\n", data.path);
+					fprintf(stderr, "Can't write download to %s.\n", data.tmppath);
 			}
 			else {
 				data.dump = NULL;
@@ -236,10 +241,11 @@ int playback(FILE * streamfd, int pipefd) {
 			fclose(data.dump);
 
 			if(killed) {
-				unlink(data.path);
+				unlink(data.tmppath);
 			} else {
+				int rv;
 #ifdef TAGLIB
-				TagLib_File *tagme = taglib_file_new(data.path);
+				TagLib_File *tagme = taglib_file_new(data.tmppath);
 				if(tagme != NULL) {
 					TagLib_Tag *tag = taglib_file_tag(tagme);
 					taglib_tag_set_title(tag, value(&track, "title"));
@@ -252,7 +258,7 @@ int playback(FILE * streamfd, int pipefd) {
 				if(haskey(& rc, "pp-cmd")) {
 					const char *ppcmd = value(& rc, "pp-cmd");
 					size_t ppcmdlen = strlen(ppcmd);
-					char *path = shellescape(data.path);
+					char *path = shellescape(data.tmppath);
 					assert(path != NULL);
 					size_t pathlen = strlen(path);
 					char *command = malloc(ppcmdlen + pathlen + 2);
@@ -265,9 +271,15 @@ int playback(FILE * streamfd, int pipefd) {
 					free(path);
 					free(command);
 				}
+
+				rv = rename(data.tmppath, data.finpath);
+				if (rv == -1)
+					fprintf(stderr, "Can't rename %s to %s\n",
+							data.tmppath, data.finpath);
 			}
 
-			free(data.path);
+			free(data.tmppath);
+			free(data.finpath);
 		}
 	}
 	else

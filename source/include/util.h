@@ -6,6 +6,7 @@ extern char ** slurp(const char *);
 extern char ** uniq(char **);
 extern int grep(char **, char *);
 extern char * strcasestr(const char *, const char *);
+extern char * strjoin(const char *, ...);
 
 #if ((defined(__FreeBSD__) || defined(__OpenBSD__)) || defined(__darwin__) && !defined(__STRNDUP__))
 #define __STRNDUP__
