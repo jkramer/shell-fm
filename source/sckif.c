@@ -200,6 +200,8 @@ void execcmd(const char * cmd, char * reply) {
 		"album-tags",
 		"track-tags",
 		"stop",
+		"vol_up",
+		"vol_down"
 	};
 
 	memset(arg, 0, sizeof(arg));
@@ -311,6 +313,16 @@ void execcmd(const char * cmd, char * reply) {
 				enable(STOPPED);
 				kill(playfork, SIGUSR1);
 			}
+			break;
+		case 15:
+			// Volume +
+			if(volume < MAX_VOLUME)
+				volume += 1;
+			break;
+		case 16:
+			// Volume -
+			if(volume > 0)
+				volume -= 1;
 			break;
 	}
 }
