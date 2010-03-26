@@ -200,8 +200,8 @@ void execcmd(const char * cmd, char * reply) {
 		"album-tags",
 		"track-tags",
 		"stop",
-		"vol_up",
-		"vol_down"
+		"volume-up",
+		"volume-down"
 	};
 
 	memset(arg, 0, sizeof(arg));
@@ -336,6 +336,6 @@ static int waitread(int fd, unsigned sec, unsigned usec) {
 
 	tv.tv_sec = sec;
 	tv.tv_usec = usec;
-	
+
 	return (select(fd + 1, & readfd, NULL, NULL, & tv) > 0);
 }
