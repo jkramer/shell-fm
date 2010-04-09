@@ -354,6 +354,9 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 					case 'd':
 						trackKey = "duration";
 						break;
+					case 'f':
+						trackKey = "duration_fmt";
+						break;
 					case 's':
 						trackKey = "station";
 						break;

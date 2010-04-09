@@ -267,6 +267,12 @@ int play(struct playlist * list) {
 	for(i = 0; i < (sizeof(keys) / sizeof(char *)); ++i)
 		set(& track, keys[i], value(& list->track->track, keys[i]));
 
+    // also saves the formatted duration (min:sec) to the hash, with the key 'duration_fmt'.
+    char dur_fmt[8];
+    int dur = atoi(value(& track, "duration")); // duration in sec
+    sprintf(dur_fmt, "%d:%02d", (dur / 60), (dur % 60));
+    set(& track, "duration_fmt", dur_fmt);
+
 	if(pipe(pipefd) != 0)
 		return !0;
 
