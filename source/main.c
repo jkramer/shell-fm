@@ -510,10 +510,11 @@ int main(int argc, char ** argv) {
 
 			if(!background) {
 				printf(
-					"%c%02d:%02d%c",
+					"%c%02d:%02d   |   vol: %d%% %c",
 					remain < 0 ? '-' : ' ',
 					(remain >= 0) ? (remain / 60) : (-remain / 60),
 					(remain >= 0) ? (remain % 60) : (-remain % 60),
+					((volume*100 / MAX_VOLUME*100)/100),
 					batch ? '\n' : '\r'
 				);
 				fflush(stdout);
