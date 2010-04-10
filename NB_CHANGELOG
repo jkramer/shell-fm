@@ -1,0 +1,6 @@
+ndbroadbent - changelog.
+
+- added %f format flag for duration formatted as min:sec
+- added volume percentage beside remaining time
+- refactored and integrated new format flags for the remaining time
+  and volume percentage in the console
