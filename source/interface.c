@@ -331,7 +331,11 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 				const char * trackKey = NULL;
 				char taggingItem = 0;
 				const char * color = NULL;
-
+				// vars for internally generated values
+				int remain;
+				int duration;
+				char fmtString[10];
+			    
 				switch(fmt[x]) {
 					case 'a':
 						trackKey = "creator";
@@ -355,7 +359,13 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 						trackKey = "duration";
 						break;
 					case 'f':
-						trackKey = "duration_fmt";
+						duration = atoi(value(track, "duration")); // duration in sec
+						snprintf(
+							fmtString,
+							sizeof(fmtString), 
+							"%d:%02d", 
+							(duration / 60), (duration % 60));
+						val = strdup(fmtString);
 						break;
 					case 's':
 						trackKey = "station";
@@ -366,6 +376,25 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 					case 'R':
 						trackKey = "remain";
 						break;
+                	case 'r':   // remaining time, formatted as min:sec
+			            remain = atoi(value(track, "remain"));
+					    snprintf(
+    					    fmtString,
+    					    sizeof(fmtString),
+					        "%c%02d:%02d",
+					        remain < 0 ? '-' : ' ',
+					        (remain >= 0) ? (remain / 60) : (-remain / 60),
+					        (remain >= 0) ? (remain % 60) : (-remain % 60));
+					    val = strdup(fmtString);
+					    break;
+                	case 'v':   // volume percentage
+					    snprintf(
+					        fmtString,
+					        sizeof(fmtString),
+					        "%d%%",
+					        ((volume*100 / MAX_VOLUME*100)/100));
+					    val = strdup(fmtString);
+					    break;
 					case 'I':
 						trackKey = "image";
 						break;
