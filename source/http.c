@@ -270,6 +270,7 @@ void unhtml(char * html) {
 		"&gt;", ">",
 		"&nbsp;", " ",
 		"&quot;", "\"",
+		"&apos;", "\'",
 	};
 
 	for(i = 0; i < (sizeof(codes) / sizeof(char *)); i += 2) {
