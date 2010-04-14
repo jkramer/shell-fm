@@ -93,7 +93,7 @@ int authenticate(const char * username, const char * password) {
 
 
 int station(const char * stationURL) {
-	char url[512] = { 0 }, * encodedURL = NULL, ** response, name[512];
+	char url[512] = { 0 }, * encodedURL = NULL, ** response, name[512], * completeURL;
 	unsigned i = 0, retval = !0, regular = !0;
 	const char * fmt;	
 	const char * types[4] = {"play", "preview", "track", "playlist"};
@@ -146,8 +146,15 @@ int station(const char * stationURL) {
 	if(!stationURL || !strlen(stationURL))
 		return 0;
 
-	if(!strncasecmp(stationURL, "lastfm://", 9))
+	if(!strncasecmp(stationURL, "lastfm://", 9)) {
+		completeURL = strdup(stationURL);
 		stationURL += 9;
+	}
+	else {
+		int size = strlen(stationURL) + 10;
+		completeURL = malloc(size);
+		snprintf(completeURL, size, "lastfm://%s", stationURL);
+	}
 
 	/* Check if it's a static playlist of tracks or track previews. */
 	for(i = 0; i < 4; ++i)
@@ -171,9 +178,11 @@ int station(const char * stationURL) {
 			"?sk=%s&url=%s&desktop=1";
 	}
 
-	encode(stationURL, & encodedURL);
+	encode(completeURL, & encodedURL);
 	snprintf(url, sizeof(url), fmt, value(& data, "session"), encodedURL);
+
 	free(encodedURL);
+	free(completeURL);
 
 	if(!(response = fetch(url, NULL, NULL, NULL)))
 		return 0;
