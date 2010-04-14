@@ -56,12 +56,13 @@ int expand(struct playlist * list) {
 	return 0;
 }
 
-void trim(char* string){
+void trim(char * string){
 	int offset = 0;
-	while (string[offset] == ' ')
+	while(string[offset] == ' ')
 		offset++;
-	if (offset)
-		memmove(string, string+offset, strlen(string+offset)+1);
+
+	if(offset)
+		memmove(string, string + offset, strlen(string + offset) + 1);
 }
 
 
@@ -103,7 +104,7 @@ int parsexspf(struct playlist * list, char * xml) {
 				char * text = strndup(
 						ptr + strlen(begin),
 						(strcasestr(ptr, end)) - (ptr + strlen(begin))
-						);
+				);
 
 				assert(text != NULL);
 
@@ -131,8 +132,14 @@ int parsexspf(struct playlist * list, char * xml) {
 			}
 		}
 
-		trim(list->title);
-		set(& node->track, "station", list->title);
+		if(list->title) {
+			trim(list->title);
+
+			set(& node->track, "station", list->title);
+		}
+		else {
+			set(& node->track, "station", "Unknown Station");
+		}
 
 		duration = strdup(value(& node->track, "duration"));
 		if(duration != NULL) {
