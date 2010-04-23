@@ -14,6 +14,8 @@
 * Alexander Monakov
 * Rodrigo Tartajo
 * Silviu Grijincu
+* Mark Goodall
+* Pierre Baillet
 * Nathan Broadbent
 
 NOTE: I've removed the information about who did what, since during the
@@ -25,3 +27,4 @@ course the details are still in the subversion commit log.
 Please mail me (jkramer at nex dot scrapping dot cc) if your name is missing
 here.  If you want to praise or blame a developer for something particular,
 search the GIT log.
+
