@@ -36,7 +36,7 @@ Make shell-fm use the given host as proxy server for HTTP requests.
 Print help text and exit.
 .TP
 .B lastfm://...
-URI of a Last.FM radio stream to play after startup. 
+URI of a Last.FM radio stream to play after startup.
 For example: `shell-fm -d lastfm://artist/The%20Beatles/similarartists'
 .SH USAGE
 On startup, shell-fm will ask you for your Last.FM login and password
@@ -95,7 +95,7 @@ Quit.
 Change radio station. This will prompt you for an Last.FM radio station URI.
 The tabulator key helps if you don't know what to type. Arrow-Up and Arrow-Down
 allow you to browse your radio history. Enter these without the
-"lastfm://" prefix. 
+"lastfm://" prefix.
 .RS
 .PP
 For example: `radio url> globaltags/world'
@@ -406,7 +406,7 @@ option in your configuration or use the
 option on the command line. Then you can connect the specified port (54311 by
 default) and send one command at a time. You also have to hurry,
 since there is a very short timeout. Best thing would be if you used a script
-for accessing this interface. (See 
+for accessing this interface. (See
 .B shell-fm-*/scripts/
 for examples) This is a list of the known commands.
 .TP
@@ -456,6 +456,12 @@ Returns the tags of the currently played track.
 .TP
 .B stop
 Stop stream.
+.TP
+.B volume-up
+Increment volume by 1.
+.TP
+.B volume-down
+Decrement volume by 1.
 .SH FILES
 This section describes the meanings of the files in $HOME/.shell-fm/. The base
 directory can be overriden by setting the environment variable $SHELL_FM_HOME
@@ -522,3 +528,4 @@ Please send bug reports to <shell-fm@nex.scrapping.cc>.
 .SH COPYRIGHT
 Copyright (C) 2006-2010 by Jonas Kramer.
 Published under the terms of the GNU General Public License.
+
