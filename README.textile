@@ -1,0 +1,36 @@
+h2. About
+
+shell-fm is a lightweight, console-based player for Last.FM radio streams. It's pretty small (the binary is currently a little smaller than 60K, or 50K when stripped) and it has most features the "official" player has, if not even a few more. Additional features are, for example:
+
+* network interface (control shell-fm remotely)
+* autoban (automatically ban all tracks of an artist you don't like)
+* bookmark stations (quickly jump to bookmarked stations with a single key)
+* ... probably more
+
+h2. Requirements
+
+shell-fm doesn't need much. You definitely need libmad. shell-fm can also use libao for playback (optional).
+
+h2. Installation
+
+It's always recommended to use the latest version from GitHub.
+
+First clone the repository:
+
+bc. $ git clone http://github.com/jkramer/shell-fm/tree/master
+
+Make sure you have the needed libraries to compile (libmad0-dev and libao-dev.) This should do the trick for Ubuntu:
+
+bc. $ sudo apt-get install libmad0-dev libao-dev
+
+Change into the repository directory and compile Shell.FM:
+
+bc. $ cd shell-fm
+$ make
+
+Finally, install the binary and the manual as root:
+
+bc. $ su -c "make install"
+OR:
+$ sudo make install
+
