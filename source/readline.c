@@ -75,6 +75,11 @@ char * readline(struct prompt * setup) {
 				eoln = !0;
 				break;
 
+			case 21: /* ^U */
+				delete(length);
+				length = 0;
+				break;
+
 			case 23: /* ^W */
 				if(length > 0) {
 					int alpha = isalpha(line[length - 1]);
