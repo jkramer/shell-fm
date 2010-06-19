@@ -53,7 +53,7 @@
 #endif
 
 unsigned flags = RTP;
-time_t changeTime = 0, pausetime = 0;
+time_t change_time = 0, pausetime = 0;
 char * nextstation = NULL;
 
 int batch = 0, error = 0, delayquit = 0;
@@ -67,14 +67,14 @@ static void stopsig(int);
 pid_t ppid = 0;
 
 int main(int argc, char ** argv) {
-	int option, nerror = 0, background = 0, haveSocket = 0;
+	int option, nerror = 0, background = 0, have_socket = 0;
 	time_t pauselength = 0;
 	char * proxy;
 	opterr = 0;
 
 	/* Create directories. */
 	makercd();
-	
+
 	/* Load settings from ~/.shell-fm/shell-fm.rc. */
 	settings(rcpath("shell-fm.rc"), !0);
 
@@ -188,17 +188,17 @@ int main(int argc, char ** argv) {
 			port = atoi(value(& rc, "port"));
 
 		if(tcpsock(value(& rc, "bind"), (unsigned short) port))
-			haveSocket = !0;
+			have_socket = !0;
 	}
 
 
 	/* Open a UNIX socket for local "remote" control. */
 	if(haskey(& rc, "unix") && unixsock(value(& rc, "unix")))
-		haveSocket = !0;
+		have_socket = !0;
 
 
 	/* We can't daemonize if there's no possibility left to control Shell.FM. */
-	if(background && !haveSocket) {
+	if(background && !have_socket) {
 		fputs("Can't daemonize without control socket.\n", stderr);
 		exit(EXIT_FAILURE);
 	}
@@ -348,7 +348,7 @@ int main(int argc, char ** argv) {
 				unsigned duration, played, minimum;
 
 				duration = atoi(value(& track, "duration"));
-				played = time(NULL) - changeTime - pauselength;
+				played = time(NULL) - change_time - pauselength;
 
 				/* Allow user to specify minimum playback length (min. 50%). */
 				if(haskey(& rc, "minimum")) {
@@ -425,10 +425,10 @@ int main(int argc, char ** argv) {
 				disable(INTERRUPTED);
 
 				if(play(& playlist)) {
-					time(& changeTime);
+					time(& change_time);
 					pauselength = 0;
 
-					set(& track, "stationURL", currentStation);
+					set(& track, "stationURL", current_station);
 
 					/* Print what's currently played. (Ondrej Novy) */
 					if(!background) {
@@ -484,7 +484,7 @@ int main(int argc, char ** argv) {
 					if(haskey(& rc, "np-cmd"))
 						run(meta(value(& rc, "np-cmd"), M_SHELLESC, & track));
 				} else
-					changeTime = 0;
+					change_time = 0;
 			}
 
 			if(banned(value(& track, "creator"))) {
@@ -496,14 +496,14 @@ int main(int argc, char ** argv) {
 
 		playnext = 0;
 
-		if(playfork && changeTime && haskey(& track, "duration") && !pausetime) {
+		if(playfork && change_time && haskey(& track, "duration") && !pausetime) {
 			unsigned duration;
 			signed remain;
 			char remstr[32];
 
 			duration = atoi(value(& track, "duration"));
 
-			remain = (changeTime + duration) - time(NULL) + pauselength;
+			remain = (change_time + duration) - time(NULL) + pauselength;
 
 			snprintf(remstr, sizeof(remstr), "%d", remain);
 			set(& track, "remain", remstr);
@@ -520,7 +520,7 @@ int main(int argc, char ** argv) {
 		}
 
 		interface(!background);
-		if(haveSocket)
+		if(have_socket)
 			sckif(background ? 2 : 0, -1);
 	}
 
@@ -528,7 +528,7 @@ int main(int argc, char ** argv) {
 }
 
 
-static void help(const char * argv0, int errorCode) {
+static void help(const char * argv0, int error_code) {
 	fprintf(stderr,
 		"Shell.FM v" PACKAGE_VERSION ", (C) 2006-2010 by Jonas Kramer\n"
 		"Published under the terms of the GNU General Public License (GPL).\n"
@@ -545,7 +545,7 @@ static void help(const char * argv0, int errorCode) {
 		argv0
 	);
 
-	exit(errorCode);
+	exit(error_code);
 }
 
 
@@ -562,9 +562,9 @@ static void cleanup(void) {
 
 	freelist(& playlist);
 
-	if(currentStation) {
-		free(currentStation);
-		currentStation = NULL;
+	if(current_station) {
+		free(current_station);
+		current_station = NULL;
 	}
 
 	if(subfork)

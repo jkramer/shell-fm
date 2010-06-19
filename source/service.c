@@ -35,7 +35,7 @@ pid_t playfork = 0; /* PID of the decoding & playing process, if running */
 int playpipe = 0;
 
 struct playlist playlist;
-char * currentStation = NULL;
+char * current_station = NULL;
 
 int authenticate(const char * username, const char * password) {
 	const unsigned char * md5;
@@ -109,14 +109,14 @@ int station(const char * stationURL) {
 			free(nextstation);
 			nextstation = NULL;
 
-			if(!strlen(stationURL) || !strcmp(stationURL, currentStation)) {
+			if(!strlen(stationURL) || !strcmp(stationURL, current_station)) {
 				puts("Station change cancelled.");
 				return 0;
 			}
 		}
 
 		/* Do nothing if the station is already played. */
-		else if(currentStation && !strcmp(currentStation, stationURL)) {
+		else if(current_station && !strcmp(current_station, stationURL)) {
 			return 0;
 		}
 
@@ -132,7 +132,7 @@ int station(const char * stationURL) {
 	}
 
 	/* Do nothing if the station is already played. */
-	else if(currentStation && !strcmp(currentStation, stationURL)) {
+	else if(current_station && !strcmp(current_station, stationURL)) {
 		return 0;
 	}
 
@@ -230,11 +230,11 @@ int station(const char * stationURL) {
 	enable(CHANGED);
 	histapp(stationURL);
 
-	if(currentStation)
-		free(currentStation);
+	if(current_station)
+		free(current_station);
 
-	currentStation = strdup(stationURL);
-	assert(currentStation != NULL);
+	current_station = strdup(stationURL);
+	assert(current_station != NULL);
 
 	if(retval && playfork) {
 		enable(INTERRUPTED);

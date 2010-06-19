@@ -33,24 +33,24 @@
 #endif
 
 
-char ** fetch(const char * url, FILE ** pHandle, const char * post, const char * type) {
+char ** fetch(const char * url, FILE ** handle, const char * post, const char * type) {
 	char ** resp = NULL, * host, * file, * port, * status = NULL, * line = NULL;
 	char * connhost;
 	char urlcpy[512 + 1];
 	unsigned short nport = 80, chunked = 0;
 	unsigned nline = 0, nstatus = 0, size = 0;
-	signed validHead = 0;
+	signed valid_head = 0;
 	FILE * fd;
 	int useproxy;
 
-	const char * headFormat =
+	const char * head_format =
 		"%s /%s HTTP/1.1\r\n"
 		"Host: %s\r\n"
 		"User-Agent: " USERAGENT "\r\n"
 		"Cookie: Session=%s\r\n"
 		"Connection: close\r\n";
 
-	const char * proxiedheadFormat =
+	const char * proxiedhead_format =
 		"%s http://%s/%s HTTP/1.1\r\n"
 		"Host: %s\r\n"
 		"User-Agent: " USERAGENT "\r\n"
@@ -63,9 +63,9 @@ char ** fetch(const char * url, FILE ** pHandle, const char * post, const char *
 	if(type == NULL)
 		type = "application/x-www-form-urlencoded";
 
-	if(pHandle)
-		* pHandle = NULL;
-	
+	if(handle)
+		* handle = NULL;
+
 	strncpy(urlcpy, url, sizeof(urlcpy) - 1);
 
 	host = & urlcpy[strncmp(urlcpy, "http://", 7) ? 0 : 7];
@@ -97,10 +97,10 @@ char ** fetch(const char * url, FILE ** pHandle, const char * post, const char *
 		return NULL;
 
 	if(useproxy)
-		fprintf(fd, proxiedheadFormat, post ? "POST" : "GET", host,
+		fprintf(fd, proxiedhead_format, post ? "POST" : "GET", host,
 				file ? file : "", host, value(& data, "session"));
 	else
-		fprintf(fd, headFormat, post ? "POST" : "GET", file ? file : "", host, value(& data, "session"));
+		fprintf(fd, head_format, post ? "POST" : "GET", file ? file : "", host, value(& data, "session"));
 
 	if(post != NULL) {
 		fprintf(fd, "Content-Type: %s\r\n", type);
@@ -109,14 +109,14 @@ char ** fetch(const char * url, FILE ** pHandle, const char * post, const char *
 
 	fputs("\r\n", fd);
 	fflush(fd);
-	
+
 	if(getln(& status, & size, fd) >= 12)
-		validHead = sscanf(status, "HTTP/%*f %u", & nstatus);
+		valid_head = sscanf(status, "HTTP/%*f %u", & nstatus);
 
 	if(nstatus != 200 && nstatus != 301 && nstatus != 302) {
 		fshutdown(& fd);
 		if(size) {
-			if(validHead != 2)
+			if(valid_head != 2)
 				fprintf(stderr, "Invalid HTTP: %s  from: %s\n", status, url);
 			else
 				fprintf(stderr, "HTTP Response: %s", status);
@@ -129,7 +129,7 @@ char ** fetch(const char * url, FILE ** pHandle, const char * post, const char *
 	}
 
 	freeln(& status, & size);
-	
+
 	while(!0) {
 		if(getln(& line, & size, fd) < 3)
 			break;
@@ -143,27 +143,27 @@ char ** fetch(const char * url, FILE ** pHandle, const char * post, const char *
 			sscanf(line, "Location: %512[^\r\n]", newurl);
 			fshutdown(& fd);
 
-			return fetch(newurl, pHandle, post, type);
+			return fetch(newurl, handle, post, type);
 		}
 	}
 
 	freeln(& line, & size);
 
-	if(pHandle) {
-		* pHandle = fd;
+	if(handle) {
+		* handle = fd;
 		if(!batch && !enabled(QUIET))
 			fputs("\r   \r", stderr);
 
 		return NULL;
 	}
-	
+
 	if(chunked)
 		puts("DEBUG: Chunked!");
 
 	while(!feof(fd)) {
 		line = NULL;
 		size = 0;
-		
+
 		if(getln(& line, & size, fd)) {
 			char * ptr = strchr(line, 10);
 
@@ -178,7 +178,7 @@ char ** fetch(const char * url, FILE ** pHandle, const char * post, const char *
 		} else if(size)
 			free(line);
 	}
-	
+
 	fshutdown(& fd);
 
 	if(!batch && !enabled(QUIET))
@@ -190,7 +190,7 @@ unsigned encode(const char * orig, char ** encoded) {
 	register unsigned i = 0, x = 0;
 
 	* encoded = calloc((strlen(orig) * 3) + 1, sizeof(char));
-	
+
 	assert(* encoded != NULL);
 
 	while(i < strlen(orig)) {
@@ -220,7 +220,7 @@ unsigned decode(const char * orig, char ** decoded) {
 	const unsigned len = strlen(orig);
 
 	* decoded = calloc(len + 1, sizeof(char));
-	
+
 	assert(decoded != NULL);
 
 	while(i < len) {
@@ -243,7 +243,7 @@ unsigned decode(const char * orig, char ** decoded) {
 	* decoded = realloc(* decoded, (x + 1) * sizeof(char));
 
 	assert(decoded != NULL);
-	
+
 	for(i = 0; i < x; ++i)
 		if((* decoded)[i] == '+')
 			(* decoded)[i] = ' ';
@@ -338,7 +338,7 @@ char ** cache(const char * url, const char * name, int refresh) {
 	strncpy(path, rcpath("cache"), sizeof(path));
 	if(access(path, W_OK | X_OK))
 		mkdir(path, 0700);
-	
+
 	snprintf(path, sizeof(path), "%s/%s", rcpath("cache"), name);
 
 	if(!refresh) {

@@ -23,7 +23,7 @@ extern pid_t playfork, subfork;
 extern int playpipe;
 extern unsigned char volume;
 
-extern char * currentStation; /* Name of the current station. */
+extern char * current_station; /* Name of the current station. */
 
 extern unsigned submitting; /* Number of tracks currently submitted. */
 extern time_t pausetime; /* Pause start time. */

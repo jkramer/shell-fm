@@ -50,7 +50,7 @@ void interface(int interactive) {
 	if(interactive) {
 		int key, result;
 		char customkey[8] = { 0 }, * marked = NULL;
-		
+
 		canon(0);
 		fflush(stderr);
 		if((key = fetchkey(1000000)) == -1)
@@ -151,7 +151,7 @@ void interface(int interactive) {
 					value(& track, "creator"),
 					value(& track, "title")
 				);
-				
+
 				puts(result ? "Added to playlist." : "Sorry, failed.");
 				break;
 
@@ -165,7 +165,7 @@ void interface(int interactive) {
 					station(meta("lastfm://artist/%a/fans", 0, & track));
 				}
 				break;
-				
+
 			case 's':
 				if(playfork) {
 					station(meta("lastfm://artist/%a/similarartists", 0, & track));
@@ -177,11 +177,11 @@ void interface(int interactive) {
 				break;
 
 			case 'H':
-				if(playfork && currentStation) {
+				if(playfork && current_station) {
 					puts("What number do you want to bookmark this stream as? [0-9]");
 					fflush(stdout);
 					key = fetchkey(5000000);
-					setmark(currentStation, key - 0x30);
+					setmark(current_station, key - 0x30);
 				}
 				break;
 
@@ -328,93 +328,95 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 			}
 			else {
 				char * val = NULL;
-				const char * trackKey = NULL;
-				char taggingItem = 0;
+				const char * track_key = NULL;
+				char tagging_item = 0;
 				const char * color = NULL;
 				// vars for internally generated values
 				int remain;
 				int duration;
-				char fmtString[10];
-			    
+				char calculated[10];
+
 				switch(fmt[x]) {
 					case 'a':
-						trackKey = "creator";
+						track_key = "creator";
 						break;
 					case 't':
-						trackKey = "title";
+						track_key = "title";
 						break;
 					case 'l':
-						trackKey = "album";
+						track_key = "album";
 						break;
 					case 'A':
-						trackKey = "artistpage";
+						track_key = "artistpage";
 						break;
 					case 'T':
-						trackKey = "trackpage";
+						track_key = "trackpage";
 						break;
 					case 'L':
-						trackKey = "albumpage";
+						track_key = "albumpage";
 						break;
 					case 'd':
-						trackKey = "duration";
+						track_key = "duration";
 						break;
 					case 'f':
 						duration = atoi(value(track, "duration")); // duration in sec
 						snprintf(
-							fmtString,
-							sizeof(fmtString), 
-							"%d:%02d", 
+							calculated,
+							sizeof(calculated),
+							"%d:%02d",
 							(duration / 60), (duration % 60));
-						val = strdup(fmtString);
+						val = strdup(calculated);
 						break;
 					case 's':
-						trackKey = "station";
+						track_key = "station";
 						break;
 					case 'S':
-						trackKey = "stationURL";
+						track_key = "stationURL";
 						break;
 					case 'R':
-						trackKey = "remain";
+						track_key = "remain";
 						break;
                 	case 'r':   // remaining time, formatted as min:sec
 			            remain = atoi(value(track, "remain"));
 					    snprintf(
-    					    fmtString,
-    					    sizeof(fmtString),
+    					    calculated,
+    					    sizeof(calculated),
 					        "%c%02d:%02d",
 					        remain < 0 ? '-' : ' ',
 					        (remain >= 0) ? (remain / 60) : (-remain / 60),
 					        (remain >= 0) ? (remain % 60) : (-remain % 60));
-					    val = strdup(fmtString);
+					    val = strdup(calculated);
 					    break;
                 	case 'v':   // volume percentage
 					    snprintf(
-					        fmtString,
-					        sizeof(fmtString),
+					        calculated,
+					        sizeof(calculated),
 					        "%d%%",
-					        ((volume*100 / MAX_VOLUME*100)/100));
-					    val = strdup(fmtString);
+					        ((volume * 100 / MAX_VOLUME * 100) / 100));
+					    val = strdup(calculated);
 					    break;
 					case 'I':
-						trackKey = "image";
+						track_key = "image";
 						break;
 					case 'Z':
 						// artist tags
-						taggingItem = 'a';
+						tagging_item = 'a';
 						break;
 					case 'D':
 						// album tags
-						taggingItem = 'l';
+						tagging_item = 'l';
 						break;
 					case 'z':
 						// track tags
-						taggingItem = 't';
+						tagging_item = 't';
 						break;
 				}
-				if(trackKey) {
-					val = strdup(value(track, trackKey));
-				} else if(taggingItem) {
-					val = oldtags(taggingItem, * track);
+
+				if(track_key) {
+					val = strdup(value(track, track_key));
+				}
+				else if(tagging_item) {
+					val = oldtags(tagging_item, * track);
 					if(!val) {
 						val = strdup("");
 					}
