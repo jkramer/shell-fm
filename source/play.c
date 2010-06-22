@@ -245,7 +245,7 @@ int playback(FILE * streamfd, int pipefd) {
 			} else {
 				int rv;
 #ifdef TAGLIB
-				TagLib_File *tagme = taglib_file_new(data.tmppath);
+				TagLib_File *tagme = taglib_file_new_type(data.tmppath, TagLib_File_MPEG);
 				if(tagme != NULL) {
 					TagLib_Tag *tag = taglib_file_tag(tagme);
 					taglib_tag_set_title(tag, value(&track, "title"));
