@@ -46,6 +46,8 @@ struct hash track;
 
 char * shellescape(const char *);
 
+void print_help(void);
+
 void interface(int interactive) {
 	if(interactive) {
 		int key, result;
@@ -238,21 +240,7 @@ void interface(int interactive) {
 				break;
 
 			case '?':
-				fputs(
-					"a = add the track to the playlist | A = autoban artist\n"
-					"B = ban Track                     | d = discovery mode\n"
-					"E = manually expand playlist      | f = fan Station\n"
-					"h = list bookmarks                | H = bookmark current radio\n"
-					"i = current track information     | l = love track\n"
-					"n = skip track                    | p = pause\n"
-					"P = enable/disable RTP            | Q = quit\n"
-					"r = change radio station          | R = recommend track/artist/album\n"
-					"S = stop                          | s = similiar artist\n"
-					"T = tag track/artist/album        | u = show upcoming tracks in playlist\n"
-					"U = unlove track                  | + = increase volume\n"
-					"- = decrease volume               | C = reload configuration\n",
-					stderr
-				);
+				print_help();
 				break;
 
 			case '0':
@@ -563,5 +551,39 @@ void unlinknp(void) {
 		const char * np = value(& rc, "np-file");
 		if(np != NULL)
 			unlink(np);
+	}
+}
+
+void print_help(void) {
+	unsigned i, custom = 0;
+
+	fputs(
+		"a = add the track to the playlist | A = autoban artist\n"
+		"B = ban Track                     | d = discovery mode\n"
+		"E = manually expand playlist      | f = fan Station\n"
+		"h = list bookmarks                | H = bookmark current radio\n"
+		"i = current track information     | l = love track\n"
+		"n = skip track                    | p = pause\n"
+		"P = enable/disable RTP            | Q = quit\n"
+		"r = change radio station          | R = recommend track/artist/album\n"
+		"S = stop                          | s = similiar artist\n"
+		"T = tag track/artist/album        | u = show upcoming tracks in playlist\n"
+		"U = unlove track                  | + = increase volume\n"
+		"- = decrease volume               | C = reload configuration\n",
+		stderr
+	);
+
+	for(i = 0; i < rc.size; ++i) {
+		struct pair * p = & rc.content[i];
+		unsigned key;
+
+		if(sscanf(p->key, "key%x", & key) == 1) {
+			const char * command = value(& rc, p->key);
+
+			if(!custom++)
+				fputs("\n", stderr);
+
+			fprintf(stderr, "%c = %s\n", key, command);
+		}
 	}
 }
