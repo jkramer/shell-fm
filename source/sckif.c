@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2006 by Jonas Kramer
+	Copyright (C) 2006-2010 by Jonas Kramer
 	Published under the terms of the GNU General Public License (GPL).
 */
 
@@ -32,15 +32,16 @@
 #include "submit.h"
 #include "getln.h"
 #include "tag.h"
+#include "select.h"
+#include "util.h"
 
 #include "globals.h"
 
 struct hash track;
 
 static int stcpsck = -1, sunixsck = -1;
-static int waitread(int, unsigned, unsigned);
 
-#define REPLYBUFSIZE 1024
+#define BUFSIZE 1024
 
 int tcpsock(const char * ip, unsigned short port) {
 	static const int one = 1;
@@ -73,6 +74,8 @@ int tcpsock(const char * ip, unsigned short port) {
 	}
 
 	listen(stcpsck, 2);
+
+	register_listen_socket(stcpsck);
 
 	return !0;
 }
@@ -109,6 +112,8 @@ int unixsock(const char * path) {
 
 	listen(sunixsck, 2);
 
+	register_listen_socket(sunixsck);
+
 	return !0;
 }
 
@@ -126,60 +131,61 @@ void rmsckif(void) {
 }
 
 
-void sckif(int timeout, int sck) {
+void accept_client(int listen_socket) {
+	struct sockaddr client;
+	socklen_t client_size = sizeof(struct sockaddr);
 
-	/* If the given socket is -1, try both sockets, unix and tcp. */
-	if(sck == -1) {
-		if(stcpsck != -1)
-			sckif(timeout, stcpsck);
+	int client_socket = accept(listen_socket, & client, & client_size);
 
-		if(sunixsck != -1)
-			sckif(timeout, sunixsck);
+	if(-1 != client_socket)
+		register_client_socket(client_socket);
+}
 
-		return;
-	}
+
+void handle_client(int client_socket) {
+	FILE * fd = fdopen(client_socket, "rw");
+	int disconnect = 0;
 
 	signal(SIGPIPE, SIG_IGN);
 
-	if(waitread(sck, timeout, 0)) {
-		struct sockaddr client;
-		socklen_t scksize = sizeof(struct sockaddr);
+	if(fd != NULL && !feof(fd)) {
+		debug("client socket is ok and readable: %i\n", client_socket);
+		char line[BUFSIZE], reply[BUFSIZE], * ptr = NULL;
 
-		int csck = accept(sck, & client, & scksize);
+		if(fgets(line, sizeof(line), fd) == NULL) {
+			disconnect = 1;
+		}
+		else {
+			if(!ferror(fd)) {
+				if((ptr = strchr(line, 13)) || (ptr = strchr(line, 10)))
+					* ptr = 0;
 
-		if(-1 != csck) {
-			if(waitread(csck, 0, 100000)) {
-				FILE * fd = fdopen(csck, "r");
+				debug("client message: <%s>\n", line);
 
-				if(fd) {
-					char * line = NULL, * ptr = NULL, reply[REPLYBUFSIZE];
-					unsigned size = 0;
-
-					getln(& line, & size, fd);
-
-					if(line && size > 0 && !ferror(fd)) {
-						if((ptr = strchr(line, 13)) || (ptr = strchr(line, 10)))
-							* ptr = 0;
-
-						execcmd(line, reply);
-					}
-
-					if(line)
-						free(line);
-
-					if(strlen(reply)) {
-						write(csck, reply, strlen(reply));
-					}
-
-					fclose(fd);
-				}
+				execcmd(line, reply);
 			}
 
-			shutdown(csck, SHUT_RDWR);
-			close(csck);
+			else {
+				debug("fd error: %i\n", ferror(fd));
+				disconnect = 1;
+			}
+
+			if(strlen(reply)) {
+				strncat(reply, "\n", BUFSIZE - strlen(reply));
+				write(client_socket, reply, strlen(reply));
+			}
 		}
 	}
+
+	if(disconnect) {
+		debug("removing client\n");
+		shutdown(SHUT_RDWR, client_socket);
+		fclose(fd);
+
+		remove_handle(client_socket);
+	}
 }
+
 
 void execcmd(const char * cmd, char * reply) {
 	char arg[1024], * ptr;
@@ -205,7 +211,7 @@ void execcmd(const char * cmd, char * reply) {
 	};
 
 	memset(arg, 0, sizeof(arg));
-	memset(reply, 0, REPLYBUFSIZE);
+	memset(reply, 0, BUFSIZE);
 
 	for(ncmd = 0; ncmd < (sizeof(known) / sizeof(char *)); ++ncmd) {
 		if(!strncmp(known[ncmd], cmd, strlen(known[ncmd])))
@@ -214,7 +220,7 @@ void execcmd(const char * cmd, char * reply) {
 
 	switch(ncmd) {
 		case (sizeof(known) / sizeof(char *)):
-			strncpy(reply, "ERROR", REPLYBUFSIZE);
+			strncpy(reply, "ERROR", BUFSIZE);
 			break;
 
 		case 0:
@@ -243,12 +249,12 @@ void execcmd(const char * cmd, char * reply) {
 
 		case 5:
 			if(* (cmd + 5))
-				strncpy(reply, meta(cmd + 5, 0, & track), REPLYBUFSIZE);
+				strncpy(reply, meta(cmd + 5, 0, & track), BUFSIZE);
 			else if(haskey(& rc, "np-file-format"))
 				strncpy(
 					reply,
 					meta(value(& rc, "np-file-format"), 0, & track),
-					REPLYBUFSIZE
+					BUFSIZE
 				);
 
 			break;
@@ -267,6 +273,12 @@ void execcmd(const char * cmd, char * reply) {
 
 		case 7:
 			toggle(DISCOVERY);
+			snprintf(
+				reply,
+				BUFSIZE,
+				"DISCOVERY_%s",
+				enabled(DISCOVERY) ? "ON" : "OFF"
+			);
 			break;
 
 		case 8:
@@ -286,7 +298,7 @@ void execcmd(const char * cmd, char * reply) {
 
 		case 11:
 			if((ptr = oldtags('a', track)) != NULL) {
-				strncpy(reply, ptr, REPLYBUFSIZE);
+				strncpy(reply, ptr, BUFSIZE);
 				free(ptr);
 				ptr = NULL;
 			}
@@ -294,7 +306,7 @@ void execcmd(const char * cmd, char * reply) {
 
 		case 12:
 			if((ptr = oldtags('l', track)) != NULL) {
-				strncpy(reply, ptr, REPLYBUFSIZE);
+				strncpy(reply, ptr, BUFSIZE);
 				free(ptr);
 				ptr = NULL;
 			}
@@ -302,7 +314,7 @@ void execcmd(const char * cmd, char * reply) {
 
 		case 13:
 			if((ptr = oldtags('t', track)) != NULL) {
-				strncpy(reply, ptr, REPLYBUFSIZE);
+				strncpy(reply, ptr, BUFSIZE);
 				free(ptr);
 				ptr = NULL;
 			}
@@ -324,18 +336,5 @@ void execcmd(const char * cmd, char * reply) {
 			if(volume > 0)
 				volume -= 1;
 			break;
-	}
-}
 
-static int waitread(int fd, unsigned sec, unsigned usec) {
-	fd_set readfd;
-	struct timeval tv;
-
-	FD_ZERO(& readfd);
-	FD_SET(fd, & readfd);
-
-	tv.tv_sec = sec;
-	tv.tv_usec = usec;
-
-	return (select(fd + 1, & readfd, NULL, NULL, & tv) > 0);
 }

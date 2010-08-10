@@ -14,4 +14,7 @@ extern void sckif(int, int);
 
 extern void execcmd(const char *, char *);
 
+extern void accept_client(int);
+extern void handle_client(int);
+
 #endif

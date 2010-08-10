@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2006 by Jonas Kramer
+	Copyright (C) 2006-2010 by Jonas Kramer
 	Published under the terms of the GNU General Public License (GPL).
 */
 
@@ -17,6 +17,16 @@
 #if (defined(TUXBOX) || defined(PPC))
 #include <ctype.h>
 #endif
+
+
+void debug(__attribute__((unused)) char * format, ...) {
+#ifdef DEBUG
+	va_list argv;
+	va_start(argv, format);
+
+	vfprintf(stderr, format, argv);
+#endif
+}
 
 /*
 	Takes the path of a file as argument, reads the file and returns an array
@@ -98,7 +108,7 @@ char ** uniq(char ** list) {
 
 int grep(char ** list, char * needle) {
 	register unsigned x = 0;
-	
+
 	if(!needle)
 		return 0;
 
@@ -206,5 +216,6 @@ char * strcasestr(const char * haystack, const char * needle) {
 
     return NULL;
 }
+
 
 #endif

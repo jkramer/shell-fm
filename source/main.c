@@ -29,6 +29,7 @@
 #include "submit.h"
 #include "readline.h"
 #include "radio.h"
+#include "select.h"
 
 #include "globals.h"
 
@@ -150,7 +151,7 @@ int main(int argc, char ** argv) {
 		set(& rc, "default-radio", station);
 	}
 
-	
+
 	if(nerror)
 		help(argv[0], EXIT_FAILURE);
 
@@ -171,14 +172,14 @@ int main(int argc, char ** argv) {
 		puts("Shell.FM v" PACKAGE_VERSION ", (C) 2006-2010 by Jonas Kramer");
 		puts("Published under the terms of the GNU General Public License (GPL).");
 
-#ifndef TUXBOX 
+#ifndef TUXBOX
 		puts("\nPress ? for help.\n");
 #else
 		puts("Compiled for the use with Shell.FM Wrapper.\n");
 #endif
 		fflush(stdout);
 	}
-	
+
 
 	/* Open a port so Shell.FM can be controlled over network. */
 	if(haskey(& rc, "bind")) {
@@ -207,7 +208,7 @@ int main(int argc, char ** argv) {
 	/* Ask for username/password if they weren't specified in the .rc file. */
 	if(!haskey(& rc, "password")) {
 		char * password;
-		
+
 		if(!haskey(& rc, "username")) {
 			char username[256] = { 0 };
 
@@ -220,7 +221,7 @@ int main(int argc, char ** argv) {
 
 			set(& rc, "username", username);
 		}
-		
+
 		if(!(password = getpass("Password: ")))
 			exit(EXIT_FAILURE);
 
@@ -263,7 +264,7 @@ int main(int argc, char ** argv) {
 		dup(null);
 		dup(null);
 	}
-	
+
 	ppid = getpid();
 
 	atexit(cleanup);
@@ -290,6 +291,12 @@ int main(int argc, char ** argv) {
 			fprintf(fd, "%s\n", value(& data, "session"));
 			fclose(fd);
 		}
+	}
+
+	if(!background) {
+		struct input keyboard = { 0, KEYBOARD };
+		register_handle(keyboard);
+		canon(0);
 	}
 
 
@@ -382,7 +389,7 @@ int main(int argc, char ** argv) {
 
 				continue;
 			}
-			
+
 			shift(& playlist);
 		}
 
@@ -519,9 +526,7 @@ int main(int argc, char ** argv) {
 			}
 		}
 
-		interface(!background);
-		if(have_socket)
-			sckif(background ? 2 : 0, -1);
+		handle_input(1000000);
 	}
 
 	return 0;
@@ -550,7 +555,6 @@ static void help(const char * argv0, int error_code) {
 
 
 static void cleanup(void) {
-	canon(!0);
 	rmsckif();
 
 	if(haskey(& rc, "unix") && getpid() == ppid)
