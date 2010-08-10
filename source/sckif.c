@@ -277,7 +277,7 @@ void execcmd(const char * cmd, char * reply) {
 			snprintf(
 				reply,
 				BUFSIZE,
-				"DISCOVERY_%s",
+				"DISCOVERY %s",
 				enabled(DISCOVERY) ? "ON" : "OFF"
 			);
 			break;
