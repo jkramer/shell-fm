@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2006 by Jonas Kramer
+	Copyright (C) 2006-2010 by Jonas Kramer
 	Published under the terms of the GNU General Public License (GPL).
 */
 
@@ -38,8 +38,6 @@ char * readline(struct prompt * setup) {
 	/* Count items in history. */
 	for(histsize = 0; setup->history && setup->history[histsize]; ++histsize);
 	index = histsize;
-
-	canon(0);
 
 	while(!eoln) {
 		int key = fgetc(stdin);
@@ -143,7 +141,6 @@ char * readline(struct prompt * setup) {
 		}
 	}
 
-	canon(!0);
 	fputc(10, stderr);
 
 	return line;

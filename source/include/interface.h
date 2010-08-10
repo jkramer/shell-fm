@@ -12,7 +12,7 @@
 #define M_SHELLESC	0x4
 
 extern const char * meta(const char *, int, struct hash *);
-extern void interface(int);
+extern void handle_keyboard_input();
 extern void run(const char *);
 extern void canon(int);
 extern int fetchkey(unsigned);

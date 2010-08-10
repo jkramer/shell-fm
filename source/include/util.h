@@ -13,5 +13,7 @@ extern char * strjoin(const char *, ...);
 extern char * strndup(const char *, size_t);
 #endif
 
+void debug(char *, ...);
+
 #endif
 
