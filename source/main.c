@@ -517,9 +517,9 @@ int main(int argc, char ** argv) {
 
 			if(!background) {
 				printf(
-					"%s   |   vol: %s %c",
+					"%s%c",
 					strdup(meta("%r", M_COLORED, & track)),
-					strdup(meta("%v", M_COLORED, & track)),
+					// strdup(meta("%v", M_COLORED, & track)),
 					batch ? '\n' : '\r'
 				);
 				fflush(stdout);
