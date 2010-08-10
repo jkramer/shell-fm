@@ -207,7 +207,8 @@ void execcmd(const char * cmd, char * reply) {
 		"track-tags",
 		"stop",
 		"volume-up",
-		"volume-down"
+		"volume-down",
+		"rtp"
 	};
 
 	memset(arg, 0, sizeof(arg));
@@ -337,4 +338,10 @@ void execcmd(const char * cmd, char * reply) {
 				volume -= 1;
 			break;
 
+		case 17:
+			/* RTP on/off */
+			toggle(RTP);
+			snprintf(reply, BUFSIZE, "RTP %s", enabled(RTP) ? "ON" : "OFF");
+			break;
+	}
 }
