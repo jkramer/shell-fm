@@ -43,6 +43,7 @@ static int stcpsck = -1, sunixsck = -1;
 
 #define BUFSIZE 1024
 
+
 int tcpsock(const char * ip, unsigned short port) {
 	static const int one = 1;
 	struct sockaddr_in host;
@@ -328,14 +329,10 @@ void execcmd(const char * cmd, char * reply) {
 			}
 			break;
 		case 15:
-			// Volume +
-			if(volume < MAX_VOLUME)
-				volume += 1;
+			volume_up();
 			break;
 		case 16:
-			// Volume -
-			if(volume > 0)
-				volume -= 1;
+			volume_down();
 			break;
 
 		case 17:

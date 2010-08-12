@@ -22,5 +22,8 @@ extern int rate(const char *);
 extern char * shellescape(const char *);
 extern void quit();
 extern void unlinknp();
+extern void volume_up();
+extern void volume_down();
+
 
 #endif

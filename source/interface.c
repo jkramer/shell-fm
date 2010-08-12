@@ -216,17 +216,11 @@ void handle_keyboard_input() {
 			break;
 
 		case '+':
-			if(volume < MAX_VOLUME)
-				volume += 1;
-			if(playpipe != 0)
-				write(playpipe, &key, 1);
+			volume_up();
 			break;
 
 		case '-':
-			if(volume > 0)
-				volume -= 1;
-			if(playpipe != 0)
-				write(playpipe, &key, 1);
+			volume_down();
 			break;
 
 		case 'u':
@@ -582,5 +576,28 @@ void print_help(void) {
 
 			fprintf(stderr, "%c = %s\n", key, command);
 		}
+	}
+}
+
+
+void volume_up() {
+	char c = '+';
+
+	if(volume < MAX_VOLUME) {
+		volume += 1;
+
+		if(playpipe != 0)
+			write(playpipe, & c, 1);
+	}
+}
+
+void volume_down() {
+	char c = '-';
+
+	if(volume > 0) {
+		volume -= 1;
+
+		if(playpipe != 0)
+			write(playpipe, & c, 1);
 	}
 }
