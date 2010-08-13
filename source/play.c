@@ -401,19 +401,8 @@ static void read_from_pipe(int pipefd) {
 	char readchar;
 	ssize_t readcount;
 
-	while((readcount = read(pipefd, &readchar, 1)) > 0) {
-		switch(readchar) {
-			// update this process's copy of the volume level
-			case '+':
-				if(volume < MAX_VOLUME)
-					volume += 1;
-				break;
-			case '-':
-				if(volume > 0)
-					volume -= 1;
-				break;
-		}
-	}
+	while((readcount = read(pipefd, & readchar, 1)) > 0)
+		volume = (int) readchar;
 }
 
 #ifdef LIBAO

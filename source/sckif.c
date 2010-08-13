@@ -209,6 +209,7 @@ void execcmd(const char * cmd, char * reply) {
 		"stop",
 		"volume-up",
 		"volume-down",
+		"volume",
 		"rtp"
 	};
 
@@ -328,17 +329,39 @@ void execcmd(const char * cmd, char * reply) {
 				kill(playfork, SIGUSR1);
 			}
 			break;
+
 		case 15:
 			volume_up();
 			break;
+
 		case 16:
 			volume_down();
 			break;
 
 		case 17:
+			parse_volume(cmd, reply);
+			break;
+
+		case 18:
 			/* RTP on/off */
 			toggle(RTP);
 			snprintf(reply, BUFSIZE, "RTP %s", enabled(RTP) ? "ON" : "OFF");
 			break;
+	}
+}
+
+
+int parse_volume(char * cmd, char * reply) {
+	char sign = 0;
+	int new_volume;
+
+	if(sscanf(cmd, "volume %1[+-]%d", & sign, & new_volume) == 2) {
+		if(sign == '-')
+			set_volume(volume - new_volume);
+		else if(sign == '+')
+			set_volume(volume + new_volume);
+	}
+	else if(sscanf(cmd, "volume %d", & new_volume) == 1) {
+		set_volume(new_volume);
 	}
 }

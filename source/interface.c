@@ -581,23 +581,27 @@ void print_help(void) {
 
 
 void volume_up() {
-	char c = '+';
-
-	if(volume < MAX_VOLUME) {
-		volume += 1;
-
-		if(playpipe != 0)
-			write(playpipe, & c, 1);
-	}
+	set_volume(volume + 1);
 }
 
 void volume_down() {
-	char c = '-';
+	set_volume(volume - 1);
+}
 
-	if(volume > 0) {
-		volume -= 1;
+void set_volume(int new_volume) {
+	char c;
 
-		if(playpipe != 0)
-			write(playpipe, & c, 1);
-	}
+	volume = new_volume;
+
+	if(new_volume > MAX_VOLUME)
+		volume = MAX_VOLUME;
+	else if(new_volume < 0)
+		volume = 0;
+	else
+		volume = new_volume;
+
+	c = (char) volume;
+
+	if(playpipe != 0)
+		write(playpipe, & c, 1);
 }
