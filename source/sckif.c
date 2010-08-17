@@ -43,6 +43,8 @@ static int stcpsck = -1, sunixsck = -1;
 
 #define BUFSIZE 1024
 
+void parse_volume(const char *);
+
 
 int tcpsock(const char * ip, unsigned short port) {
 	static const int one = 1;
@@ -339,7 +341,8 @@ void execcmd(const char * cmd, char * reply) {
 			break;
 
 		case 17:
-			parse_volume(cmd, reply);
+			parse_volume(cmd);
+			snprintf(reply, BUFSIZE, "VOLUME %d", volume);
 			break;
 
 		case 18:
@@ -351,7 +354,7 @@ void execcmd(const char * cmd, char * reply) {
 }
 
 
-int parse_volume(char * cmd, char * reply) {
+void parse_volume(const char * cmd) {
 	char sign = 0;
 	int new_volume;
 

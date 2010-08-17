@@ -24,6 +24,7 @@ extern void quit();
 extern void unlinknp();
 extern void volume_up();
 extern void volume_down();
+void set_volume(int);
 
 
 #endif
