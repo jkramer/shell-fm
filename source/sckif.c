@@ -37,6 +37,8 @@
 
 #include "globals.h"
 
+#include "split.h"
+
 struct hash track;
 
 static int stcpsck = -1, sunixsck = -1;
@@ -153,19 +155,28 @@ void handle_client(int client_socket) {
 
 	if(fd != NULL && !feof(fd)) {
 		debug("client socket is ok and readable: %i\n", client_socket);
-		char line[BUFSIZE], reply[BUFSIZE], * ptr = NULL;
+		char line[BUFSIZE];
 
 		if(fgets(line, sizeof(line), fd) == NULL) {
 			disconnect = 1;
 		}
 		else {
 			if(!ferror(fd)) {
-				if((ptr = strchr(line, 13)) || (ptr = strchr(line, 10)))
-					* ptr = 0;
+				unsigned chunks, i;
+				char ** lines = split(line, "\n", & chunks);
 
-				debug("client message: <%s>\n", line);
+				debug("complete message: <%s>\n", line);
 
-				execcmd(line, reply);
+				for(i = 0; i < chunks; ++i) {
+					char reply[BUFSIZE] = { 0, };
+					debug("client message: <%s>\n", lines[i]);
+					execcmd(lines[i], reply);
+
+					if(strlen(reply)) {
+						strncat(reply, "\n", BUFSIZE - strlen(reply));
+						write(client_socket, reply, strlen(reply));
+					}
+				}
 			}
 
 			else {
@@ -173,10 +184,6 @@ void handle_client(int client_socket) {
 				disconnect = 1;
 			}
 
-			if(strlen(reply)) {
-				strncat(reply, "\n", BUFSIZE - strlen(reply));
-				write(client_socket, reply, strlen(reply));
-			}
 		}
 	}
 
