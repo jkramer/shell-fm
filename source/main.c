@@ -450,6 +450,14 @@ int main(int argc, char ** argv) {
 							printf("%s\n", meta("Now playing \"%t\" by %a.", M_COLORED, & track));
 					}
 
+					if(enabled(RTP)) {
+						notify_now_playing(
+							& track,
+							value(& rc, "username"),
+							value(& rc, "password")
+						);
+					}
+
 
 					/* Write track data into a file. */
 					if(haskey(& rc, "np-file") && haskey(& rc, "np-file-format")) {

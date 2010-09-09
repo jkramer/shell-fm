@@ -38,6 +38,7 @@ extern struct hash data, rc, track;
 
 static int handshake(const char *, const char *);
 static void sliceq(unsigned);
+static void copy_track_data(struct hash *, struct hash *);
 
 
 /* Add a track to the scrobble queue. */
@@ -45,7 +46,7 @@ int enqueue(struct hash * track) {
 	const char * keys [] = { "creator", "title", "album", "duration" };
 	unsigned i;
 	struct hash post;
-	char timestamp[16], lastid[8], duration[8];
+	char timestamp[16], lastid[8];
 
 	assert(track != NULL);
 
@@ -60,17 +61,12 @@ int enqueue(struct hash * track) {
 
 	snprintf(timestamp, sizeof(timestamp), "%lu", (unsigned long) time(NULL));
 	snprintf(lastid, sizeof(lastid), "L%s", value(track, "lastfm:trackauth"));
-	snprintf(duration, sizeof(duration), "%d", atoi(value(track, "duration")));
 
-	set(& post, "a", value(track, "creator"));
-	set(& post, "t", value(track, "title"));
+	copy_track_data(track, & post);
+
 	set(& post, "i", timestamp);
 	set(& post, "r", value(track, "rating"));
 	set(& post, "o", lastid);
-	set(& post, "l", duration);
-	set(& post, "b", value(track, "album"));
-	set(& post, "n", "");
-	set(& post, "m", "");
 
 	memcpy(& queue[qlength++], & post, sizeof(struct hash));
 
@@ -318,4 +314,85 @@ void loadqueue(int overwrite) {
 			fclose(fd);
 		}
 	}
+}
+
+/* Copy relevant track data into a hash for scrobbling. */
+static void copy_track_data(struct hash * track, struct hash * post) {
+	char duration[8];
+
+	snprintf(duration, sizeof(duration), "%d", atoi(value(track, "duration")));
+
+	set(post, "a", value(track, "creator"));
+	set(post, "t", value(track, "title"));
+	set(post, "b", value(track, "album"));
+	set(post, "l", duration);
+	set(post, "n", "");
+	set(post, "m", "");
+}
+
+/* Takes a hash and returns a POST request body with the key/value pairs. */
+char * post_body_from_hash(struct hash * post) {
+	const unsigned stepsize = 1024 * sizeof(char);
+	unsigned total = stepsize, pair;
+	char * body = NULL;
+
+	body = malloc(stepsize);
+	assert(body != NULL);
+	memset(body, 0, stepsize);
+
+	for(pair = 0; pair < post->size; ++pair) {
+		char key[16], * encoded = NULL;
+		unsigned length, bodysz = strlen(body);
+
+		snprintf(
+			key, sizeof(key), "%s",
+			post->content[pair].key
+		);
+
+		encode(post->content[pair].value, & encoded);
+		length = strlen(key) + strlen(encoded) + 2;
+
+		while(bodysz + length > total) {
+			body = realloc(body, total + stepsize);
+			assert(body != NULL);
+			total += stepsize;
+		}
+
+		snprintf(body + bodysz, total - bodysz, "&%s=%s", key, encoded);
+		free(encoded);
+	}
+
+	return realloc(body, strlen(body) + 1);
+}
+
+
+/* Send "now playing notification" to Last.FM. */
+void notify_now_playing(
+	struct hash * track,
+	const char * username,
+	const char * password
+) {
+	struct hash post;
+	char * body;
+
+	assert(track != NULL);
+
+	memset(& post, 0, sizeof(struct hash));
+
+	copy_track_data(track, & post);
+
+	if(!handshaked && !handshake(username, password)) {
+		fputs("Handshake failed.\n", stderr);
+		return;
+	}
+
+	set(& post, "s", value(& submission, "session"));
+
+	body = post_body_from_hash(& post);
+
+	empty(& post);
+
+	/* Ignore response. */
+	purge(fetch(value(& submission, "now-playing"), NULL, body, NULL));
+	free(body);
 }
