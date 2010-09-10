@@ -219,7 +219,8 @@ void execcmd(const char * cmd, char * reply) {
 		"volume-up",
 		"volume-down",
 		"volume",
-		"rtp"
+		"rtp",
+		"status"
 	};
 
 	memset(arg, 0, sizeof(arg));
@@ -356,6 +357,9 @@ void execcmd(const char * cmd, char * reply) {
 			/* RTP on/off */
 			toggle(RTP);
 			snprintf(reply, BUFSIZE, "RTP %s", enabled(RTP) ? "ON" : "OFF");
+			break;
+		case 19:
+			strncpy(reply, playfork ? (pausetime ? "PAUSED" : "PLAYING") : "STOPPED", BUFSIZE);
 			break;
 	}
 }
