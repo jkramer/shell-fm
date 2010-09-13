@@ -18,6 +18,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <assert.h>
+#include <sys/select.h>
 
 #include "service.h"
 #include "hash.h"

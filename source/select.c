@@ -1,5 +1,6 @@
 
 #include <stdlib.h>
+#include <sys/select.h>
 
 #include "select.h"
 

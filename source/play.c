@@ -20,6 +20,7 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <assert.h>
+#include <sys/select.h>
 
 #ifndef EXTERN_ONLY
 #include <mad.h>
