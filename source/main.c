@@ -60,6 +60,7 @@ char * nextstation = NULL;
 int batch = 0, error = 0, delayquit = 0;
 
 static void cleanup(void);
+static void cleanup_term(void);
 static void forcequit(int);
 static void help(const char *, int);
 static void playsig(int);
@@ -297,6 +298,7 @@ int main(int argc, char ** argv) {
 		struct input keyboard = { 0, KEYBOARD };
 		register_handle(keyboard);
 		canon(0);
+		atexit(cleanup_term);
 	}
 
 
@@ -614,6 +616,12 @@ static void cleanup(void) {
 
 	if(playfork)
 		kill(playfork, SIGUSR1);
+}
+
+static void cleanup_term(void) {
+	if (getpid() == ppid) {
+		canon(1);
+	}
 }
 
 
