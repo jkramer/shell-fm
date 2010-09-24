@@ -30,6 +30,8 @@
 #include "readline.h"
 #include "radio.h"
 #include "select.h"
+#include "history.h"
+#include "strary.h"
 
 #include "globals.h"
 
@@ -303,8 +305,21 @@ int main(int argc, char ** argv) {
 
 
 	/* Play default radio, if specified. */
-	if(haskey(& rc, "default-radio"))
+	if(haskey(& rc, "default-radio")) {
+		if(!strcmp(value(& rc, "default-radio"), "last")) {
+			char ** history = load_history(), * last = NULL, ** p;
+
+			for(p = history; * p != NULL; ++p) {
+				last = * p;
+			}
+
+			set(& rc, "default-radio", last);
+			purge(history);
+		}
+
 		station(value(& rc, "default-radio"));
+	}
+
 	else if(!background)
 		radioprompt("radio url> ");
 

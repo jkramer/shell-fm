@@ -22,14 +22,14 @@ void histapp(const char * radio) {
 	char ** history;
 	const char * path = rcpath("radio-history");
 	FILE * fd;
-	
+
 	if(!radio)
 		return;
 
 	if(!strncasecmp("lastfm://", radio, 9))
 		radio += 9;
 
-	history = slurp(path);
+	history = load_history();
 
 	if((fd = fopen(path, "w")) != NULL) {
 		if(history != NULL) {
@@ -47,4 +47,9 @@ void histapp(const char * radio) {
 
 	if(history != NULL)
 		purge(history);
+}
+
+
+char ** load_history() {
+	return slurp(rcpath("radio-history"));
 }

@@ -29,6 +29,7 @@
 #include "service.h"
 #include "tag.h"
 #include "globals.h"
+#include "util.h"
 
 
 extern char ** popular;
