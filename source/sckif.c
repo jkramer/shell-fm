@@ -167,10 +167,11 @@ void handle_client(int client_socket) {
 
 				debug("complete message: <%s>\n", line);
 
-				for(i = 0; i < chunks; ++i) {
+				for(i = 0; i < chunks && !disconnect; ++i) {
 					char reply[BUFSIZE] = { 0, };
 					debug("client message: <%s>\n", lines[i]);
-					execcmd(lines[i], reply);
+
+					disconnect = execcmd(lines[i], reply);
 
 					if(strlen(reply)) {
 						strncat(reply, "\n", BUFSIZE - strlen(reply));
@@ -190,6 +191,7 @@ void handle_client(int client_socket) {
 	if(disconnect) {
 		debug("removing client\n");
 		shutdown(SHUT_RDWR, client_socket);
+		close(client_socket);
 		fclose(fd);
 
 		remove_handle(client_socket);
@@ -197,7 +199,7 @@ void handle_client(int client_socket) {
 }
 
 
-void execcmd(const char * cmd, char * reply) {
+int execcmd(const char * cmd, char * reply) {
 	char arg[1024], * ptr;
 	unsigned ncmd;
 	const char * known [] = {
@@ -220,7 +222,8 @@ void execcmd(const char * cmd, char * reply) {
 		"volume-down",
 		"volume",
 		"rtp",
-		"status"
+		"status",
+		"detach"
 	};
 
 	memset(arg, 0, sizeof(arg));
@@ -361,7 +364,12 @@ void execcmd(const char * cmd, char * reply) {
 		case 19:
 			strncpy(reply, playfork ? (pausetime ? "PAUSED" : "PLAYING") : "STOPPED", BUFSIZE);
 			break;
+
+		case 20:
+			return 1;
 	}
+
+	return 0;
 }
 
 
