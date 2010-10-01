@@ -17,7 +17,7 @@ It's always recommended to use the latest version from GitHub.
 
 First clone the repository:
 
-bc. $ git clone http://github.com/jkramer/shell-fm/tree/master
+bc. $ git clone git://github.com/jkramer/shell-fm.git
 
 Make sure you have the needed libraries to compile (libmad0-dev and libao-dev.) This should do the trick for Ubuntu:
 
