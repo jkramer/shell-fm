@@ -306,6 +306,10 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 			if(fmt[x] == '%') {
 				string[length++] = fmt[x++];
 			}
+			else if(fmt[x] == '~' && getenv("HOME")) {
+				length = strlen(strncat(string, getenv("HOME"), remn));
+				x++;
+			}
 			else {
 				char * val = NULL;
 				const char * track_key = NULL;
@@ -375,6 +379,9 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 					        ((volume * 100 / MAX_VOLUME * 100) / 100));
 					    val = strdup(calculated);
 					    break;
+					case 'V':
+						track_key = "rating";
+						break;
 					case 'I':
 						track_key = "image";
 						break;
@@ -389,6 +396,9 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 					case 'z':
 						// track tags
 						tagging_item = 't';
+						break;
+					default:
+						val = strdup("");
 						break;
 				}
 
@@ -468,6 +478,11 @@ int rate(const char * rating) {
 
 		if(rating[0] != 'U')
 			set(& track, "rating", rating);
+		else
+			set(& track, "rating", "");
+
+		if(haskey(& rc, "rate-cmd"))
+			run(meta(value(& rc, "rate-cmd"), M_SHELLESC, & track));
 
 		switch(rating[0]) {
 			case 'B':

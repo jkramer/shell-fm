@@ -172,12 +172,16 @@ Format of the track information in the playlist preview (key 'u').
 section for the details.
 .TP
 .B np-cmd = shell command
-If this is defined, the given command will be execute whenever a new track
+If this is defined, the given command will be executed whenever a new track
 starts. The value may contain format flags.
 .TP
 .B pp-cmd = shell command
-If this is defined, the given command will be execute whenever a downloading
+If this is defined, the given command will be executed whenever a downloading
 track ends. The value will have the path to the file appended.
+.TP
+.B rate-cmd = shell command
+If this is defined, the given command will be executed whenever a track is rated.
+The value may contain format flags, especially %V to get the actual rating.
 .TP
 .B ?-color = color
 This allows you to color format elements. The
@@ -348,6 +352,13 @@ Remaining time of the played track, formatted as 'min:sec'.
 .TP
 .B %v
 Volume level, formatted as 'xx%'.
+.TP
+.B %V
+Rating of the current track
+('L' loved, 'B' banned, 'S' skipped or empty).
+.TP
+.B %~
+Environment variable $HOME.
 .TP
 .B %%
 A %.
