@@ -149,6 +149,9 @@ int parsexspf(struct playlist * list, char * xml) {
 
 		push(list, node);
 
+
+		debug("track location: %s\n", value(& node->track, "location"));
+
 		++tracks;
 
 		if(!next)
