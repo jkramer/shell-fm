@@ -176,7 +176,7 @@ char * strndup(const char * src, size_t len) {
 
 #endif
 
-#if (defined(TUXBOX) || defined(PPC))
+#if (defined(TUXBOX) || defined(PPC) || (defined (__SVR4) && defined (__sun)))
 
 /* On a few system like a PPC based Dreambox libc does not include strcasestr ... */
 
