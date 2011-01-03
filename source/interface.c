@@ -514,6 +514,13 @@ char * shellescape(const char * string) {
 	assert(string != NULL);
 
 	size = strlen(string) * 2 + 1;
+	/*
+	 * Be sure to still escape the empty string. I.e., ./blah a b
+	 * is different from ./blah a "" b.
+	 */
+	if (size <= 1)
+	  size += 2;
+
 	escaped = malloc(size);
 	memset(escaped, 0, size);
 
@@ -526,6 +533,10 @@ char * shellescape(const char * string) {
 		escaped[length++] = string[n];
 		escaped[length] = 0;
 	}
+
+	/* escape the empty string... */
+	if (!length)
+		memcpy(escaped, "\"\"", 2);
 
 	return escaped;
 }
