@@ -418,11 +418,7 @@ the interface, you must provide a valid value to the
 option in your configuration or use the
 .B -i
 option on the command line. Then you can connect the specified port (54311 by
-default) and send one command at a time. You also have to hurry,
-since there is a very short timeout. Best thing would be if you used a script
-for accessing this interface. (See
-.B shell-fm-*/scripts/
-for examples) This is a list of the known commands.
+default) and send one command at a time.  This is a list of the known commands.
 .TP
 .B play lastfm://...
 Play the given stream.
@@ -479,6 +475,20 @@ Increment volume by 1.
 .TP
 .B volume-down
 Decrement volume by 1.
+.TP
+.B volume 32
+Set volume. Volume may be a number between 0 and 64.
+.TP
+.B volume %50
+Set percental volume. %50 is 32, %100 is 64 and so on.
+.TP
+.B volume [+-]10
+Adjust absolute volume. "volume +1" is the same as "volume-up" and "volume -1"
+is the same as "volume-down".
+All volumes return the absolute volume (0-64).
+.TP
+.B detach
+Detaches from the network interface. Use this to cleanly close your session.
 .SH FILES
 This section describes the meanings of the files in $HOME/.shell-fm/. The base
 directory can be overriden by setting the environment variable $SHELL_FM_HOME
