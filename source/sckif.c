@@ -383,6 +383,13 @@ void parse_volume(const char * cmd) {
 		else if(sign == '+')
 			set_volume(volume + new_volume);
 	}
+
+	/* Allow percentual volume (1-100%). */
+	else if(sscanf(cmd, "volume %%%d", & new_volume)) {
+		set_volume(new_volume * 0.64);
+	}
+
+	/* Allow absolute volume (0-64). */
 	else if(sscanf(cmd, "volume %d", & new_volume) == 1) {
 		set_volume(new_volume);
 	}
