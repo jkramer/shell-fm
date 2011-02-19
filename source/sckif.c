@@ -239,6 +239,7 @@ int execcmd(const char * cmd, char * reply) {
 			strncpy(reply, "ERROR", BUFSIZE);
 			break;
 
+		/* "play lastfm://station" */
 		case 0:
 			if(sscanf(cmd, "play %128[a-zA-Z0-9:/_ %,*.-]", arg) == 1) {
 				char * url;
@@ -248,21 +249,26 @@ int execcmd(const char * cmd, char * reply) {
 			}
 			break;
 
+		/* Love currently played track. */
 		case 1:
 			rate("L");
 			break;
 
+		/* Ban currently played track. */
 		case 2:
 			rate("B");
 			break;
 
+		/* Skip track. */
 		case 3:
 			rate("S");
 			break;
 
+		/* Kill Shell.FM. */
 		case 4:
 			quit();
 
+		/* "info FORMAT" - returns the format string with the meta data filled in. */
 		case 5:
 			if(* (cmd + 5))
 				strncpy(reply, meta(cmd + 5, 0, & track), BUFSIZE);
@@ -275,6 +281,7 @@ int execcmd(const char * cmd, char * reply) {
 
 			break;
 
+		/* Pause playback. */
 		case 6:
 			if(playfork) {
 				if(pausetime) {
@@ -287,6 +294,7 @@ int execcmd(const char * cmd, char * reply) {
 			}
 			break;
 
+		/* Toggle discovery mode. Returns "DISCOVERY <ON|OFF>" */
 		case 7:
 			toggle(DISCOVERY);
 			snprintf(
@@ -297,21 +305,25 @@ int execcmd(const char * cmd, char * reply) {
 			);
 			break;
 
+		/* "tag-artist tag1,tag2,..." - tag the artist of the current track. */
 		case 8:
 			if(sscanf(cmd, "tag-artist %128s", arg) == 1)
 				sendtag('a', arg, track);
 			break;
 
+		/* "tag-album tag1,tag2,..." - tag the album of the current track. */
 		case 9:
 			if(sscanf(cmd, "tag-album %128s", arg) == 1)
 				sendtag('l', arg, track);
 			break;
 
+		/* "tag-track tag1,tag2,..." - tag the current track. */
 		case 10:
 			if(sscanf(cmd, "tag-track %128s", arg) == 1)
 				sendtag('t', arg, track);
 			break;
 
+		/* Return comma-separated list of the current artists tags. */
 		case 11:
 			if((ptr = oldtags('a', track)) != NULL) {
 				strncpy(reply, ptr, BUFSIZE);
@@ -320,6 +332,7 @@ int execcmd(const char * cmd, char * reply) {
 			}
 			break;
 
+		/* Return comma-separated list of the current albums tags. */
 		case 12:
 			if((ptr = oldtags('l', track)) != NULL) {
 				strncpy(reply, ptr, BUFSIZE);
@@ -328,6 +341,7 @@ int execcmd(const char * cmd, char * reply) {
 			}
 			break;
 
+		/* Return comma-separated list of the current tracks tags. */
 		case 13:
 			if((ptr = oldtags('t', track)) != NULL) {
 				strncpy(reply, ptr, BUFSIZE);
@@ -336,6 +350,8 @@ int execcmd(const char * cmd, char * reply) {
 			}
 			break;
 
+
+		/* Stop playback. */
 		case 14:
 			if(playfork) {
 				enable(STOPPED);
@@ -343,28 +359,43 @@ int execcmd(const char * cmd, char * reply) {
 			}
 			break;
 
+		/* Increase absolute volume (0-64) by 1. */
 		case 15:
 			volume_up();
 			break;
 
+		/* Decrease absolute volume (0-64) by 1. */
 		case 16:
 			volume_down();
 			break;
 
+		/*
+			Set volume.
+			"volume 32" - set absolute volume (0-64) to 32 (50%).
+			"volume %50" - same, but using percentual volume.
+			"volume +1" - same as "volume_up".
+			"volume -1" - same as "volume_down".
+
+			Returns absolute volume ("VOLUME 32").
+		*/
 		case 17:
 			parse_volume(cmd);
 			snprintf(reply, BUFSIZE, "VOLUME %d", volume);
 			break;
 
+		/* Toggle RTP (report to profile, "scrobbling"). Returns "RTP <ON|OFF>". */
 		case 18:
 			/* RTP on/off */
 			toggle(RTP);
 			snprintf(reply, BUFSIZE, "RTP %s", enabled(RTP) ? "ON" : "OFF");
 			break;
+
+		/* Get current status. Returns on of "PAUSE", "PLAYING" and "STOPPED". */
 		case 19:
 			strncpy(reply, playfork ? (pausetime ? "PAUSED" : "PLAYING") : "STOPPED", BUFSIZE);
 			break;
 
+		/* Detach from network interface. */
 		case 20:
 			return 1;
 	}
