@@ -63,6 +63,10 @@ void handle_keyboard_input() {
 		return;
 	}
 
+	snprintf(customkey, sizeof(customkey), "key0x%02X", key & 0xFF);
+	if(haskey(& rc, customkey))
+		run(meta(value(& rc, customkey), M_SHELLESC, & track));
+
 	switch(key) {
 		case 'l':
 			puts(rate("L") ? "Loved." : "Sorry, failed.");
@@ -257,11 +261,6 @@ void handle_keyboard_input() {
 		case 'C': /* Reload configuration. */
 			settings(rcpath("shell-fm.rc"), 0);
 			break;
-
-		default:
-			snprintf(customkey, sizeof(customkey), "key0x%02X", key & 0xFF);
-			if(haskey(& rc, customkey))
-				run(meta(value(& rc, customkey), M_SHELLESC, & track));
 	}
 }
 
