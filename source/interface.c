@@ -416,7 +416,7 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 					snprintf(colorkey, sizeof(colorkey), "%c-color", fmt[x]);
 					color = value(& rc, colorkey);
 
-					if(color) {
+					if(strlen(color)) {
 						/* Strip leading spaces from end of color (Author: Ondrej Novy) */
 						char * color_st = strdup(color);
 						size_t len = strlen(color_st) - 1;
