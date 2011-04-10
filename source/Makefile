@@ -10,9 +10,6 @@ CFLAGS  += -Os -Wall -MD -W -I./include/
 ifdef EXTERN_ONLY
 	CFLAGS += -DEXTERN_ONLY
 else
-ifeq ($(shell uname -s), OpenBSD)
-	LDLIBS += -lossaudio
-endif
 ifeq ($(shell uname -s), NetBSD)
 	LDLIBS += -lossaudio
 endif
