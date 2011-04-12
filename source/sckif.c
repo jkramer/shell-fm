@@ -165,8 +165,6 @@ void handle_client(int client_socket) {
 				unsigned chunks, i;
 				char ** lines = split(line, "\n", & chunks);
 
-				debug("complete message: <%s>\n", line);
-
 				for(i = 0; i < chunks && !disconnect; ++i) {
 					char reply[BUFSIZE] = { 0, };
 					debug("client message: <%s>\n", lines[i]);
