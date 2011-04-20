@@ -291,14 +291,15 @@ int play(struct playlist * list) {
 		subfork = 0;
 
 		if(location != NULL) {
-			fetch(location, & fd, NULL, NULL);
+			struct content_handle handle;
+			fetch(location, & handle, NULL, NULL);
 
-			if(fd != NULL) {
+			if(handle.fd != NULL) {
 				/*
 					If there was an error, tell the main process about it by
 					sending SIGUSR2.
 				*/
-				if(!playback(fd, pipefd[0]))
+				if(!playback(handle, pipefd[0]))
 					kill(getppid(), SIGUSR2);
 
 				close(pipefd[0]);
