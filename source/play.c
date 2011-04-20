@@ -52,10 +52,11 @@
 #include "interface.h"
 #include "globals.h"
 #include "util.h"
+#include "http.h"
 
 #ifndef EXTERN_ONLY
 struct stream {
-	FILE * streamfd;
+	struct content_handle stream;
 #ifdef LIBAO
 	int driver_id;
 	ao_device * device;
@@ -81,7 +82,7 @@ struct stream {
 static enum mad_flow input(void *, struct mad_stream *);
 static enum mad_flow output(void *, const struct mad_header *, struct mad_pcm *);
 inline signed scale(mad_fixed_t);
-static int timed_read(int, unsigned char *, int, int);
+static int timed_read(struct content_handle *, unsigned char *, int, int);
 #endif
 
 int killed = 0;
@@ -123,7 +124,7 @@ mkpath(char *path)
 	return (0);
 }
 
-int playback(FILE * streamfd, int pipefd) {
+int playback(struct content_handle handle, int pipefd) {
 	killed = 0;
 	signal(SIGUSR1, sighand);
 
@@ -166,7 +167,7 @@ int playback(FILE * streamfd, int pipefd) {
 		}
 
 
-		data.streamfd = streamfd;
+		data.stream = handle;
 		data.parent = getppid();
 		data.pipefd = pipefd;
 		fcntl(pipefd, F_SETFL, O_NONBLOCK);
@@ -303,8 +304,8 @@ int playback(FILE * streamfd, int pipefd) {
 			return 0;
 		}
 
-		while(!feof(streamfd)) {
-			signed nbyte = fread(buf, sizeof(unsigned char), BUFSIZE, streamfd);
+		while(!feof(handle.fd)) {
+			signed nbyte = receive(& handle, (char *) buf, BUFSIZE);
 
 			if(nbyte > 0) {
 				fwrite(buf, sizeof(unsigned char), nbyte, ext);
@@ -340,7 +341,7 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 	static int nbyte = 0;
 	int remnbyte = 0;
 
-	if(feof(ptr->streamfd))
+	if(feof(ptr->stream.fd))
 		return MAD_FLOW_STOP;
 
 	if(stream->next_frame) {
@@ -349,7 +350,7 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 	}
 
 	if(ptr->preload) {
-		nbyte = timed_read(fileno(ptr->streamfd), buf + remnbyte, BUFSIZE - remnbyte, ptr->timeout);
+		nbyte = timed_read(& ptr->stream, buf + remnbyte, BUFSIZE - remnbyte, ptr->timeout);
 
 		if(nbyte == -1) {
 			fputs("Stream timed out.\n", stderr);
@@ -360,7 +361,7 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 	}
 	else {
 		while(nbyte < BUFSIZE) {
-			int retval = timed_read(fileno(ptr->streamfd), buf + nbyte, BUFSIZE - nbyte, ptr->timeout);
+			int retval = timed_read(& ptr->stream, buf + nbyte, BUFSIZE - nbyte, ptr->timeout);
 
 			if(retval <= 0)
 				break;
@@ -387,7 +388,7 @@ static enum mad_flow input(void * data, struct mad_stream * stream) {
 
 
 	if(kill(ptr->parent, 0) == -1 && errno == ESRCH) {
-		fclose(ptr->streamfd);
+		fclose(ptr->stream.fd);
 		killed = !0;
 		return MAD_FLOW_STOP;
 	}
@@ -536,10 +537,13 @@ inline signed scale(register mad_fixed_t sample) {
 	return (sample >> (MAD_F_FRACBITS + 1 - 16)) * volume / MAX_VOLUME;
 }
 
-static int timed_read(int fd, unsigned char * p, int count, int timeout) {
+static int timed_read(struct content_handle * handle, unsigned char * p, int count, int timeout) {
 	fd_set fdset;
 	struct timeval tv;
 	struct timeval * tvp = & tv;
+	int fd = fileno(handle->fd);
+
+	debug("timed read with handle\n");
 
 	FD_ZERO(& fdset);
 	FD_SET(fd, & fdset);
@@ -553,7 +557,7 @@ static int timed_read(int fd, unsigned char * p, int count, int timeout) {
 	}
 
 	if(select(fd + 1, & fdset, NULL, NULL, tvp) > 0) {
-		return read(fd, p, count);
+		return receive(handle, (char *) p, count);
 	}
 
 	fprintf(stderr, "Track stream timed out (%d).\n", timeout);

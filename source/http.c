@@ -33,7 +33,7 @@
 #endif
 
 
-char ** fetch(const char * url, FILE ** handle, const char * post, const char * type) {
+char ** fetch(const char * url, struct content_handle * handle, const char * post, const char * type) {
 	char ** resp = NULL, * host, * file, * port, * status = NULL, * line = NULL;
 	char * connhost;
 	char urlcpy[512 + 1];
@@ -42,6 +42,7 @@ char ** fetch(const char * url, FILE ** handle, const char * post, const char * 
 	signed valid_head = 0;
 	FILE * fd;
 	int useproxy;
+	struct content_handle local_handle;
 
 	const char * head_format =
 		"%s /%s HTTP/1.1\r\n"
@@ -63,8 +64,8 @@ char ** fetch(const char * url, FILE ** handle, const char * post, const char * 
 	if(type == NULL)
 		type = "application/x-www-form-urlencoded";
 
-	if(handle)
-		* handle = NULL;
+	// if(handle)
+		// * handle = NULL;
 
 	strncpy(urlcpy, url, sizeof(urlcpy) - 1);
 
@@ -134,8 +135,10 @@ char ** fetch(const char * url, FILE ** handle, const char * post, const char * 
 		if(getln(& line, & size, fd) < 3)
 			break;
 
-		if(!strncasecmp(line, "Transfer-Encoding: chunked", 26))
+		if(!strncasecmp(line, "Transfer-Encoding: chunked", 26)) {
+			debug("chunked content");
 			chunked = !0;
+		}
 
 		if((nstatus == 301 || nstatus == 302) && !strncasecmp(line, "Location: ", 10)) {
 			char newurl[512 + 1];
@@ -150,21 +153,25 @@ char ** fetch(const char * url, FILE ** handle, const char * post, const char * 
 	freeln(& line, & size);
 
 	if(handle) {
-		* handle = fd;
+		handle->fd = fd;
+		handle->chunked = chunked;
+		handle->left = 0;
+
 		if(!batch && !enabled(QUIET))
 			fputs("\r   \r", stderr);
 
 		return NULL;
 	}
 
-	if(chunked)
-		puts("DEBUG: Chunked!");
+	local_handle.fd = fd;
+	local_handle.chunked = chunked;
+	local_handle.left = 0;
 
 	while(!feof(fd)) {
 		line = NULL;
 		size = 0;
 
-		if(getln(& line, & size, fd)) {
+		if(receive_line(& line, & size, & local_handle)) {
 			char * ptr = strchr(line, 10);
 
 			if(ptr != NULL)
@@ -371,5 +378,49 @@ char ** cache(const char * url, const char * name, int refresh) {
 		}
 
 		return data;
+	}
+}
+
+
+int receive(struct content_handle * handle, char * p, int count) {
+	if(handle->chunked) {
+		int result;
+
+		/* If we've already started reading a chunk, finish reading it and
+		 * return its content. Start a new chunk next time. */
+		if(handle->left <= 0) {
+			debug("left <= 0, reading next chunk size\n");
+			char * line = NULL;
+			unsigned size = 0, chunk_size;
+
+			assert(getln(& line, & size, handle->fd) > 0);
+			assert(sscanf(line, "%u", & chunk_size) == 1);
+
+			if(chunk_size == 0) {
+				return -1;
+			}
+
+			debug("chunk size = %d\n", chunk_size);
+
+			handle->left = chunk_size;
+		}
+
+		if(handle->left > 0 && count > handle->left) {
+			debug("left = %d, count = %d, setting count to left\n", handle->left, count);
+			count = handle->left;
+		}
+
+		result = read(fileno(handle->fd), p, count);
+
+		debug("read = %d\n", result);
+
+		if(result != -1)
+			handle->left -= result;
+
+		return result;
+	}
+	else {
+		debug(".");
+		return fread(p, sizeof(char), count, handle->fd); // fileno(handle->fd), p, count);
 	}
 }

@@ -7,6 +7,8 @@
 
 #include <stdio.h>
 
-extern int playback(FILE *, int);
+#include "http.h"
+
+extern int playback(struct content_handle, int);
 
 #endif
