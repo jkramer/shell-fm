@@ -1,5 +1,48 @@
 
-SHELL.FM RELEASE NOTES 0.7 - 2008-08-30
+SHELL.FM RELEASE NOTES 0.8 - 2011-05-14
+
+Changes:
+ * Format flags for tags (%Z = artist tags, %D = album tags, %z = track tags) -
+   thanks to Jan Zerebecki.
+ * Reload configuration without restart (press 'C').
+ * New commands for network interface (volume, volume-{up, down}, rtp, status,
+   detach - see manual for details). Thanks to Nathan B., Bernhard Frauendienst
+   and myself.
+ * New option "np-unescaped-cmd" (like "np-cmd", but without escaping) - thanks
+   to Mark Goodall.
+ * New format flags %f/%t for track duration/remaining time formatted as "M:SS"
+   - thanks to Nathan B.
+ * New format flags %I for album art image URL - thanks to Nathan B.
+ * '?' now prints custom keys as well.
+ * Non-blocking socket/keyboard input.
+ * Some network commands now return status codes to the client - see manual for
+   details.
+ * Support for "Now Playing Notification" on Last.FM.
+ * Setting default-radio to "last" makes shell-fm start with the last played
+   station.
+ * New format flags %~ for $HOME and %V for current track rating - thanks to
+   Matthias Goebl.
+ * Allow custom actions for hardcoded/preset keys.
+ * A bunch of bug-fixes and smaller changes which aren't listed here. Check the
+   log for details.
+
+Authors / Contributors:
+ * Jan Zerebecki
+ * Yuri D'Elia
+ * Marco Leogrande
+ * Mike Kelly
+ * Jean Richard
+ * Bart Trojanowski
+ * Mark Goodall
+ * Nathan B.
+ * Derek Wueppelmann
+ * Bernhard Frauendienst
+ * Matthias Goebl
+ * Florian Sesser
+ * Jonas Kramer
+
+
+SHELL.FM RELEASE NOTES 0.7 - 2009-08-30
 
 Changes:
  * Added "screen-format" option to set GNU screen window titles on track change.
