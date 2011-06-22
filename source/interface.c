@@ -228,6 +228,10 @@ void handle_keyboard_input() {
 			volume_down();
 			break;
 
+  case 'm':
+      mute();
+      break;
+
 		case 'u':
 			preview(playlist);
 			break;
@@ -586,7 +590,8 @@ void print_help(void) {
 		"S = stop                          | s = similiar artist\n"
 		"T = tag track/artist/album        | u = show upcoming tracks in playlist\n"
 		"U = unlove track                  | + = increase volume\n"
-		"- = decrease volume               | C = reload configuration\n",
+		"- = decrease volume               | C = reload configuration\n"
+		"m = mute/unmute\n",
 		stderr
 	);
 
@@ -612,6 +617,17 @@ void volume_up() {
 
 void volume_down() {
 	set_volume(volume - 1);
+}
+
+void mute() {
+  if(muted) {
+    set_volume(saved_volume);
+    muted = 0;
+  } else {
+    saved_volume = volume;
+    set_volume(0);
+    muted = 1;
+  }
 }
 
 void set_volume(int new_volume) {
