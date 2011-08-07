@@ -168,11 +168,11 @@ track into the given file, whenever a new track is played.
 .B np-file-format = format-string
 This defines how the information written to your now-playing file will look
 like. There are several format flags available. Have a look at the
+.B FORMAT FLAGS
+section for the details.
 .TP
 .B preview-format = format-string
 Format of the track information in the playlist preview (key 'u').
-.B FORMAT FLAGS
-section for the details.
 .TP
 .B np-cmd = shell command
 If this is defined, the given command will be executed whenever a new track
@@ -192,13 +192,12 @@ This allows you to color format elements. The
 may be the letter of any format flag (without percent). The color is just a
 normal shell color code matching "[01];3[0-7]". Whenever the format element is
 printed to the console, it will have the given color. Have a look at the
+.B COLORS
+section for a list.
 .TP
 .B daemon = something
 If this is set to something, shell-fm will start in daemon mode by default.
 Starting with -d as command line option will disable daemon mode.
-.TP
-.B COLORS
-section for a list.
 .TP
 .B key0x?? = shell command
 This allows you to bind shell commands to free keys (keys that are not used by
