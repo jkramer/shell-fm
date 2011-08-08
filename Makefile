@@ -1,4 +1,3 @@
-DESTDIR	:=
 PREFIX	:= /usr
 MANDIR	:= $(PREFIX)/man
 DOCDIR  := ${PREFIX}/share/doc
@@ -13,7 +12,7 @@ shell-fm		:
 manual			:
 	$(MAKE) -C manual
 
-install			:
+install			: all
 	install -m 0755 -d $(DESTDIR)$(PREFIX)/bin/
 	install -m 0755 -d $(DESTDIR)$(MANDIR)/man1/
 	install -m 0755 source/shell-fm $(DESTDIR)$(PREFIX)/bin/
@@ -26,18 +25,7 @@ install-extras		:
 
 
 install-strip	: install
-	strip $(PREFIX)/bin/shell-fm
-
-uninstall		: uninstall-extras
-	rm -f $(PREFIX)/bin/shell-fm
-	rm -f $(MANDIR)/man1/shell-fm.1.gz
-	rmdir --ignore-fail-on-non-empty $(PREFIX)/bin
-	rmdir --ignore-fail-on-non-empty $(MANDIR)/man1
-	rmdir --ignore-fail-on-non-empty $(MANDIR)
-	rmdir --ignore-fail-on-non-empty $(PREFIX)
-
-uninstall-extras	:
-	rm -rf $(DESTDIR)$(DOCDIR)/shell-fm/
+	strip $(DESTDIR)$(PREFIX)/bin/shell-fm
 
 clean			:
 	$(MAKE) -C source clean
