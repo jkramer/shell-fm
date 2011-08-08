@@ -1,5 +1,5 @@
 PREFIX	:= /usr
-MANDIR	:= $(PREFIX)/man
+MANDIR	:= $(PREFIX)/share/man
 DOCDIR  := ${PREFIX}/share/doc
 
 .PHONY			: shell-fm manual all clean tags cscope
