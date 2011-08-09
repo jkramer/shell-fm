@@ -2,7 +2,7 @@ PREFIX	:= /usr
 MANDIR	:= $(PREFIX)/share/man
 DOCDIR  := ${PREFIX}/share/doc
 
-.PHONY			: shell-fm manual all clean tags cscope
+.PHONY			: shell-fm manual all clean tags cscope install
 
 all				: shell-fm manual
 
