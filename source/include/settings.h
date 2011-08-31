@@ -5,7 +5,8 @@
 #ifndef SHELLFM_SETTINGS
 #define SHELLFM_SETTINGS
 
-#define PACKAGE_VERSION "0.8.1"
+#define PACKAGE_VERSION "0.8"
+#define MACPORTS_PACKAGE_VERSION "0.8.1"
 
 #include "hash.h"
 

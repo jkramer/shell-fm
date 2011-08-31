@@ -1,10 +1,10 @@
 
 .PHONY	: clean
 
-manual	: shell-fm.1.gz
+manual	: shell-fm-macports.1.gz
 
-shell-fm.1.gz : shell-fm.1
+shell-fm-macports.1.gz : shell-fm-macports.1
 	gzip -9 -c $< > $@
 
 clean	:
-	rm -f shell-fm.1.gz
+	rm -f shell-fm-macports.1.gz

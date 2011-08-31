@@ -172,7 +172,8 @@ int main(int argc, char ** argv) {
 #endif
 
 	if(!background) {
-		puts("Shell.FM v" PACKAGE_VERSION ", (C) 2006-2010 by Jonas Kramer");
+		puts("Shell.FM v" PACKAGE_VERSION ", (C) 2006-2011 by Jonas Kramer");
+                puts("Macports version v" MACPORTS_PACKAGE_VERSION " by Felix Wong");
 		puts("Published under the terms of the GNU General Public License (GPL).");
 
 #ifndef TUXBOX
