@@ -1,0 +1,561 @@
+.TH "shell-fm-macports" 1
+.SH NAME
+Shell.FM \- Lightweight, console-based player for Last.FM radio streams.
+.SH SYNOPSIS
+.B shell-fm-macports
+[-d] [-i address] [-p port] [-b] [-D device] [-y proxy] [-h] lastfm://...
+.SH DESCRIPTION
+Shell.FM is a lightweight, console-based player for radio streams provided by
+Last.FM.
+.SH OPTIONS
+.TP
+.B \-d
+Fork to background (requires a socket interface to be set up so it can still be
+controlled somehow).
+.TP
+.B \-i <address>
+Enable the socket interface and bind it to the given host address (should be
+the host name or IP address of the host shell-fm-macports is running on).
+.TP
+.B \-p <port>
+Make the socket interface listen for incoming connections on the given port.
+Default is 54311.
+.TP
+.B \-b
+Enable batch mode (some freaky mode that makes shell-fm-macports easier to handle from
+inside emacs). This was not my idea.
+.TP
+.B \-D <device>
+Use the given device file as audio device. This is only used if libao support
+is disabled. Default is /dev/audio.
+.TP
+.B \-y <proxy>
+Make shell-fm-macports use the given host as proxy server for HTTP requests.
+.TP
+.B \-h
+Print help text and exit.
+.TP
+.B lastfm://...
+URI of a Last.FM radio stream to play after startup.
+For example: `shell-fm-macports -d lastfm://artist/The%20Beatles/similarartists'
+.SH USAGE
+On startup, shell-fm-macports will ask you for your Last.FM login and password
+(if not
+provided in your ~/.shell-fm-macports/shell-fm-macports.rc). If you've given a stream URI on the
+command line or there is a default radio defined in the configuration file,
+shell-fm-macports will now try to play it. When the startup is done, there are lots of
+keys to control shell-fm-macports. Here is a alphabetically sorted list.
+.TP
+.B a
+Add the currently played track to your Last.FM playlist.
+.TP
+.B A
+Ban the artist of the currently played track. Whenever a track of that artist
+is played from now on, it is automatically banned.
+.TP
+.B B
+Ban the currently played track.
+.TP
+.B d
+Enabled/disable discovery mode. I'm not sure if this has any effect, and it
+looks like even the Last.FM guys don't really know what it does, but I think it
+is meant to ensure that you get only tracks that you don't know yet.
+.TP
+.B f
+Jump to the fan radio station of the artist of the currently played track.
+.TP
+.B h
+List bookmarks.
+.TP
+.B H
+Bookmark the currently played radio station. You'll be asked to hit a digit
+key. Whenever you hit that key again from now on, shell-fm-macports will jump to that
+radio station.
+.TP
+.B i
+Print some more information about the currently played track.
+.TP
+.B l
+Love the currently played track.
+.TP
+.B n
+Skip the currently played track.
+.TP
+.B p
+Pause. If you pause too long, the stream will break, which has the same effect
+as stopping the stream (see below).
+.TP
+.B P
+Enable/disable reporting played tracks to your Last.FM profile. Enabled by default.
+.TP
+.B Q
+Quit.
+.TP
+.B r
+Change radio station. This will prompt you for an Last.FM radio station URI.
+The tabulator key helps if you don't know what to type. Arrow-Up and Arrow-Down
+allow you to browse your radio history. Enter these without the
+"lastfm://" prefix.
+.RS
+.PP
+For example: `radio url> globaltags/world'
+.RE
+.TP
+.B R
+Recommend the currently played track/artist/album to another Last.FM user.
+.TP
+.B S
+Stop playing.
+.TP
+.B s
+Jump to the similar artists radio stream of the currently played tracks artist.
+.TP
+.B T
+Tag the currently played track/artist/album. Tabulator key completes known
+tags.
+.TP
+.B U
+Unlove the currently played track.
+.TP
+.B u
+Print upcoming tracks in playlist.
+.TP
+.B +
+Increase volume.
+.TP
+.B -
+Decrease volume.
+.TP
+.B m
+Mute/unmute.
+.PP
+.SH SETUP
+Before you start, you should have created the directories
+.B ~/.shell-fm-macports
+and
+.B ~/.shell-fm-macports/cache
+or you will get a lot of warnings, the tab-completion will be extremely
+slow and you can't make use of some features (auto-ban, history, bookmarks).
+You might also want to place a configuration file in
+.B ~/.shell-fm-macports
+for a faster startup.
+.SH CONFIGURATION
+This section describes the syntax and options for the shell-fm-macports configuration
+file. The file should be placed in
+.B ~/.shell-fm-macports/shell-fm-macports.rc
+and should consist of simple
+.B key = value
+assignments.
+See (far) below for a sample configuration. These are the available options.
+.TP
+.B username = your-login
+This is your login on Last.FM. If this is provided, shell-fm-macports won't ask you for
+it on startup anymore.
+.TP
+.B password = your-password
+This is your (clear text) Last.FM password. If this and your login is provided
+in the configuration, shell-fm-macports won't ask you on startup.
+.TP
+.B default-radio = lastfm://...
+If this is provided (and valid), shell-fm-macports will play this station by default
+after startup. If there's another station URI given on the command line, it
+will override this setting.
+.TP
+.B np-file = path-to-file
+If this is defined, shell-fm-macports will print information about the currently played
+track into the given file, whenever a new track is played.
+.TP
+.B np-file-format = format-string
+This defines how the information written to your now-playing file will look
+like. There are several format flags available. Have a look at the
+.B FORMAT FLAGS
+section for the details.
+.TP
+.B preview-format = format-string
+Format of the track information in the playlist preview (key 'u').
+.TP
+.B np-cmd = shell command
+If this is defined, the given command will be executed whenever a new track
+starts. The value may contain format flags.
+.TP
+.B pp-cmd = shell command
+If this is defined, the given command will be executed whenever a downloading
+track ends. The value will have the path to the file appended.
+.TP
+.B rate-cmd = shell command
+If this is defined, the given command will be executed whenever a track is rated.
+The value may contain format flags, especially %V to get the actual rating.
+.TP
+.B ?-color = color
+This allows you to color format elements. The
+.B ?
+may be the letter of any format flag (without percent). The color is just a
+normal shell color code matching "[01];3[0-7]". Whenever the format element is
+printed to the console, it will have the given color. Have a look at the
+.B COLORS
+section for a list.
+.TP
+.B daemon = something
+If this is set to something, shell-fm-macports will start in daemon mode by default.
+Starting with -d as command line option will disable daemon mode.
+.TP
+.B key0x?? = shell command
+This allows you to bind shell commands to free keys (keys that are not used by
+shell-fm-macports, check the
+.B USAGE
+section above for a list).
+.B ??
+should be the hex code of the ASCII code of the key. The command you assign
+will be evaluated (check the
+.B FORMAT FLAGS
+section) and executed then. This "feature" allows you to implement own
+features, like fetching and printing the lyrics of the currently played track,
+etc. If you have a cool idea or even a working script, I'd be happy if you let
+me know.
+.TP
+.B bind = host
+This specifies the network interface you want shell-fm-macports to bind to.
+.B host
+should be the host name or an IP address of host shell-fm-macports is running on.
+shell-fm-macports will open a port (see the
+.B port
+option below) on the specified interface which you can connect to to control
+shell-fm-macports remotely (or from local scripts, see
+.B key0x??
+above). Check the
+.B NETWORK INTERFACE COMMANDS
+section below for a list of known commands.
+.B NOTE:
+The network interface has no user authentication, so anyone with access to your
+network/host can control shell-fm-macports. Use it only if you really need to control
+shell-fm-macports over a network. Otherwise use the UNIX socket interface (see below).
+.TP
+.B unix = path
+If this is set to a proper path, on that path a UNIX socket will be created for
+local "remote" control. This socket interface takes the same commands as the
+TCP socket interface (see above).
+.TP
+.B port = port-number
+With this option you can change the port shell-fm-macports will listen on (if
+.B bind
+is specified). Default is 54311.
+.TP
+.B extern = shell command
+This allows you to specify an external program or script as player for the
+streams. If given, shell-fm-macports will run the command and pipe the MP3 stream into
+it, instead of playing the stream itself. For example,
+.B extern = madplay -Q -
+works very fine. This option is meant as a work-around for architectures that
+shell-fm-macports doesn't work completly profectly on.
+.TP
+.B proxy = proxy server
+This allows you to specify a proxy server for the HTTP requests.
+.TP
+.B expiry = some-number
+This defines the number of seconds until a cached page expires. The default is
+86400 seconds (24 hours). You shouldn't set a very low value here, since the
+Last.FM server often are very slow. This mostly affects the prompts (radio
+prompt, tag prompt, ...), since shell-fm-macports fetches some feeds to get values for
+the tab-completion.
+.TP
+.B device = path
+Path to the audio device to use (see
+.B -D
+command line option).
+.TP
+.B title-format = format-string
+This is the format of the track string that is printed to the console for every
+track played. Default is 'Now playing "%t" by %a.'.
+.TP
+.B minimum = percentage
+With this option you can change the minimum duration a track must have been
+played to be scrobbled (in percent, but without the % sign). For example, if
+this option is set to 75, the track will not be scrobbled if it has not been
+played for at least 75% of its total duration. If you skip or stop the track
+before it has been played for 75%, it will not be scrobbled. Default is 50%, as
+specified in the scrobbling protocol version 1.2.
+.TP
+.B delay-change = something
+If this is set to anything, and you change the station with 'r', 's' or 'f',
+the station-change will be delayed until the currently played track finishes or
+is skipped. Also they key 'q' will initialize a delayed quit, so after the
+currently played track shell-fm-macports will exit. 'Q' (uppercase) still quits
+immediately.
+.TP
+.B screen-format = format-string
+If this is set, shell-fm-macports will check if the terminal it's running in is a screen
+session ($TERM is "screen") and set the screen windows title to the formatted
+string to be seen on $ESCAPE+w or $ESCAPE+".
+.TP
+.B term-format = format-string
+Works like screen-format, but sets the x-terminals window title.
+.TP
+.B download = format-string
+If this is set to a valid path (may contain format flags), and the played track
+is free, it is saved at the given place.
+.TP
+.B gap = seconds
+If this is set to a number, shell-fm-macports will wait that amount of seconds between
+tracks.
+.TP
+.B discovery = something
+Enable discovery mode by default.
+.TP
+.B stream-timeout = seconds
+Users reported that in some regions in the world, Last.FM servers sometimes
+pretend to stream a track but then don't send anything, which makes shell-fm-macports
+hang forever waiting for the track data. If you have that problem, use this
+option to define a stream timeout. When shell-fm-macports is waiting for stream data, it
+will wait that many seconds and then skip to the next track.
+.TP
+.B no-rtp = something
+Start with RTP disabled.
+.SH FORMAT FLAGS
+There are several format flags allowed for some options. Here is the list.
+.TP
+.B %a
+Artist name.
+.TP
+.B %t
+Track title.
+.TP
+.B %l
+Album name.
+.TP
+.B %I
+URL of the album image.
+.TP
+.B %d
+Track duration in seconds.
+.TP
+.B %f
+Track duration formatted as 'min:sec'.
+.TP
+.B %s
+Station name.
+.TP
+.B %S
+Station URL.
+.TP
+.B %A
+URL of the artists page on Last.FM.
+.TP
+.B %L
+URL of the albums page on Last.FM.
+.TP
+.B %T
+URL of the tracks page on Last.FM.
+.TP
+.B %R
+Remaining seconds of the played track.
+.TP
+.B %r
+Remaining time of the played track, formatted as 'min:sec'.
+.TP
+.B %v
+Volume level, formatted as 'xx%'.
+.TP
+.B %V
+Rating of the current track
+('L' loved, 'B' banned, 'S' skipped or empty).
+.TP
+.B %~
+Environment variable $HOME.
+.TP
+.B %%
+A %.
+.SH COLORS
+.TP
+.B 0;30
+Black (not very useful).
+.TP
+.B 1;30
+Dark gray.
+.TP
+.B 0;31
+Red.
+.TP
+.B 1;31
+Light red.
+.TP
+.B 0;32
+Green.
+.TP
+.B 1;32
+Light green.
+.TP
+.B 0;33
+Dark yellow/brown.
+.TP
+.B 1;33
+Yellow.
+.TP
+.B 0;34
+Blue.
+.TP
+.B 1;34
+Light blue.
+.TP
+.B 0;35
+Violet.
+.TP
+.B 1;35
+Pink.
+.TP
+.B 0;36
+Turquoise.
+.TP
+.B 1;36
+Cyan.
+.TP
+.B 0;37
+Gray.
+.TP
+.B 1;37
+White.
+.SH NETWORK INTERFACE COMMANDS
+This section describes the commands shell-fm-macports's network interface knows. To use
+the interface, you must provide a valid value to the
+.B bind
+option in your configuration or use the
+.B -i
+option on the command line. Then you can connect the specified port (54311 by
+default) and send one command at a time.  This is a list of the known commands.
+.TP
+.B play lastfm://...
+Play the given stream.
+.TP
+.B love
+Love the currently played track.
+.TP
+.B ban
+Ban the currently played track.
+.TP
+.B skip
+Skip the currently played track.
+.TP
+.B quit
+Quit.
+.TP
+.B info some-format-string
+Evaluate the given format string (check the
+.B FORMAT FLAGS
+section) and return the formatted information.
+.TP
+.B pause
+Pause.
+.TP
+.B discovery
+Toggle discovery mode on/off.
+.TP
+.B rtp
+Toggle RTP (scrobbling) on/off. Returns "RTP ON" or "RTP OFF" to indicate status.
+.TP
+.B tag-artist some-comma-separated-tags
+Tag the artist of the currently played track.
+.TP
+.B tag-album some-comma-separated-tags
+Tag the album of the currently played track.
+.TP
+.B tag-track some-comma-separated-tags
+Tag the currently played track.
+.TP
+.B artist-tags
+Returns the tags of the currently played tracks artist.
+.TP
+.B album-tags
+Returns the tags of the currently played tracks album.
+.TP
+.B track-tags
+Returns the tags of the currently played track.
+.TP
+.B stop
+Stop stream.
+.TP
+.B volume-up
+Increment volume by 1.
+.TP
+.B volume-down
+Decrement volume by 1.
+.TP
+.B volume 32
+Set volume. Volume may be a number between 0 and 64.
+.TP
+.B volume %50
+Set percental volume. %50 is 32, %100 is 64 and so on.
+.TP
+.B volume [+-]10
+Adjust absolute volume. "volume +1" is the same as "volume-up" and "volume -1"
+is the same as "volume-down".
+All volumes return the absolute volume (0-64).
+.TP
+.B detach
+Detaches from the network interface. Use this to cleanly close your session.
+.SH FILES
+This section describes the meanings of the files in $HOME/.shell-fm-macports/. The base
+directory can be overriden by setting the environment variable $SHELL_FM_HOME
+to another directory.
+.TP
+.B autoban
+This file contains the auto-banned artists.
+.TP
+.B bookmarks
+This file contains the bookmarked stations in the format "[digit] = [url]".
+.TP
+.B cache/
+This directory contains cached sites fetched from Last.FM for faster tab-completion etc.
+.TP
+.B i-template
+If this file exists, it will be used as a template for the output of 'i'. It
+may contain usual format flags.
+.TP
+.B radio-history
+The radio stations you have listened to. The history is used for the radio prompt.
+.TP
+.B scrobble-cache
+If Shell.FM can't scrobble the data of a track for any reason before you quit,
+it stores the track data in here and it will try to submit the tracks the next
+time it is run.
+.TP
+.B shell-fm-macports.rc
+Your configuration file as described above.
+.SH EXAMPLES
+.TP
+.B  Sample Configuration for shell-fm-macports.rc
+.PP
+.RS
+.nf
+# shell-fm-macports.rc example
+username = shellfmlover
+password = CheckFileIsOnlyReadableByOwner
+default-radio = lastfm://user/shellfmlover/playlist
+np-file = /home/shellfmlover/.shell-fm-macports/nowplaying
+np-file-format = %t:%a:%S:%A
+minimum = 80
+delay-change = true
+.fi
+.RE
+.TP
+.B shell-fm-macports-*.*/scripts/
+Includes examples of using the network interface plus a color printing script to help with choosing colors.
+.TP
+.B URL FORMAT
+.PP
+.RS
+.nf
+lastfm://user/$USER/loved
+lastfm://user/$USER/personal
+lastfm://usertags/$USER/$TAG
+lastfm://artist/$ARTIST/similarartists
+lastfm://globaltags/$TAG
+lastfm://user/$USER/recommended
+lastfm://user/$USER/playlist
+lastfm://tag/$TAG1*$TAG2*$TAG3
+.fi
+.SH BUGS
+Please send bug reports to <shell-fm-macports@nex.scrapping.cc>.
+.SH COPYRIGHT
+Copyright (C) 2006-2010 by Jonas Kramer.
+MacPorts version by Felix Wong.
+
+Published under the terms of the GNU General Public License.
