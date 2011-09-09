@@ -354,6 +354,13 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 							(duration / 60), (duration % 60));
 						val = strdup(calculated);
 						break;
+					case 'p':
+						if(pausetime) {
+							val = strdup("t");
+						} else {
+							val = strdup("f");
+						}
+						break;
 					case 's':
 						track_key = "station";
 						break;
