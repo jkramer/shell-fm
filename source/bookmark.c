@@ -18,6 +18,7 @@
 #include "util.h"
 #include "strary.h"
 #include "globals.h"
+#include "readline.h"
 
 
 int cmpdigit(const void *, const void *);
@@ -88,11 +89,13 @@ char * getmark(int n) {
 		if(line && length > 4)
 			if(sscanf(line, "%d = ", & x) == 1 && x == n) {
 				char * ptr = strchr(line, 10);
+				int length = 0;
 
 				if(ptr != NULL)
 					* ptr = 0;
-
-				streamURL = strdup(line + 4);
+				
+				length = snprintf(NULL, 0, "%d", n);
+				streamURL = strdup(line + length + 3);
 				assert(streamURL != NULL);
 			}
 
@@ -102,6 +105,20 @@ char * getmark(int n) {
 
 	fclose(fd);
 	return streamURL;
+}
+
+/* Prompt for user specific bookmark number */
+char * promptmark() {
+	char * number = NULL;
+
+	struct prompt prompt = {
+		.prompt = "Bookmark number: ",
+		.line = NULL,
+		.history = NULL,
+		.callback = NULL,
+	};
+	number = readline(& prompt);
+	return getmark(atoi(number));
 }
 
 void printmarks(void) {

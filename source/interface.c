@@ -262,8 +262,15 @@ void handle_keyboard_input() {
 			}
 			break;
 
+		case 'b':
+			marked = promptmark();
+			station(marked);
+			free(marked);
+			break;
+
 		case 'C': /* Reload configuration. */
 			settings(rcpath("shell-fm.rc"), 0);
+			puts("Configuration reloaded");
 			break;
 	}
 }

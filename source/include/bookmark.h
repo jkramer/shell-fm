@@ -8,5 +8,6 @@
 extern void setmark(const char *, int);
 extern void printmarks(void);
 extern char * getmark(int);
+extern char * promptmark();
 
 #endif
