@@ -214,14 +214,16 @@ int main(int argc, char ** argv) {
 		char * password;
 
 		if(!haskey(& rc, "username")) {
-			char username[256] = { 0 };
+                        char * username;
 
 			struct prompt prompt = {
 				.prompt = "Login: ",
-				.line = getenv("USER"), .history = NULL, .callback = NULL,
+				.line = NULL,
+                                .history = NULL,
+                                .callback = NULL,
 			};
 
-			strncpy(username, readline(& prompt), 255);
+                        username = readline(& prompt);
 
 			set(& rc, "username", username);
 		}
@@ -263,7 +265,7 @@ int main(int argc, char ** argv) {
 		close(1);
 		close(2);
 
-		/* Redirect  stdin and out to /dev/null */
+		/* Redirect stdin and out to /dev/null */
 		null = open("/dev/null", O_RDWR);
 		dup(null);
 		dup(null);

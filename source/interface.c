@@ -139,7 +139,7 @@ void handle_keyboard_input() {
 			break;
 
 		case 'A':
-			printf(meta("Really ban all tracks by artist %a? [yN]", M_COLORED, & track));
+			printf("%s", meta("Really ban all tracks by artist %a? [yN]", M_COLORED, & track));
 			fflush(stdout);
 			if(fetchkey(5000000) != 'y')
 				puts("\nAbort.");
@@ -228,9 +228,9 @@ void handle_keyboard_input() {
 			volume_down();
 			break;
 
-  case 'm':
-      mute();
-      break;
+                case 'm':
+                        mute();
+                        break;
 
 		case 'u':
 			preview(playlist);

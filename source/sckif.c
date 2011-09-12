@@ -34,6 +34,7 @@
 #include "tag.h"
 #include "select.h"
 #include "util.h"
+#include "ropen.h"
 
 #include "globals.h"
 
