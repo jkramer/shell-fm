@@ -219,13 +219,14 @@ void handle_keyboard_input() {
 				recommend(track);
 			}
 			break;
-
 		case '+':
-			volume_up();
+			printf("Volume set to %d.\n", volume_up());
+			fflush(stdout);
 			break;
 
 		case '-':
-			volume_down();
+			printf("Volume set to %d.\n", volume_down());
+			fflush(stdout);
 			break;
 
   case 'm':
@@ -611,12 +612,12 @@ void print_help(void) {
 }
 
 
-void volume_up() {
-	set_volume(volume + 1);
+int volume_up() {
+	return set_volume(volume + 1);
 }
 
-void volume_down() {
-	set_volume(volume - 1);
+int volume_down() {
+	return set_volume(volume - 1);
 }
 
 void mute() {
@@ -630,7 +631,7 @@ void mute() {
   }
 }
 
-void set_volume(int new_volume) {
+int set_volume(int new_volume) {
 	char c;
 
 	volume = new_volume;
@@ -646,4 +647,5 @@ void set_volume(int new_volume) {
 
 	if(playpipe != 0)
 		write(playpipe, & c, 1);
+	return volume;
 }
