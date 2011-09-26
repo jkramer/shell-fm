@@ -27,21 +27,22 @@ int cmpdigit(const void *, const void *);
 /* Save a stream URL with the given number as bookmark. */
 void setmark(const char * streamURL, int n) {
 	FILE * fd;
-	char * bookmarks[10] = { NULL, };
+	char * bookmarks[999] = { NULL, };
 
-	if(!streamURL || n < 0 || n > 9)
+	if(!streamURL || n < 0 || n > 999)
 		return;
 	
 	if((fd = fopen(rcpath("bookmarks"), "r"))) {
 		while(!feof(fd)) {
 			char * line = NULL;
 			unsigned size = 0, length;
-			int x = 0;
+			int x = 0, numlength = 0;
 
 			length = getln(& line, & size, fd);
 			if(line && length > 4) {
 				if(sscanf(line, "%d = ", & x) == 1 && !bookmarks[x]) {
-					bookmarks[x] = strdup(line + 4);
+				        numlength = snprintf(NULL, 0, "%d", x);
+					bookmarks[x] = strdup(numlength + line + 3);
 					assert(bookmarks[x] != NULL);
 				}
 
@@ -57,7 +58,7 @@ void setmark(const char * streamURL, int n) {
 
 	if((fd = fopen(rcpath("bookmarks"), "w"))) {
 		int i;
-		for(i = 0; i < 10; ++i)
+		for(i = 0; i < 999; ++i)
 			if(bookmarks[i]) {
 				char * ptr = strchr(bookmarks[i], 10);
 				if(ptr != NULL)

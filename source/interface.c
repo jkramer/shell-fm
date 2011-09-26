@@ -183,10 +183,15 @@ void handle_keyboard_input() {
 
 		case 'H':
 			if(playfork && current_station) {
-				puts("What number do you want to bookmark this stream as? [0-9]");
-				fflush(stdout);
-				key = fetchkey(5000000);
-				setmark(current_station, key - 0x30);
+                                char * number;
+	                        struct prompt prompt = {
+	                        	.prompt = "Number you want to bookmark this stream as: ",
+	                        	.line = NULL,
+	                        	.history = NULL,
+	                        	.callback = NULL,
+	                        };
+                                number = readline(& prompt);
+                                setmark(current_station, atoi(number));
 			}
 			break;
 
@@ -598,7 +603,7 @@ void print_help(void) {
 		"T = tag track/artist/album        | u = show upcoming tracks in playlist\n"
 		"U = unlove track                  | + = increase volume\n"
 		"- = decrease volume               | C = reload configuration\n"
-		"m = mute/unmute\n",
+		"m = mute/unmute                   | b = choose bookmark\n",
 		stderr
 	);
 
