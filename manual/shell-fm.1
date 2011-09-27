@@ -310,6 +310,15 @@ will wait that many seconds and then skip to the next track.
 .TP
 .B no-rtp = something
 Start with RTP disabled.
+.TP
+.B volume-update = format string
+If set, prints the formatted message when volume is changed. See format flags below, especially
+.B
+%v
+and
+.B
+%b
+.
 .SH FORMAT FLAGS
 There are several format flags allowed for some options. Here is the list.
 .TP
@@ -354,6 +363,9 @@ Remaining time of the played track, formatted as 'min:sec'.
 .TP
 .B %v
 Volume level, formatted as 'xx%'.
+.TP
+.B %b
+Absolute volume (0-64).
 .TP
 .B %V
 Rating of the current track

@@ -219,19 +219,24 @@ void handle_keyboard_input() {
 				recommend(track);
 			}
 			break;
+
 		case '+':
-			printf("Volume set to %d.\n", volume_up());
-			fflush(stdout);
-			break;
-
 		case '-':
-			printf("Volume set to %d.\n", volume_down());
-			fflush(stdout);
+			if(key == '+')
+				volume_up();
+			else
+				volume_down();
+
+			if(haskey(& rc, "volume-update")) {
+				puts(meta(value(& rc, "volume-update"), M_COLORED, & track));
+				fflush(stdout);
+			}
+
 			break;
 
-  case 'm':
-      mute();
-      break;
+		case 'm':
+			mute();
+			break;
 
 		case 'u':
 			preview(playlist);
@@ -375,7 +380,8 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 					        (remain >= 0) ? (remain % 60) : (-remain % 60));
 					    val = strdup(calculated);
 					    break;
-                	case 'v':   // volume percentage
+
+                	case 'v': // volume percentage
 					    snprintf(
 					        calculated,
 					        sizeof(calculated),
@@ -383,6 +389,17 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 					        ((volume * 100 / MAX_VOLUME * 100) / 100));
 					    val = strdup(calculated);
 					    break;
+
+					case 'b': // absolute volume
+						snprintf(
+							calculated,
+							sizeof(calculated),
+							"%d",
+							volume
+						);
+					    val = strdup(calculated);
+						break;
+
 					case 'V':
 						track_key = "rating";
 						break;
