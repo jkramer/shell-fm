@@ -38,6 +38,7 @@
 #include "globals.h"
 
 #include "split.h"
+#include "ropen.h"
 
 struct hash track;
 
