@@ -391,7 +391,7 @@ int execcmd(const char * cmd, char * reply) {
 
 		/* Get current status. Returns on of "PAUSE", "PLAYING" and "STOPPED". */
 		case 19:
-			strncpy(reply, playfork ? (pausetime ? "PAUSED" : "PLAYING") : "STOPPED", BUFSIZE);
+			strncpy(reply, PLAYBACK_STATUS, BUFSIZE);
 			break;
 
 		/* Detach from network interface. */

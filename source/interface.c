@@ -361,11 +361,7 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 						val = strdup(calculated);
 						break;
 					case 'p':
-						if(pausetime) {
-							val = strdup("t");
-						} else {
-							val = strdup("f");
-						}
+						val = strdup(PLAYBACK_STATUS);
 						break;
 					case 's':
 						track_key = "station";
