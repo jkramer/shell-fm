@@ -48,4 +48,6 @@ extern unsigned flags;
 
 extern char * nextstation;
 
+#define PLAYBACK_STATUS (playfork ? (pausetime ? "PAUSED" : "PLAYING") : "STOPPED")
+
 #endif

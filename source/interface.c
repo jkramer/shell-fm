@@ -226,16 +226,22 @@ void handle_keyboard_input() {
 			break;
 
 		case '+':
-			volume_up();
-			break;
-
 		case '-':
-			volume_down();
+			if(key == '+')
+				volume_up();
+			else
+				volume_down();
+
+			if(haskey(& rc, "volume-update")) {
+				puts(meta(value(& rc, "volume-update"), M_COLORED, & track));
+				fflush(stdout);
+			}
+
 			break;
 
-                case 'm':
-                        mute();
-                        break;
+		case 'm':
+			mute();
+			break;
 
 		case 'u':
 			preview(playlist);
@@ -366,6 +372,9 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 							(duration / 60), (duration % 60));
 						val = strdup(calculated);
 						break;
+					case 'p':
+						val = strdup(PLAYBACK_STATUS);
+						break;
 					case 's':
 						track_key = "station";
 						break;
@@ -386,7 +395,8 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 					        (remain >= 0) ? (remain % 60) : (-remain % 60));
 					    val = strdup(calculated);
 					    break;
-                	case 'v':   // volume percentage
+
+                	case 'v': // volume percentage
 					    snprintf(
 					        calculated,
 					        sizeof(calculated),
@@ -394,6 +404,17 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 					        ((volume * 100 / MAX_VOLUME * 100) / 100));
 					    val = strdup(calculated);
 					    break;
+
+					case 'b': // absolute volume
+						snprintf(
+							calculated,
+							sizeof(calculated),
+							"%d",
+							volume
+						);
+					    val = strdup(calculated);
+						break;
+
 					case 'V':
 						track_key = "rating";
 						break;
@@ -623,12 +644,12 @@ void print_help(void) {
 }
 
 
-void volume_up() {
-	set_volume(volume + 1);
+int volume_up() {
+	return set_volume(volume + 1);
 }
 
-void volume_down() {
-	set_volume(volume - 1);
+int volume_down() {
+	return set_volume(volume - 1);
 }
 
 void mute() {
@@ -642,7 +663,7 @@ void mute() {
   }
 }
 
-void set_volume(int new_volume) {
+int set_volume(int new_volume) {
 	char c;
 
 	volume = new_volume;
@@ -658,4 +679,5 @@ void set_volume(int new_volume) {
 
 	if(playpipe != 0)
 		write(playpipe, & c, 1);
+	return volume;
 }

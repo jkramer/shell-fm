@@ -22,10 +22,10 @@ extern int rate(const char *);
 extern char * shellescape(const char *);
 extern void quit();
 extern void unlinknp();
-extern void volume_up();
-extern void volume_down();
+extern int volume_up();
+extern int volume_down();
 void mute();
-void set_volume(int);
+int set_volume(int);
 
 
 #endif
