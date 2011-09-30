@@ -183,10 +183,10 @@ void handle_keyboard_input() {
 
 		case 'H':
 			if(playfork && current_station) {
-				puts("What number do you want to bookmark this stream as? [0-9]");
+				puts("Enter a key for the bookmark.");
 				fflush(stdout);
 				key = fetchkey(5000000);
-				setmark(current_station, key - 0x30);
+				setmark(current_station, key);
 			}
 			break;
 
@@ -250,20 +250,13 @@ void handle_keyboard_input() {
 			print_help();
 			break;
 
-		case '0':
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-		case '8':
-		case '9':
-			if((marked = getmark(key - 0x30))) {
+		case 'g':
+			key = fetchkey(1000000);
+			if((marked = getmark(key))) {
 				station(marked);
 				free(marked);
-			} else {
+			}
+			else {
 				puts("Bookmark not defined.");
 			}
 			break;
@@ -612,7 +605,7 @@ void print_help(void) {
 		"T = tag track/artist/album        | u = show upcoming tracks in playlist\n"
 		"U = unlove track                  | + = increase volume\n"
 		"- = decrease volume               | C = reload configuration\n"
-		"m = mute/unmute\n",
+		"m = mute/unmute                   | g = goto bookmark\n",
 		stderr
 	);
 

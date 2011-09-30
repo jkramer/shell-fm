@@ -20,28 +20,31 @@
 #include "globals.h"
 
 
-int cmpdigit(const void *, const void *);
+int cmpchar(const void *, const void *);
 
 
 /* Save a stream URL with the given number as bookmark. */
 void setmark(const char * streamURL, int n) {
 	FILE * fd;
-	char * bookmarks[10] = { NULL, };
+	char * bookmarks[256] = { NULL, };
 
-	if(!streamURL || n < 0 || n > 9)
+	if(!streamURL || !isalnum(n))
 		return;
-	
+
 	if((fd = fopen(rcpath("bookmarks"), "r"))) {
 		while(!feof(fd)) {
-			char * line = NULL;
+			char * line = NULL, x = 0;
 			unsigned size = 0, length;
-			int x = 0;
 
 			length = getln(& line, & size, fd);
 			if(line && length > 4) {
-				if(sscanf(line, "%d = ", & x) == 1 && !bookmarks[x]) {
-					bookmarks[x] = strdup(line + 4);
-					assert(bookmarks[x] != NULL);
+				if(sscanf(line, "%c = ", & x) == 1 && !bookmarks[(int) x]) {
+					bookmarks[(int) x] = strdup(line + 4);
+					debug("%c = %s\n", x, bookmarks[(int) x]);
+					assert(bookmarks[(int) x] != NULL);
+				}
+				else {
+					debug("read fail: %s\n", line);
 				}
 
 				free(line);
@@ -55,13 +58,13 @@ void setmark(const char * streamURL, int n) {
 	assert(bookmarks[n] != NULL);
 
 	if((fd = fopen(rcpath("bookmarks"), "w"))) {
-		int i;
-		for(i = 0; i < 10; ++i)
-			if(bookmarks[i]) {
+		unsigned i;
+		for(i = 0; i < sizeof(bookmarks) / sizeof(bookmarks[0]); ++i)
+			if(bookmarks[i] != NULL) {
 				char * ptr = strchr(bookmarks[i], 10);
 				if(ptr != NULL)
 					* ptr = 0;
-				fprintf(fd, "%d = %s\n", i, bookmarks[i]);
+				fprintf(fd, "%c = %s\n", i, bookmarks[i]);
 				free(bookmarks[i]);
 			}
 
@@ -80,13 +83,12 @@ char * getmark(int n) {
 		return NULL;
 
 	while(!streamURL && !feof(fd)) {
-		char * line = NULL;
+		char * line = NULL, x;
 		unsigned size = 0, length;
-		int x;
 
 		length = getln(& line, & size, fd);
 		if(line && length > 4)
-			if(sscanf(line, "%d = ", & x) == 1 && x == n) {
+			if(sscanf(line, "%c = ", & x) == 1 && x == n) {
 				char * ptr = strchr(line, 10);
 
 				if(ptr != NULL)
@@ -113,8 +115,8 @@ void printmarks(void) {
 		return;
 	}
 
-	qsort(list, count(list), sizeof(char *), cmpdigit);
-	
+	qsort(list, count(list), sizeof(char *), cmpchar);
+
 	for(n = 0; list[n] != NULL; ++n)
 		puts(list[n]);
 
@@ -122,6 +124,6 @@ void printmarks(void) {
 }
 
 
-int cmpdigit(const void * a, const void * b) {
+int cmpchar(const void * a, const void * b) {
 	return (** (char **) a) - (** (char **) b);
 }
