@@ -240,7 +240,7 @@ int execcmd(const char * cmd, char * reply) {
 
 		/* "play lastfm://station" */
 		case 0:
-			if(sscanf(cmd, "play %128[a-zA-Z0-9:/_ %,*.-]", arg) == 1) {
+			if(sscanf(cmd, "play %128[a-zA-Z0-9:/_ %,*.+-]", arg) == 1) {
 				char * url;
 				decode(arg, & url);
 				station(url);
