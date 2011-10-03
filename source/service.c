@@ -37,6 +37,8 @@ int playpipe = 0;
 struct playlist playlist;
 char * current_station = NULL;
 
+#define HTTP_STATION_PREFIX "http://www.last.fm/listen/"
+
 int authenticate(const char * username, const char * password) {
 	const unsigned char * md5;
 	char hexmd5[32 + 1] = { 0 }, url[512] = { 0 }, ** response;
@@ -142,6 +144,10 @@ int station(const char * stationURL) {
 		fputs("Not authenticated, yet.\n", stderr);
 		return 0;
 	}
+
+        if(!strncmp(HTTP_STATION_PREFIX, stationURL, strlen(HTTP_STATION_PREFIX))) {
+                stationURL += strlen(HTTP_STATION_PREFIX);
+        }
 
 	if(!stationURL || !strlen(stationURL))
 		return 0;
