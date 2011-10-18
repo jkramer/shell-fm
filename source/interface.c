@@ -225,9 +225,9 @@ void handle_keyboard_input() {
 			}
 			break;
 
-		case '+':
+		case '=':
 		case '-':
-			if(key == '+')
+			if(key == '=')
 				volume_up();
 			else
 				volume_down();
@@ -622,7 +622,7 @@ void print_help(void) {
 		"r = change radio station          | R = recommend track/artist/album\n"
 		"S = stop                          | s = similiar artist\n"
 		"T = tag track/artist/album        | u = show upcoming tracks in playlist\n"
-		"U = unlove track                  | + = increase volume\n"
+		"U = unlove track                  | = = increase volume\n"
 		"- = decrease volume               | C = reload configuration\n"
 		"m = mute/unmute                   | b = choose bookmark\n",
 		stderr

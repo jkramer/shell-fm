@@ -131,7 +131,7 @@ void printmarks(void) {
 		return;
 	}
 
-	qsort(list, count(list), sizeof(char *), cmpdigit);
+        //qsort(list, count(list), sizeof(char *), cmpdigit);
 	
 	for(n = 0; list[n] != NULL; ++n)
 		puts(list[n]);
