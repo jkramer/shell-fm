@@ -132,7 +132,7 @@ void handle_keyboard_input() {
 			printf("Discovery mode %s.\n", enabled(DISCOVERY) ? "enabled" : "disabled");
 			if(playfork) {
 				printf(
-					"%u track(s) left to play/skip until change comes into affect.\n",
+					"%u track(s) left to play/skip until change comes into effect.\n",
 					playlist.left
 				);
 			}
