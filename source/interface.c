@@ -274,9 +274,12 @@ void handle_keyboard_input() {
 			break;
 
 		case 'b':
-			marked = promptmark();
-			station(marked);
-			free(marked);
+			if ((marked = promptmark())) {
+                                station(marked);
+	        		free(marked);
+                        } else {
+                                puts ("Bookmark not defined.");
+                        }
 			break;
 
 		case 'C': /* Reload configuration. */
