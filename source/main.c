@@ -71,7 +71,7 @@ static void stopsig(int);
 pid_t ppid = 0;
 
 int main(int argc, char ** argv) {
-	int option, nerror = 0, background = 0, have_socket = 0;
+	int option, nerror = 0, background = 0, quiet = 0, have_socket = 0;
 	time_t pauselength = 0;
 	char * proxy;
 	opterr = 0;
@@ -94,13 +94,17 @@ int main(int argc, char ** argv) {
 	if(haskey(& rc, "daemon"))
 		background = !0;
 
+	/* If "quiet" is set in the configuration, enable quiet mode by default. */
+	if(haskey(& rc, "quiet"))
+		quiet = !0;
+
 	/* Get proxy environment variable. */
 	if((proxy = getenv("http_proxy")) != NULL)
 		set(& rc, "proxy", proxy);
 
 
 	/* Parse through command line options. */
-	while(-1 != (option = getopt(argc, argv, ":dbhi:p:D:y:")))
+	while(-1 != (option = getopt(argc, argv, ":dbhqi:p:D:y:")))
 		switch(option) {
 			case 'd': /* Daemonize. */
 				background = !background;
@@ -129,6 +133,10 @@ int main(int argc, char ** argv) {
 
 			case 'y': /* Proxy address. */
 				set(& rc, "proxy", optarg);
+				break;
+
+			case 'q': /* Quiet mode. */
+				quiet = !quiet;
 				break;
 
 			case 'h': /* Print help text and exit. */
@@ -171,7 +179,7 @@ int main(int argc, char ** argv) {
 #endif
 #endif
 
-	if(!background) {
+	if(!background && !quiet) {
 		puts("Shell.FM v" PACKAGE_VERSION ", (C) 2006-2010 by Jonas Kramer");
 		puts("Published under the terms of the GNU General Public License (GPL).");
 
@@ -566,6 +574,7 @@ static void help(const char * argv0, int error_code) {
 		"%s [options] [lastfm://url]\n"
 		"\n"
 		"  -d        daemon mode.\n"
+		"  -q        quiet mode.\n"
 		"  -i        address to listen on.\n"
 		"  -p        port to listen on.\n"
 		"  -b        batch mode.\n"

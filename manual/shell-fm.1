@@ -13,6 +13,9 @@ Last.FM.
 Fork to background (requires a socket interface to be set up so it can still be
 controlled somehow).
 .TP
+.B \-q
+Enable quiet mode, which suppresses startup messages.
+.TP
 .B \-i <address>
 Enable the socket interface and bind it to the given host address (should be
 the host name or IP address of the host shell-fm is running on).
@@ -199,6 +202,10 @@ section for a list.
 .B daemon = something
 If this is set to something, shell-fm will start in daemon mode by default.
 Starting with -d as command line option will disable daemon mode.
+.TP
+.B quiet = something
+If this is set to something, shell-fm will start in quiet mode by default.
+Starting with -q as command line option will disable quiet mode.
 .TP
 .B key0x?? = shell command
 This allows you to bind shell commands to free keys (keys that are not used by
