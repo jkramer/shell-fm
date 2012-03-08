@@ -136,7 +136,7 @@ char ** fetch(const char * url, struct content_handle * handle, const char * pos
 			break;
 
 		if(!strncasecmp(line, "Transfer-Encoding: chunked", 26)) {
-			debug("chunked content\n");
+			debug("chunked content");
 			chunked = !0;
 		}
 
@@ -420,6 +420,7 @@ int receive(struct content_handle * handle, char * p, int count) {
 		return result;
 	}
 	else {
+		debug(".");
 		return fread(p, sizeof(char), count, handle->fd); // fileno(handle->fd), p, count);
 	}
 }
