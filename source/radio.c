@@ -90,9 +90,8 @@ int radiocomplete(char * line, const unsigned max, int changed) {
 	const char * match;
 	char ** splt, * types [] = {
 		"user",
-		"usertags",
 		"artist",
-		"globaltags",
+		"tag",
 		"play",
 		NULL
 	};
@@ -117,7 +116,7 @@ int radiocomplete(char * line, const unsigned max, int changed) {
 
 	switch(nsplt + (slash ? 1 : 0)) {
 
-		/* First level completions (user, usertags, artists, ...) */
+		/* First level completions (user, artists, ...) */
 		case 1:
 
 			/* Get next match from first level chunks and fill it in. */
@@ -127,10 +126,10 @@ int radiocomplete(char * line, const unsigned max, int changed) {
 
 			break;
 
-		/* Second level completions (user/$USER, globaltags/$TAG, ...) */
+		/* Second level completions (user/$USER, tag/$TAG, ...) */
 		case 2:
-			/* For URIs like "{user,usertags}/...". */
-			if(!strcmp(splt[0], "user") || !strcmp(splt[0], "usertags")) {
+			/* For URIs like "user/...". */
+			if(!strcmp(splt[0], "user")) {
 
 				/* Get next match for 2nd level user chunk (user) and fill it in.  */
 				match = nextmatch(users, changed ? (slash ? "" : splt[1]) : NULL, & nres);
@@ -150,10 +149,10 @@ int radiocomplete(char * line, const unsigned max, int changed) {
 			}
 
 			/*
-				For URIs like "globaltags/...". Simply tag completion applied
+				For URIs like "tag/...". Simply tag completion applied
 				here.
 			*/
-			else if(!strcmp(splt[0], "globaltags")) {
+			else if(!strcmp(splt[0], "tag")) {
 				char * lastchunk = strrchr(line, '/') + 1;
 				popular = overalltags();
 				tagcomplete(lastchunk, max - (lastchunk - line), changed);
@@ -167,10 +166,10 @@ int radiocomplete(char * line, const unsigned max, int changed) {
 			if(!strcmp(splt[0], "user")) {
 				char * radios [] = {
 					"personal",
-					"neighbours",
-					"loved",
+					"mix",
 					"recommended",
-					"playlist",
+					"friends",
+					"neighbours",
 					NULL
 				};
 
@@ -190,15 +189,6 @@ int radiocomplete(char * line, const unsigned max, int changed) {
 				/* Get next match for 3rd level chunk. */
 				match = nextmatch(radios, changed ? (slash ? "" : splt[2]) : NULL, NULL);
 				snprintf(line, max, "%s/%s/%s", splt[0], splt[1], match ? match : splt[2]);
-			}
-			
-			/* Simple tag completion for "usertags" stations. */
-			else if(!strcmp(splt[0], "usertags")) {
-				char * lastchunk = strrchr(line, '/') + 1;
-
-				popular = overalltags();
-				tagcomplete(lastchunk, max - (lastchunk - line), changed);
-				purge(popular);
 			}
 
 			break;

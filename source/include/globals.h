@@ -22,6 +22,8 @@ extern pid_t playfork, subfork;
 
 extern int playpipe;
 extern unsigned char volume;
+extern int muted;
+extern unsigned char saved_volume;
 
 extern char * current_station; /* Name of the current station. */
 
@@ -45,5 +47,7 @@ extern unsigned flags;
 #define toggle(n) (flags ^= n)
 
 extern char * nextstation;
+
+#define PLAYBACK_STATUS (playfork ? (pausetime ? "PAUSED" : "PLAYING") : "STOPPED")
 
 #endif

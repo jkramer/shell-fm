@@ -38,6 +38,7 @@
 #include "globals.h"
 
 #include "split.h"
+#include "ropen.h"
 
 struct hash track;
 
@@ -191,10 +192,7 @@ void handle_client(int client_socket) {
 
 	if(disconnect) {
 		debug("removing client\n");
-		shutdown(SHUT_RDWR, client_socket);
-		close(client_socket);
-		fclose(fd);
-
+		fshutdown(& fd);
 		remove_handle(client_socket);
 	}
 }
@@ -242,7 +240,7 @@ int execcmd(const char * cmd, char * reply) {
 
 		/* "play lastfm://station" */
 		case 0:
-			if(sscanf(cmd, "play %128[a-zA-Z0-9:/_ %,*.-]", arg) == 1) {
+			if(sscanf(cmd, "play %128[a-zA-Z0-9:/_ %,*.+-]", arg) == 1) {
 				char * url;
 				decode(arg, & url);
 				station(url);
@@ -393,7 +391,7 @@ int execcmd(const char * cmd, char * reply) {
 
 		/* Get current status. Returns on of "PAUSE", "PLAYING" and "STOPPED". */
 		case 19:
-			strncpy(reply, playfork ? (pausetime ? "PAUSED" : "PLAYING") : "STOPPED", BUFSIZE);
+			strncpy(reply, PLAYBACK_STATUS, BUFSIZE);
 			break;
 
 		/* Detach from network interface. */

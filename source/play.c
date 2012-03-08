@@ -88,6 +88,8 @@ static int timed_read(struct content_handle *, unsigned char *, int, int);
 int killed = 0;
 
 unsigned char volume = MAX_VOLUME;
+int muted = 0;
+unsigned char saved_volume = MAX_VOLUME;
 
 static void sighand(int);
 

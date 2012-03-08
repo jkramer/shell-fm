@@ -1,30 +1,38 @@
-* Jonas Kramer
+* Alexander Monakov
 * Bart Trojanowski
-* Jacek Nitkiewicz
+* Benoît Rouits
+* Bernhard Frauendienst
+* Christian Neukirchen
+* Csaba Henk
+* Derek Wueppelmann
+* Florian Sesser
+* Guillaume Pinot
 * Helmut Maierthaler
+* Jacek Nitkiewicz
+* Jan Zerebecki
+* Jean Richard
+* Jonas Kramer
+* Marco Leogrande
+* Mark Goodall
+* Matthias Goebl
+* Mike Kelly
+* Nathan B.
+* Nathan Broadbent
 * Nguyen Thai Ngoc Duy
 * Ondrej Novy
-* Csaba Henk
-* Matthias Goebl
-* Benoît Rouits
-* Mike Kelly
-* Christian Neukirchen
-* Guillaume Pinot
-* Wirt Wolff
-* Alexander Monakov
+* Pierre Baillet
 * Rodrigo Tartajo
 * Silviu Grijincu
-* Mark Goodall
-* Pierre Baillet
-* Nathan Broadbent
+* Wirt Wolff
+* Yuri D'Elia
 
 NOTE: I've removed the information about who did what, since during the
 development almost everything anyone added has been changed/replaced at some
 time by me or others and it's impossible to track everything. So I'll just list
 all the names of the people who contributed something at some time here. Of
-course the details are still in the subversion commit log.
+course the details are still in the git log.
 
 Please mail me (jkramer at nex dot scrapping dot cc) if your name is missing
-here.  If you want to praise or blame a developer for something particular,
-search the GIT log.
+here. If you want to praise or blame a developer for something particular,
+search the git log.
 

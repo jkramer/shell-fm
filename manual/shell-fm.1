@@ -13,6 +13,9 @@ Last.FM.
 Fork to background (requires a socket interface to be set up so it can still be
 controlled somehow).
 .TP
+.B \-q
+Enable quiet mode, which suppresses startup messages.
+.TP
 .B \-i <address>
 Enable the socket interface and bind it to the given host address (should be
 the host name or IP address of the host shell-fm is running on).
@@ -68,9 +71,10 @@ Jump to the fan radio station of the artist of the currently played track.
 List bookmarks.
 .TP
 .B H
-Bookmark the currently played radio station. You'll be asked to hit a digit
-key. Whenever you hit that key again from now on, shell-fm will jump to that
-radio station.
+Bookmark the currently played radio station.
+.TP
+.B g [bookmark letter]
+Go to bookmarked station.
 .TP
 .B i
 Print some more information about the currently played track.
@@ -125,6 +129,9 @@ Increase volume.
 .TP
 .B -
 Decrease volume.
+.TP
+.B m
+Mute/unmute.
 .PP
 .SH SETUP
 Before you start, you should have created the directories
@@ -165,11 +172,11 @@ track into the given file, whenever a new track is played.
 .B np-file-format = format-string
 This defines how the information written to your now-playing file will look
 like. There are several format flags available. Have a look at the
+.B FORMAT FLAGS
+section for the details.
 .TP
 .B preview-format = format-string
 Format of the track information in the playlist preview (key 'u').
-.B FORMAT FLAGS
-section for the details.
 .TP
 .B np-cmd = shell command
 If this is defined, the given command will be executed whenever a new track
@@ -189,13 +196,16 @@ This allows you to color format elements. The
 may be the letter of any format flag (without percent). The color is just a
 normal shell color code matching "[01];3[0-7]". Whenever the format element is
 printed to the console, it will have the given color. Have a look at the
+.B COLORS
+section for a list.
 .TP
 .B daemon = something
 If this is set to something, shell-fm will start in daemon mode by default.
 Starting with -d as command line option will disable daemon mode.
 .TP
-.B COLORS
-section for a list.
+.B quiet = something
+If this is set to something, shell-fm will start in quiet mode by default.
+Starting with -q as command line option will disable quiet mode.
 .TP
 .B key0x?? = shell command
 This allows you to bind shell commands to free keys (keys that are not used by
@@ -308,6 +318,15 @@ will wait that many seconds and then skip to the next track.
 .TP
 .B no-rtp = something
 Start with RTP disabled.
+.TP
+.B volume-update = format string
+If set, prints the formatted message when volume is changed. See format flags below, especially
+.B
+%v
+and
+.B
+%b
+.
 .SH FORMAT FLAGS
 There are several format flags allowed for some options. Here is the list.
 .TP
@@ -353,15 +372,24 @@ Remaining time of the played track, formatted as 'min:sec'.
 .B %v
 Volume level, formatted as 'xx%'.
 .TP
+.B %b
+Absolute volume (0-64).
+.TP
 .B %V
 Rating of the current track
 ('L' loved, 'B' banned, 'S' skipped or empty).
+.TP
+.B
+%p
+Is replaced with the player status, PLAYING, PAUSED or STOPPED.
 .TP
 .B %~
 Environment variable $HOME.
 .TP
 .B %%
 A %.
+.TP
+.B 
 .SH COLORS
 .TP
 .B 0;30
@@ -487,6 +515,10 @@ Adjust absolute volume. "volume +1" is the same as "volume-up" and "volume -1"
 is the same as "volume-down".
 All volumes return the absolute volume (0-64).
 .TP
+.B
+status
+Returns the player status, PLAYING, PAUSED or STOPPED.
+.TP
 .B detach
 Detaches from the network interface. Use this to cleanly close your session.
 .SH FILES
@@ -541,13 +573,13 @@ Includes examples of using the network interface plus a color printing script to
 .PP
 .RS
 .nf
-lastfm://user/$USER/loved
 lastfm://user/$USER/personal
-lastfm://usertags/$USER/$TAG
-lastfm://artist/$ARTIST/similarartists
-lastfm://globaltags/$TAG
+lastfm://user/$USER/mix
 lastfm://user/$USER/recommended
-lastfm://user/$USER/playlist
+lastfm://user/$USER/neighbours
+lastfm://user/$USER/friends
+lastfm://artist/$ARTIST/similarartists
+lastfm://artist/$ARTIST/fans
 lastfm://tag/$TAG1*$TAG2*$TAG3
 .fi
 .SH BUGS

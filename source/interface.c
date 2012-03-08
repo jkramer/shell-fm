@@ -132,7 +132,7 @@ void handle_keyboard_input() {
 			printf("Discovery mode %s.\n", enabled(DISCOVERY) ? "enabled" : "disabled");
 			if(playfork) {
 				printf(
-					"%u track(s) left to play/skip until change comes into affect.\n",
+					"%u track(s) left to play/skip until change comes into effect.\n",
 					playlist.left
 				);
 			}
@@ -183,10 +183,10 @@ void handle_keyboard_input() {
 
 		case 'H':
 			if(playfork && current_station) {
-				puts("What number do you want to bookmark this stream as? [0-9]");
+				puts("Enter a key for the bookmark.");
 				fflush(stdout);
 				key = fetchkey(5000000);
-				setmark(current_station, key - 0x30);
+				setmark(current_station, key);
 			}
 			break;
 
@@ -221,11 +221,21 @@ void handle_keyboard_input() {
 			break;
 
 		case '+':
-			volume_up();
+		case '-':
+			if(key == '+')
+				volume_up();
+			else
+				volume_down();
+
+			if(haskey(& rc, "volume-update")) {
+				puts(meta(value(& rc, "volume-update"), M_COLORED, & track));
+				fflush(stdout);
+			}
+
 			break;
 
-		case '-':
-			volume_down();
+		case 'm':
+			mute();
 			break;
 
 		case 'u':
@@ -240,20 +250,13 @@ void handle_keyboard_input() {
 			print_help();
 			break;
 
-		case '0':
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-		case '8':
-		case '9':
-			if((marked = getmark(key - 0x30))) {
+		case 'g':
+			key = fetchkey(1000000);
+			if((marked = getmark(key))) {
 				station(marked);
 				free(marked);
-			} else {
+			}
+			else {
 				puts("Bookmark not defined.");
 			}
 			break;
@@ -350,6 +353,9 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 							(duration / 60), (duration % 60));
 						val = strdup(calculated);
 						break;
+					case 'p':
+						val = strdup(PLAYBACK_STATUS);
+						break;
 					case 's':
 						track_key = "station";
 						break;
@@ -370,7 +376,8 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 					        (remain >= 0) ? (remain % 60) : (-remain % 60));
 					    val = strdup(calculated);
 					    break;
-                	case 'v':   // volume percentage
+
+                	case 'v': // volume percentage
 					    snprintf(
 					        calculated,
 					        sizeof(calculated),
@@ -378,6 +385,17 @@ const char * meta(const char * fmt, int flags, struct hash * track) {
 					        ((volume * 100 / MAX_VOLUME * 100) / 100));
 					    val = strdup(calculated);
 					    break;
+
+					case 'b': // absolute volume
+						snprintf(
+							calculated,
+							sizeof(calculated),
+							"%d",
+							volume
+						);
+					    val = strdup(calculated);
+						break;
+
 					case 'V':
 						track_key = "rating";
 						break;
@@ -586,7 +604,8 @@ void print_help(void) {
 		"S = stop                          | s = similiar artist\n"
 		"T = tag track/artist/album        | u = show upcoming tracks in playlist\n"
 		"U = unlove track                  | + = increase volume\n"
-		"- = decrease volume               | C = reload configuration\n",
+		"- = decrease volume               | C = reload configuration\n"
+		"m = mute/unmute                   | g = goto bookmark\n",
 		stderr
 	);
 
@@ -606,15 +625,26 @@ void print_help(void) {
 }
 
 
-void volume_up() {
-	set_volume(volume + 1);
+int volume_up() {
+	return set_volume(volume + 1);
 }
 
-void volume_down() {
-	set_volume(volume - 1);
+int volume_down() {
+	return set_volume(volume - 1);
 }
 
-void set_volume(int new_volume) {
+void mute() {
+  if(muted) {
+    set_volume(saved_volume);
+    muted = 0;
+  } else {
+    saved_volume = volume;
+    set_volume(0);
+    muted = 1;
+  }
+}
+
+int set_volume(int new_volume) {
 	char c;
 
 	volume = new_volume;
@@ -630,4 +660,5 @@ void set_volume(int new_volume) {
 
 	if(playpipe != 0)
 		write(playpipe, & c, 1);
+	return volume;
 }
