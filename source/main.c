@@ -217,7 +217,7 @@ int main(int argc, char ** argv) {
 
 
 	/* Ask for username/password if they weren't specified in the .rc file. */
-	if(!haskey(& rc, "password")) {
+	if(!haskey(& rc, "password") && !haskey(& rc, "password-md5")) {
 		char * password;
 
 		if(!haskey(& rc, "username")) {
@@ -292,7 +292,9 @@ int main(int argc, char ** argv) {
 
 
 	/* Authenticate to the Last.FM server. */
-	if(!authenticate(value(& rc, "username"), value(& rc, "password")))
+	if(haskey(& rc, "password-md5") && !authenticate(value(& rc, "username"), value(& rc, "password-md5")))
+		exit(EXIT_FAILURE);
+	else if (!haskey(& rc, "password-md5") && !authenticate_plaintext(value(& rc, "username"), value(& rc, "password")))
 		exit(EXIT_FAILURE);
 
 	/* Store session key for use by external tools. */

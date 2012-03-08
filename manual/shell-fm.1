@@ -160,6 +160,10 @@ it on startup anymore.
 This is your (clear text) Last.FM password. If this and your login is provided
 in the configuration, shell-fm won't ask you on startup.
 .TP
+.B password-md5 = your-password-md5
+An MD5 hash of your Last.FM password. This can be used instead of a clear text
+password if you're worried about someone reading your shell-fm.rc file.
+.TP
 .B default-radio = lastfm://...
 If this is provided (and valid), shell-fm will play this station by default
 after startup. If there's another station URI given on the command line, it
