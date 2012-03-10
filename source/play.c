@@ -558,7 +558,8 @@ static int timed_read(int fd, unsigned char * p, int count, int timeout) {
 		return read(fd, p, count);
 	}
 
-	fprintf(stderr, "Track stream timed out (%d).\n", timeout);
+	if (!killed)
+		fprintf(stderr, "Track stream timed out (%d).\n", timeout);
 	return -1;
 }
 #endif
