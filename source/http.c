@@ -157,9 +157,6 @@ char ** fetch(const char * url, FILE ** handle, const char * post, const char * 
 		return NULL;
 	}
 
-	if(chunked)
-		puts("DEBUG: Chunked!");
-
 	while(!feof(fd)) {
 		line = NULL;
 		size = 0;
