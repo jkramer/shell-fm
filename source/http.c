@@ -38,7 +38,7 @@ char ** fetch(const char * url, FILE ** handle, const char * post, const char * 
 	char * connhost;
 	char urlcpy[512 + 1];
 	unsigned short nport = 80, chunked = 0;
-	unsigned nline = 0, nstatus = 0, size = 0;
+	unsigned nstatus = 0, size = 0;
 	signed valid_head = 0;
 	FILE * fd;
 	int useproxy;
@@ -157,6 +157,19 @@ char ** fetch(const char * url, FILE ** handle, const char * post, const char * 
 		return NULL;
 	}
 
+	resp = (chunked) ? read_response_chunked(fd) : read_response(fd);
+
+	fshutdown(& fd);
+
+	if(!batch && !enabled(QUIET))
+		fputs("\r   \r", stderr);
+	return resp;
+}
+
+char ** read_response(FILE * fd) {
+	char * line, ** resp = NULL;
+	unsigned size, nline = 0;
+
 	while(!feof(fd)) {
 		line = NULL;
 		size = 0;
@@ -176,10 +189,67 @@ char ** fetch(const char * url, FILE ** handle, const char * post, const char * 
 			free(line);
 	}
 
-	fshutdown(& fd);
+	return resp;
+}
 
-	if(!batch && !enabled(QUIET))
-		fputs("\r   \r", stderr);
+/* Re-assemble a chunked response */
+char ** read_response_chunked(FILE * fd) {
+	char * line, * pos = NULL, * ptr, * chunks = NULL, ** resp = NULL;
+	unsigned size, chunk_size, response_size = 0, nlines = 0;
+
+	/* Read all chunks */
+	while(!feof(fd)) {
+		line = NULL;
+		size = 0;
+
+		if(getln(& line, & size, fd)) {
+			ptr = strchr(line, 10);
+
+			if(ptr != NULL)
+				* ptr = (char) 0;
+
+			/* chunk_size = 0 means no more chunks follow */
+			if (sscanf(line, "%x", &chunk_size) == 1 && chunk_size != 0) {
+				response_size += chunk_size;
+
+				chunks = realloc(chunks, response_size * sizeof(char));
+				assert(chunks != NULL);
+
+				if (pos == NULL)
+					pos = chunks;
+
+				/* We don't have to worry about reading the CRLF after
+				 * chunks, since getln() will read past them */
+				if (fread(pos, 1, chunk_size, fd) != chunk_size)
+				{
+					debug("Couldn't read chunks.\n");
+					break;
+				}
+
+				pos += chunk_size;
+			} else if (chunk_size == 0)
+				break; /* Ignore trailing headers */
+		} else if(size)
+			free(line);
+	}
+
+	/* Break response into lines */
+	pos = chunks;
+	while (pos != NULL && pos < (chunks + response_size)) {
+		resp = realloc(resp, (nlines + 2) * sizeof(char *));
+		assert(resp != NULL);
+
+		resp[nlines] = pos;
+		resp[++nlines] = NULL;
+
+		pos = strchr(pos, '\n');
+		if (pos != NULL)
+			*pos = '\0';
+
+		/* Set the pointer to just after the previous line or NULL if at the end */
+		pos = (pos != NULL && pos < (chunks + response_size)) ? pos + 1 : NULL;
+	}
+
 	return resp;
 }
 

@@ -11,6 +11,8 @@
 #include "hash.h"
 
 extern char ** fetch(const char *, FILE **, const char *, const char *);
+extern char ** read_response(FILE *);
+extern char ** read_response_chunked(FILE *);
 extern char ** cache(const char *, const char *, int);
 extern unsigned encode(const char *, char **);
 extern unsigned decode(const char *, char **);
