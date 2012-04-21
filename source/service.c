@@ -39,11 +39,23 @@ char * current_station = NULL;
 
 #define HTTP_STATION_PREFIX "http://www.last.fm/listen/"
 
-int authenticate(const char * username, const char * password) {
+int authenticate_plaintext(const char * username, const char * password) {
 	const unsigned char * md5;
-	char hexmd5[32 + 1] = { 0 }, url[512] = { 0 }, ** response;
+	char hexmd5[32 + 1] = { 0 };
+	unsigned ndigit;
+
+	/* create the hash, then convert to ASCII */
+	md5 = MD5((const unsigned char *) password, strlen(password));
+	for(ndigit = 0; ndigit < 16; ++ndigit)
+		sprintf(2 * ndigit + hexmd5, "%02x", md5[ndigit]);
+
+	return authenticate(username, hexmd5);
+}
+
+int authenticate(const char * username, const char * passwordmd5) {
+	char url[512] = { 0 }, ** response;
 	char * encuser = NULL;
-	unsigned ndigit, i = 0;
+	unsigned i = 0;
 	const char * session, * fmt =
 		"http://ws.audioscrobbler.com/radio/handshake.php"
 		"?version=0.1"
@@ -55,18 +67,13 @@ int authenticate(const char * username, const char * password) {
 
 	memset(& data, 0, sizeof(struct hash));
 
-	/* create the hash, then convert to ASCII */
-	md5 = MD5((const unsigned char *) password, strlen(password));
-	for(ndigit = 0; ndigit < 16; ++ndigit)
-		sprintf(2 * ndigit + hexmd5, "%02x", md5[ndigit]);
-
-	set(& rc, "password", hexmd5);
+	set(& rc, "password", passwordmd5);
 
 	/* escape username for URL */
 	encode(username, & encuser);
 
 	/* put handshake URL together and fetch initial data from server */
-	snprintf(url, sizeof(url), fmt, encuser, hexmd5);
+	snprintf(url, sizeof(url), fmt, encuser, passwordmd5);
 	free(encuser);
 
 	response = fetch(url, NULL, NULL, NULL);
