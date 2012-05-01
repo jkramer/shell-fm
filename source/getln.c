@@ -21,20 +21,30 @@
 	The third argument is a FILE pointer which the line will be read from.
 */
 unsigned getln(char ** ptr, unsigned * size, FILE * fd) {
+	struct content_handle handle = {
+		.fd = fd,
+		.chunked = 0
+	};
+
+	return receive_line(ptr, size, & handle);
+}
+
+
+unsigned receive_line(char ** ptr, unsigned * size, struct content_handle * handle) {
 	unsigned length = 0;
-	int ch = 0;
+	char ch = 0;
 
 	assert(size != NULL);
 
 	if(!(* ptr))
 		* size = 0;
-	
-	while(!feof(fd) && ch != (char) 10) {
-		ch = fgetc(fd);
 
-		if(ch == -1)
+	while(!feof(handle->fd) && ch !=  10) {
+		int result = receive(handle, & ch, 1);
+
+		if(result == -1)
 			ch = 0;
-		
+
 		if(length + 2 > * size) {
 			* ptr = realloc(* ptr, (* size += 1024));
 			assert(* ptr != NULL);
@@ -51,3 +61,4 @@ unsigned getln(char ** ptr, unsigned * size, FILE * fd) {
 
 	return length;
 }
+
