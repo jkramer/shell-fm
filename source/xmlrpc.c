@@ -10,7 +10,8 @@
 #include <stdint.h>
 #include <assert.h>
 
-#include "md5.h"
+#include <openssl/md5.h>
+
 #include "settings.h"
 #include "http.h"
 
@@ -23,7 +24,7 @@ char * xmlize(const char *);
 
 int xmlrpc(const char * method, const char * fmt, ...) {
 	unsigned size = 1024, narg, x;
-	const unsigned char * md5;
+	unsigned char md5[16];
 	va_list argv;
 	int result = 0;
 
@@ -45,7 +46,7 @@ int xmlrpc(const char * method, const char * fmt, ...) {
 
 	/* generate password/challenge hash */
 	snprintf(tmp, sizeof(tmp), "%s%s", value(& rc, "password"), challenge);
-	md5 = MD5((unsigned char *) tmp, sizeof(tmp) - 1);
+	MD5((unsigned char *) tmp, sizeof(tmp) - 1, md5);
 	for(x = 0; x < 16; ++x)
 		sprintf(2 * x + md5hex, "%02x", md5[x]);
 

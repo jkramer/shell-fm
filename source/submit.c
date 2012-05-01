@@ -14,9 +14,10 @@
 #include <assert.h>
 #include <time.h>
 
+#include <openssl/md5.h>
+
 #include "hash.h"
 #include "http.h"
-#include "md5.h"
 #include "settings.h"
 #include "split.h"
 #include "getln.h"
@@ -180,7 +181,7 @@ static void sliceq(unsigned tracks) {
 static int handshake(const char * user, const char * password) {
 	char temp[10 + 32 + 1], hex[32 + 1], ** resp;
 	const char * url;
-	const unsigned char * md5;
+	unsigned char md5[16];
 	int i, retval = 0;
 	time_t timestamp = time(NULL);
 
@@ -194,7 +195,7 @@ static int handshake(const char * user, const char * password) {
 	assert(password != NULL);
 
 	snprintf(temp, sizeof(temp), "%s%lu", password, (unsigned long) timestamp);
-	md5 = MD5((unsigned char *) temp, strlen(temp));
+	MD5((unsigned char *) temp, strlen(temp), md5);
 
 	for(i = 0; i < 16; ++i)
 		sprintf(& hex[2 * i], "%02x", md5[i]);

@@ -19,7 +19,6 @@
 #include "split.h"
 #include "interface.h"
 #include "completion.h"
-#include "md5.h"
 #include "feeds.h"
 
 #include "readline.h"

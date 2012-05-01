@@ -19,9 +19,11 @@ endif
 
 CFLAGS  += -DLIBAO \
 	   $(shell pkg-config --cflags mad) \
-	   $(shell pkg-config --cflags ao)
+	   $(shell pkg-config --cflags ao) \
+	   $(shell pkg-config --cflags openssl)
 LDLIBS += $(shell pkg-config --libs mad) \
-	   $(shell pkg-config --libs ao)
+	   $(shell pkg-config --libs ao) \
+	   $(shell pkg-config --libs openssl)
 
 ifeq ($(shell pkg-config --exists taglib_c && echo 1), 1)
 	CFLAGS  += $(shell pkg-config --cflags taglib_c) -DTAGLIB
