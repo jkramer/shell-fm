@@ -136,7 +136,7 @@ char ** fetch(const char * url, struct content_handle * handle, const char * pos
 			break;
 
 		if(!strncasecmp(line, "Transfer-Encoding: chunked", 26)) {
-			debug("chunked content");
+			debug("chunked content\n");
 			chunked = !0;
 		}
 
@@ -394,9 +394,9 @@ int receive(struct content_handle * handle, char * p, int count) {
 			unsigned size = 0, chunk_size;
 
 			assert(getln(& line, & size, handle->fd) > 0);
-			assert(sscanf(line, "%u", & chunk_size) == 1);
 
-			if(chunk_size == 0) {
+			if(sscanf(line, "%u", & chunk_size) != 1 || chunk_size == 0) {
+				debug("no more chunks\n");
 				return -1;
 			}
 
@@ -410,7 +410,8 @@ int receive(struct content_handle * handle, char * p, int count) {
 			count = handle->left;
 		}
 
-		result = read(fileno(handle->fd), p, count);
+		// result = read(fileno(handle->fd), p, count);
+		result = fread(p, sizeof(char), count, handle->fd);
 
 		debug("read = %d\n", result);
 
@@ -420,7 +421,6 @@ int receive(struct content_handle * handle, char * p, int count) {
 		return result;
 	}
 	else {
-		debug(".");
 		return fread(p, sizeof(char), count, handle->fd); // fileno(handle->fd), p, count);
 	}
 }
