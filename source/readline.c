@@ -21,6 +21,8 @@ char * readline(struct prompt * setup) {
 	static char line[1024];
 	unsigned length = 0;
 
+	canon(0);
+
 	assert(setup != NULL);
 
 	/* Print prompt if present. */
@@ -142,6 +144,8 @@ char * readline(struct prompt * setup) {
 	}
 
 	fputc(10, stderr);
+
+	canon(1);
 
 	return line;
 }
