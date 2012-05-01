@@ -29,7 +29,6 @@
 #include "split.h"
 #include "bookmark.h"
 #include "radio.h"
-#include "md5.h"
 #include "submit.h"
 #include "readline.h"
 #include "xmlrpc.h"

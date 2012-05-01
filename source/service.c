@@ -15,11 +15,12 @@
 #include <signal.h>
 #include <stdarg.h>
 
+#include <openssl/md5.h>
+
 #include "hash.h"
 #include "http.h"
 #include "play.h"
 #include "settings.h"
-#include "md5.h"
 #include "history.h"
 #include "service.h"
 #include "playlist.h"
@@ -40,12 +41,12 @@ char * current_station = NULL;
 #define HTTP_STATION_PREFIX "http://www.last.fm/listen/"
 
 int authenticate_plaintext(const char * username, const char * password) {
-	const unsigned char * md5;
+	unsigned char md5[16];
 	char hexmd5[32 + 1] = { 0 };
 	unsigned ndigit;
 
 	/* create the hash, then convert to ASCII */
-	md5 = MD5((const unsigned char *) password, strlen(password));
+	MD5((const unsigned char *) password, strlen(password), md5);
 	for(ndigit = 0; ndigit < 16; ++ndigit)
 		sprintf(2 * ndigit + hexmd5, "%02x", md5[ndigit]);
 
