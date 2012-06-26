@@ -222,7 +222,7 @@ void sendtag(char key, char * tagstring, struct hash data) {
 	if(tagstring) {
 		unsigned length = strlen(tagstring);
 		/* remove trailing commas */
-		while(tagstring[length-1] == ',')
+		while(length > 0 && tagstring[length-1] == ',')
 			tagstring[--length] = 0;
 
 		splt = split(tagstring, ",\n", & nsplt);
