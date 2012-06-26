@@ -39,6 +39,8 @@ char * readline(struct prompt * setup) {
 	for(histsize = 0; setup->history && setup->history[histsize]; ++histsize);
 	index = histsize;
 
+	canon(0);
+
 	while(!eoln) {
 		int key = fgetc(stdin);
 
