@@ -215,14 +215,18 @@ int playback(FILE * streamfd, int pipefd) {
 			data.finpath = strdup(meta(value(& rc, "download"), M_RELAXPATH, & track));
 			assert(data.finpath != NULL);
 
-			data.tmppath = strjoin("", data.finpath, ".streaming", NULL);
+			if (haskey(& rc, "download-tmp")) {
+				data.tmppath = strdup(meta(value(& rc, "download-tmp"), M_RELAXPATH, &track));
+			} else {
+				data.tmppath = strjoin("", data.finpath, ".streaming", NULL);
+			}
 			assert(data.tmppath != NULL);
 
 			dnam = strdup(data.tmppath);
 			rv = dnam ? mkpath(dirname(dnam)) : -1;
 			free(dnam);
 
-			if(access(data.tmppath, R_OK) == -1) {
+			if(access(data.finpath, R_OK) == -1) {
 				data.dump = (rv == 0) ? fopen(data.tmppath, "w") : NULL;
 
 				if(!data.dump)
@@ -246,6 +250,7 @@ int playback(FILE * streamfd, int pipefd) {
 			if(killed) {
 				unlink(data.tmppath);
 			} else {
+				char *dnam;
 				int rv;
 #ifdef TAGLIB
 				TagLib_File *tagme = taglib_file_new_type(data.tmppath, TagLib_File_MPEG);
@@ -275,7 +280,11 @@ int playback(FILE * streamfd, int pipefd) {
 					free(command);
 				}
 
-				rv = rename(data.tmppath, data.finpath);
+				dnam = strdup(data.finpath);
+				rv = dnam ? mkpath(dirname(dnam)) : -1;
+				free(dnam);
+
+				rv = rv ? rv : rename(data.tmppath, data.finpath);
 				if (rv == -1)
 					fprintf(stderr, "Can't rename %s to %s\n",
 							data.tmppath, data.finpath);
