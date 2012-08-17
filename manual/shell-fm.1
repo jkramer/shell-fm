@@ -64,6 +64,10 @@ Enabled/disable discovery mode. I'm not sure if this has any effect, and it
 looks like even the Last.FM guys don't really know what it does, but I think it
 is meant to ensure that you get only tracks that you don't know yet.
 .TP
+.B D
+Save the current track. This only has an effect if downloading is configured and
+no-auto-download is set.
+.TP
 .B f
 Jump to the fan radio station of the artist of the currently played track.
 .TP
@@ -310,6 +314,10 @@ is free, it is saved at the given place.
 Buffer downloaded tracks in the file given by download-tmp. If this is set,
 it may help to avoid creating empty directories, e.g. when a track is skipped.
 This should point to the same filesystem as download.
+.TP
+.B no-auto-download = something
+Store the track only when told so from the interface. (In contrast to storing
+all tracks)
 .TP
 .B gap = seconds
 If this is set to a number, shell-fm will wait that amount of seconds between

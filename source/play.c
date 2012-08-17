@@ -73,6 +73,8 @@ struct stream {
 	int timeout;
 	int preload;
 };
+
+int do_dump;
 #endif
 
 #define BUFSIZE (32*1024)
@@ -128,6 +130,7 @@ mkpath(char *path)
 int playback(FILE * streamfd, int pipefd) {
 	killed = 0;
 	signal(SIGUSR1, sighand);
+	signal(SIGUSR2, sighand);
 
 #ifndef EXTERN_ONLY
 	if(!haskey(& rc, "extern")) {
@@ -212,6 +215,7 @@ int playback(FILE * streamfd, int pipefd) {
 			char * dnam;
 			int rv;
 
+			do_dump = 0;
 			data.finpath = strdup(meta(value(& rc, "download"), M_RELAXPATH, & track));
 			assert(data.finpath != NULL);
 
@@ -250,7 +254,6 @@ int playback(FILE * streamfd, int pipefd) {
 			if(killed) {
 				unlink(data.tmppath);
 			} else {
-				char *dnam;
 				int rv;
 #ifdef TAGLIB
 				TagLib_File *tagme = taglib_file_new_type(data.tmppath, TagLib_File_MPEG);
@@ -280,14 +283,23 @@ int playback(FILE * streamfd, int pipefd) {
 					free(command);
 				}
 
-				dnam = strdup(data.finpath);
-				rv = dnam ? mkpath(dirname(dnam)) : -1;
-				free(dnam);
+				if (!haskey(&rc, "no-auto-download") || do_dump) {
+					char *dnam;
 
-				rv = rv ? rv : rename(data.tmppath, data.finpath);
-				if (rv == -1)
-					fprintf(stderr, "Can't rename %s to %s\n",
-							data.tmppath, data.finpath);
+					dnam = strdup(data.finpath);
+					rv = dnam ? mkpath(dirname(dnam)) : -1;
+					free(dnam);
+
+					rv = rv ? rv : rename(data.tmppath, data.finpath);
+					if (rv == -1)
+						fprintf(stderr, "Can't rename %s to %s\n",
+								data.tmppath, data.finpath);
+				} else {
+					rv = remove(data.tmppath);
+					if (rv == -1)
+						fprintf(stderr, "Can't delete %s\n",
+								data.tmppath);
+				}
 			}
 
 			free(data.tmppath);
@@ -341,6 +353,10 @@ int playback(FILE * streamfd, int pipefd) {
 static void sighand(int sig) {
 	if(sig == SIGUSR1)
 		killed = !0;
+	if(sig == SIGUSR2) {
+		fprintf(stderr, "Will dump track.\n");
+		do_dump = !0;
+	}
 }
 
 #ifndef EXTERN_ONLY
