@@ -222,6 +222,7 @@ int execcmd(const char * cmd, char * reply) {
 		"volume",
 		"rtp",
 		"status",
+		"unlove",
 		"detach"
 	};
 
@@ -394,9 +395,14 @@ int execcmd(const char * cmd, char * reply) {
 			strncpy(reply, PLAYBACK_STATUS, BUFSIZE);
 			break;
 
-		/* Detach from network interface. */
+		/* Unlove currently played track. */
 		case 20:
-			return 1;
+			rate("U");
+			break;
+		
+		/* Detach from network interface. */
+		case 21:
+			return 1;	
 	}
 
 	return 0;
