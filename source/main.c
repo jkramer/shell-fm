@@ -290,6 +290,12 @@ int main(int argc, char ** argv) {
 	/* Catch SIGTSTP to set pausetime when user suspends us with ^Z. */
 	signal(SIGTSTP, stopsig);
 
+	if(!background) {
+		struct input keyboard = { 0, KEYBOARD };
+		register_handle(keyboard);
+		canon(0);
+		atexit(cleanup_term);
+	}
 
 	/* Authenticate to the Last.FM server. */
 	if(haskey(& rc, "password-md5") && !authenticate(value(& rc, "username"), value(& rc, "password-md5")))
@@ -305,14 +311,6 @@ int main(int argc, char ** argv) {
 			fclose(fd);
 		}
 	}
-
-	if(!background) {
-		struct input keyboard = { 0, KEYBOARD };
-		register_handle(keyboard);
-		canon(0);
-		atexit(cleanup_term);
-	}
-
 
 	/* Play default radio, if specified. */
 	if(haskey(& rc, "default-radio")) {
