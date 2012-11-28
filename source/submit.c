@@ -52,6 +52,8 @@ int enqueue(struct hash * track) {
 	set(& queue, key_no("streamId", queue_length), value(track, "streamid"));
 	set(& queue, key_no("timestamp", queue_length), timestamp);
 
+	++queue_length;
+
 	return !0;
 }
 
