@@ -191,9 +191,7 @@ void notify_now_playing(struct hash * track) {
 	body = rest("track.updateNowPlaying", & post);
 
 	empty(& post);
-
-	if(body != NULL)
-		free(body);
+	free(body);
 }
 
 static const char * key_no(const char * name, int n) {

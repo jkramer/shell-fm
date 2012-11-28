@@ -124,6 +124,7 @@ char ** load_feed(
 
 	empty(& h);
 	free(response);
+	json_value_free(json);
 
 	return names;
 }

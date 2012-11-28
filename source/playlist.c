@@ -39,7 +39,9 @@ int expand(struct playlist * list) {
 	response = rest("radio.getPlaylist", & p);
 
 	if(response != NULL) {
-		return parse_playlist(list, response);
+		int result = parse_playlist(list, response);
+		free(response);
+		return result;
 	}
 	else {
 		return 0;
@@ -106,6 +108,8 @@ int parse_playlist(struct playlist * list, char * plain_json) {
 
 		debug("track location: %s\n", value(& node->track, "location"));
 	}
+
+	json_value_free(playlist);
 
 	return 1;
 }

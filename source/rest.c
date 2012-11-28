@@ -44,9 +44,9 @@ char * rest(const char * method, struct hash * p) {
 
 
 void create_session() {
-	char token[32 + 1] = { 0, }, session_key[32 + 1] = { 0, }, * json_plain;
-	struct hash p = { 0, NULL };
-	json_value * json_key;
+	char token[32 + 1] = { 0, }, session_key[32 + 1] = { 0, }, * response;
+	struct hash h = { 0, NULL };
+	json_value * json;
 
 	if(!restore_key("session", session_key)) {
 		if(!restore_key("token", token)) {
@@ -55,17 +55,31 @@ void create_session() {
 
 		debug("token=<%s>\n", token);
 
-		set(& p, "token", token);
+		set(& h, "token", token);
 
-		json_plain = rest("auth.getSession", & p);
+		response = rest("auth.getSession", & h);
+		json = json_parse(response);
 
-		json_key = json_query(json_parse(json_plain), "session", "key", NULL);
+		free(response);
 
-		if(json_key != NULL) {
-			strncpy(session_key, json_key->u.string.ptr, sizeof(session_key) - 1);
+		empty(& h);
+
+		json_hash(json, & h, NULL);
+		json_value_free(json);
+
+		if(haskey(& h, "session.key")) {
+			strcpy(session_key, value(& h, "session.key"));
+			set(& rc, "username", value(& h, "session.name"));
 			spit(rcpath("session"), session_key);
+			empty(& h);
 		}
 		else {
+			if(haskey(& h, "message")) {
+				fprintf(stderr, "%s.\n", value(& h, "message"));
+			}
+
+			empty(& h);
+
 			fputs("Failed to create session. Please refresh authorization.\n", stderr);
 			create_token();
 		}
@@ -98,6 +112,7 @@ void create_token() {
 
 	fprintf(stderr, "Please open http://www.last.fm/api/auth/?%s in your browser to authorize shell-fm.\n", hash_query(& p));
 
+	empty(& p);
 	free(json_plain);
 	json_value_free(json);
 
