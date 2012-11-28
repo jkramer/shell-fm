@@ -25,35 +25,25 @@
 #include "globals.h"
 
 #include "interface.h"
+#include "json.h"
+#include "rest.h"
 
 
 int expand(struct playlist * list) {
-	char url[512], ** response, * xml = NULL;
-	const char * fmt =
-		"http://ws.audioscrobbler.com/radio/xspf.php"
-		"?sk=%s&discovery=%d&desktop=0";
+	struct hash p = { 0, NULL };
+	char * response;
 
 	assert(list != NULL);
 
-	memset(url, 0, sizeof(url));
-	snprintf(
-		url, sizeof(url), fmt,
-		value(& data, "session"), !!enabled(DISCOVERY)
-	);
-
-	response = fetch(url, NULL, NULL, NULL);
+	set(& p, "discovery", (!!enabled(DISCOVERY)) ? "true" : "false");
+	response = rest("radio.getPlaylist", & p);
 
 	if(response != NULL) {
-		int retval;
-
-		xml = join(response, 0);
-		response = NULL;
-
-		retval = parsexspf(list, xml);
-		return retval;
+		return parse_playlist(list, response);
 	}
-
-	return 0;
+	else {
+		return 0;
+	}
 }
 
 void trim(char * string){
@@ -66,70 +56,41 @@ void trim(char * string){
 }
 
 
-int parsexspf(struct playlist * list, char * xml) {
-	char * ptr = xml;
-	unsigned i, tracks = 0;
-	char * track;
+int parse_playlist(struct playlist * list, char * plain_json) {
+	json_value * playlist, * track_array, * track, * extension;
+	unsigned n;
 
 	assert(list != NULL);
-	assert(xml != NULL);
+	assert(plain_json != NULL);
 
-	while((track = strcasestr(ptr, "<track>")) != NULL) {
+	playlist = json_parse(plain_json);
+
+	assert(playlist != NULL);
+
+	track_array = json_query(playlist, "playlist", "trackList", "track", NULL);
+
+	assert(track_array != NULL);
+
+	for(n = 0; n < track_array->u.array.length; ++n) {
 		struct tracknode * node = NULL;
-		char * next = strcasestr(track + 7, "<track>"), * duration;
-
-		const char * tags [] = {
-			"location", "title", "album", "creator", "duration", "image",
-			"lastfm:trackauth",
-		};
-
-		const char * links [] = { "artistpage", "albumpage", "trackpage", "freeTrackURL", };
-
-
-		if(next)
-			* (next - 1) = 0;
+		char * duration;
 
 		node = malloc(sizeof(struct tracknode));
 		assert(node != NULL);
 
 		memset(node, 0, sizeof(struct tracknode));
 
-		for(i = 0; i < (sizeof(tags) / sizeof(char *)); ++i) {
-			char begin[32] = { 0 }, end[32] = { 0 };
 
-			sprintf(begin, "<%s>", tags[i]);
-			sprintf(end, "</%s>", tags[i]);
+		track = track_array->u.array.values[n];
+		extension = json_query(track, "extension", NULL);
 
-			if((ptr = strcasestr(track, begin)) != NULL) {
-				char * text = strndup(
-						ptr + strlen(begin),
-						(strcasestr(ptr, end)) - (ptr + strlen(begin))
-				);
+		json_hash(track, & node->track, NULL);
+		json_hash(extension, & node->track, NULL);
 
-				assert(text != NULL);
-
-				unhtml(text);
-				set(& node->track, tags[i], text);
-				free(text);
-			}
-		}
-
-		for(i = 0; i < (sizeof(links) / sizeof(char *)); ++i) {
-			char begin[64] = { 0 };
-
-			sprintf(begin, "<link rel=\"http://www.last.fm/%s\">", links[i]);
-
-			if((ptr = strcasestr(track, begin)) != NULL) {
-				char * text = strndup(
-						ptr + strlen(begin),
-						(strcasestr(ptr, "</link>")) - (ptr + strlen(begin))
-						);
-
-				assert(text != NULL);
-
-				set(& node->track, links[i], text);
-				free(text);
-			}
+		if((duration = strdup(value(& node->track, "duration"))) != NULL) {
+			duration[strlen(duration) - 3] = 0;
+			set(& node->track, "duration", duration);
+			free(duration);
 		}
 
 		if(list->title) {
@@ -141,23 +102,9 @@ int parsexspf(struct playlist * list, char * xml) {
 			set(& node->track, "station", "Unknown Station");
 		}
 
-		duration = strdup(value(& node->track, "duration"));
-		if(duration != NULL) {
-			duration[strlen(duration) - 3] = 0;
-			set(& node->track, "duration", duration);
-		}
-
 		push(list, node);
 
-
 		debug("track location: %s\n", value(& node->track, "location"));
-
-		++tracks;
-
-		if(!next)
-			break;
-
-		ptr = next;
 	}
 
 	return 1;

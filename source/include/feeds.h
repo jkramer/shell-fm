@@ -7,7 +7,7 @@
 extern char ** neighbors(const char *);
 extern char ** topartists(const char *);
 extern char ** friends(const char *);
-extern char ** toptags(char, struct hash);
+extern char ** toptags(char, struct hash *);
 extern char ** overalltags(void);
 extern char ** usertags(const char *);
 

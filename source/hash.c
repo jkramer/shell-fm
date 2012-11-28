@@ -12,6 +12,7 @@
 #include <stdio.h>
 
 #include "hash.h"
+#include "util.h"
 
 
 void set(struct hash * hash, const char * key, const char * value) {
@@ -85,4 +86,15 @@ int haskey(struct hash * hash, const char * key) {
 			return x + 1;
 
 	return 0;
+}
+
+
+void dump_hash(struct hash * h) {
+	unsigned n;
+
+	assert(h != NULL);
+
+	for(n = 0; n < h->size; ++n) {
+		debug("dump_hash: <%s> = <%s>\n", h->content[n].key, h->content[n].value);
+	}
 }

@@ -8,7 +8,6 @@
 #include <ctype.h>
 #include <assert.h>
 
-#include "xmlrpc.h"
 #include "feeds.h"
 #include "hash.h"
 #include "completion.h"
@@ -16,13 +15,16 @@
 #include "interface.h"
 #include "settings.h"
 #include "getln.h"
+#include "rest.h"
 
 static char ** users = NULL;
 static int usercomplete(char *, const unsigned, int);
 
 void recommend(struct hash track) {
 	char key, * message = NULL, * recipient = NULL;
-	unsigned result = 0;
+	const char * method, * error;
+	char * response;
+	struct hash h = { 0, NULL };
 
 	struct prompt setup = {
 		.prompt = "Recipient: ",
@@ -60,33 +62,38 @@ void recommend(struct hash track) {
 
 	switch(key) {
 		case 'a':
-			result = xmlrpc(
-				"recommendArtist", "ssss",
-				value(& track, "creator"),
-				recipient, message, "en"
-			);
+			method = "artist.share";
 			break;
 
 		case 'l':
-			result = xmlrpc(
-				"recommendAlbum", "sssss",
-				value(& track, "creator"),
-				value(& track, "album"),
-				recipient, message, "en"
-			);
+			method = "album.share";
+			set(& h, "album", value(& track, "album"));
 			break;
 
 		case 't':
-			result = xmlrpc(
-				"recommendTrack", "sssss",
-				value(& track, "creator"),
-				value(& track, "title"),
-				recipient, message, "en"
-			);
+			method = "track.share";
+			set(& h, "track", value(& track, "title"));
+			break;
+
+		default:
+			method = ""; /* This can't happen. */
 			break;
 	}
 
-	puts(result ? "Recommended." : "Sorry, failed.");
+	set(& h, "artist", value(& track, "creator"));
+	set(& h, "message", message);
+	set(& h, "recipient", recipient);
+
+	response = rest(method, & h);
+
+	error = error_message(response);
+
+	if(error != NULL) {
+		puts(error);
+	}
+
+	free(response);
+	empty(& h);
 }
 
 

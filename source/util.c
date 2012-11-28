@@ -13,6 +13,7 @@
 
 #include "util.h"
 #include "getln.h"
+#include "md5.h"
 
 #if (defined(TUXBOX) || defined(PPC))
 #include <ctype.h>
@@ -70,6 +71,16 @@ char ** slurp(const char * path) {
 	}
 
 	return content;
+}
+
+
+void spit(const char * path, const char * content) {
+	FILE * fd = fopen(path, "w");
+
+	assert(fd != NULL);
+
+	fprintf(fd, "%s\n", content);
+	fclose(fd);
 }
 
 
@@ -219,3 +230,19 @@ char * strcasestr(const char * haystack, const char * needle) {
 
 
 #endif
+
+
+const char const * plain_md5(const char * input) {
+	const unsigned char * md5;
+	static char plain[32 + 1] = { 0, };
+	unsigned ndigit;
+
+	md5 = MD5((const unsigned char *) input, strlen(input));
+
+	for(ndigit = 0; ndigit < 16; ++ndigit)
+		sprintf(2 * ndigit + plain, "%02x", md5[ndigit]);
+
+	// debug("md5 password: <%s>\n", plain);
+
+	return plain;
+}

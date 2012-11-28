@@ -29,6 +29,8 @@ extern char * current_station; /* Name of the current station. */
 
 extern unsigned submitting; /* Number of tracks currently submitted. */
 extern time_t pausetime; /* Pause start time. */
+extern time_t change_time;
+extern int error;
 
 #define MAX_VOLUME 64
 

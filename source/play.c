@@ -411,7 +411,7 @@ static void read_from_pipe(int pipefd) {
 #ifdef LIBAO
 static enum mad_flow output(
 		void * data,
-		const struct mad_header * head,
+		__attribute__((unused)) const struct mad_header * head,
 		struct mad_pcm * pcm) {
 	struct stream * ptr = (struct stream *) data;
 

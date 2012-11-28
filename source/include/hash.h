@@ -19,5 +19,6 @@ extern const char * value(struct hash *, const char *);
 extern void unset(struct hash *, const char *);
 extern int haskey(struct hash *, const char *);
 extern void empty(struct hash *);
+extern void dump_hash(struct hash *);
 
 #endif

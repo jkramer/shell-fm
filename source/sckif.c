@@ -250,17 +250,17 @@ int execcmd(const char * cmd, char * reply) {
 
 		/* Love currently played track. */
 		case 1:
-			rate("L");
+			rate(RATING_LOVE);
 			break;
 
 		/* Ban currently played track. */
 		case 2:
-			rate("B");
+			rate(RATING_BAN);
 			break;
 
 		/* Skip track. */
 		case 3:
-			rate("S");
+			skip();
 			break;
 
 		/* Kill Shell.FM. */
@@ -324,7 +324,7 @@ int execcmd(const char * cmd, char * reply) {
 
 		/* Return comma-separated list of the current artists tags. */
 		case 11:
-			if((ptr = oldtags('a', track)) != NULL) {
+			if((ptr = load_tags('a', & track)) != NULL) {
 				strncpy(reply, ptr, BUFSIZE);
 				free(ptr);
 				ptr = NULL;
@@ -333,7 +333,7 @@ int execcmd(const char * cmd, char * reply) {
 
 		/* Return comma-separated list of the current albums tags. */
 		case 12:
-			if((ptr = oldtags('l', track)) != NULL) {
+			if((ptr = load_tags('l', & track)) != NULL) {
 				strncpy(reply, ptr, BUFSIZE);
 				free(ptr);
 				ptr = NULL;
@@ -342,7 +342,7 @@ int execcmd(const char * cmd, char * reply) {
 
 		/* Return comma-separated list of the current tracks tags. */
 		case 13:
-			if((ptr = oldtags('t', track)) != NULL) {
+			if((ptr = load_tags('t', & track)) != NULL) {
 				strncpy(reply, ptr, BUFSIZE);
 				free(ptr);
 				ptr = NULL;

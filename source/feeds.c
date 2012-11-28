@@ -14,253 +14,117 @@
 #include "tag.h"
 #include "util.h"
 #include "strary.h"
+#include "rest.h"
+#include "json.h"
+#include "hash.h"
+
+char ** load_feed(const char *, const char *, const char *, const char *, struct hash *);
 
 char ** neighbors(const char * user) {
-	char * encoded = NULL, feed[128], ** names = NULL;
-	unsigned i;
-
-	assert(user != NULL);
-
-	encode(user, & encoded);
-
-	memset(feed, (char) 0, sizeof(feed));
-	snprintf(
-		feed, sizeof(feed),
-		"http://ws.audioscrobbler.com/1.0/user/%s/neighbours.txt",
-		encoded
-	);
-
-	free(encoded);
-
-	names = cache(feed, "neighbors", 0);
-
-	if(names != NULL)
-		for(i = 0; names[i] != NULL; ++i) {
-			char * ptr = strchr(names[i], ',');
-			if(ptr != NULL) {
-				unsigned length = strlen(ptr + 1);
-				memmove(names[i], ptr + 1, length);
-				names[i][length] = 0;
-				names[i] = realloc(names[i], sizeof(char) * (length + 1));
-				assert(names[i] != NULL);
-			}
-		}
-
-	return names;
+	return load_feed(user, "user.getNeighbours", "neighbours.user", "name", NULL);
 }
 
 
 char ** topartists(const char * user) {
-	char * encoded = NULL, feed[128], ** names = NULL;
-	unsigned i;
+	return load_feed(user, "user.getTopArtists", "topartists.artist", "name", NULL);
+}
 
-	assert(user != NULL);
+char ** friends(const char * user) {
+	return load_feed(user, "user.getFriends", "friends.user", "name", NULL);
+}
 
-	encode(user, & encoded);
 
-	memset(feed, (char) 0, sizeof(feed));
-	snprintf(
-		feed, sizeof(feed),
-		"http://ws.audioscrobbler.com/1.0/user/%s/topartists.txt",
-		encoded
-	);
+char ** toptags(char key, struct hash * track) {
+	struct hash h = { 0, NULL };
+	char ** names;
 
-	free(encoded);
+	set(& h, "artist", value(track, "creator"));
 
-	names = cache(feed, "top-artists", 0);
+	switch(key) {
+		case 'a':
+			names = load_feed(NULL, "artist.getTopTags", "toptags.tag", "name", & h);
+			break;
+		case 'l':
+			set(& h, "album", value(track, "album"));
+			names = load_feed(NULL, "album.getTopTags", "toptags.tag", "name", & h);
+			break;
+		case 't':
+			set(& h, "track", value(track, "title"));
+			names = load_feed(NULL, "track.getTopTags", "toptags.tag", "name", & h);
+			break;
+		default:
+			names = NULL;
+			break;
+	}
 
-	if(names != NULL)
-		for(i = 0; names[i] != NULL; ++i) {
-			char * ptr = strchr(names[i], ',');
-			if(ptr != NULL) {
-				ptr = strchr(ptr + 1, ',');
-				if(ptr != NULL) {
-					unsigned length = strlen(ptr + 1);
-					memmove(names[i], ptr + 1, length);
-					names[i][length] = 0;
-					names[i] = realloc(names[i], sizeof(char) * (length + 1));
-					assert(names[i] != NULL);
-				}
-			}
-		}
+	empty(& h);
 
 	return names;
 }
 
-char ** friends(const char * user) {
-	char * encoded = NULL, feed[128];
-
-	assert(user != NULL);
-	encode(user, & encoded);
-
-	memset(feed, (char) 0, sizeof(feed));
-	snprintf(
-		feed, sizeof(feed),
-		"http://ws.audioscrobbler.com/1.0/user/%s/friends.txt",
-		encoded
-	);
-
-	free(encoded);
-
-	return cache(feed, "friends", 0);
-}
-
-
-char ** toptags(char key, struct hash track) {
-	unsigned length, x, count, idx;
-	char ** tags = NULL, url[256], * type = NULL, * artist = NULL,
-		 ** resp, cachename[512];
-
-	memset(cachename, (char) 0, sizeof(cache));
-
-	/* Get artist, album or track tags? */
-	type = strchr("al", key) ? "artist" : "track";
-
-	/* Prepare artist name for use in URL. */
-	encode(value(& track, "creator"), & artist);
-	stripslashes(artist);
-
-	/* Prepare URL for album / artist tags. */
-	memset(url, 0, sizeof(url));
-	length = snprintf(
-		url, sizeof(url),
-		"http://ws.audioscrobbler.com/1.0/%s/%s/",
-		type, artist
-	);
-
-	free(artist);
-
-	/* Append title if we want track tags. */
-	if(key == 't') {
-		char * title = NULL;
-		encode(value(& track, "title"), & title);
-		snprintf(cachename, sizeof(cachename), "tags-t-%s--%s", artist, title);
-		stripslashes(title);
-		length += snprintf(url + length, sizeof(url) - length, "%s/", title);
-		free(title);
-	} else {
-		snprintf(cachename, sizeof(cachename), "tags-a-%s", artist);
-	}
-
-	strncpy(url + length, "toptags.xml", sizeof(url) - length - 1);
-
-	/* Fetch XML document. */
-	if((resp = cache(url, cachename, 0)) == NULL)
-		return NULL;
-
-	/* Count tags in XML. */
-	for(count = x = 0; resp[x]; ++x)
-		if(strstr(resp[x], "<name>") != NULL)
-			++count;
-
-	tags = calloc(count + 1, sizeof(char *));
-
-	assert(tags != NULL);
-
-	tags[count] = NULL;
-
-	/* Search tag names in XML document and copy them into our list. */
-	for(x = 0, idx = 0; resp[x] && idx < count; ++x) {
-		char * pbeg = strstr(resp[x], "<name>");
-		if(pbeg) {
-			char * pend = strstr(pbeg += 6, "</name>");
-
-			if(pend) {
-				tags[idx++] = strndup(pbeg, pend - pbeg);
-				assert(tags[idx - 1] != NULL);
-			}
-		}
-
-		free(resp[x]);
-	}
-
-	free(resp);
-
-	return tags;
-}
-
 
 char ** overalltags(void) {
-	unsigned x, count = 0, idx;
-	const char * url = "http://ws.audioscrobbler.com/1.0/tag/toptags.xml";
-	char ** tags = NULL, ** resp;
-
-	if((resp = cache(url, "overall-tags", 0)) == NULL)
-		return NULL;
-
-	for(x = 0; resp[x]; ++x)
-		if(strstr(resp[x], "<tag name=\"") != NULL)
-			++count;
-
-	tags = calloc(count + 1, sizeof(char *));
-
-	assert(tags != NULL);
-
-	tags[count] = NULL;
-
-	for(x = 0, idx = 0; resp[x]; ++x) {
-		char * pbeg = strstr(resp[x], "<tag name=\""), * pend;
-		if(pbeg) {
-			pend = strstr(pbeg += 11, "\"");
-
-			if(pend) {
-				tags[idx++] = strndup(pbeg, pend - pbeg);
-				assert(tags[idx - 1] != NULL);
-			}
-		}
-
-	}
-
-	purge(resp);
-
-	return tags;
+	return load_feed(NULL, "tag.getTopTags", "toptags.tag", "name", NULL);
 }
 
 
 char ** usertags(const char * user) {
-	char ** tags = NULL, ** resp, * encoded = NULL, url[256], cachename[64];
-	const char * fmt = "http://ws.audioscrobbler.com/1.0/user/%s/tags.txt";
-	unsigned n = 0;
+	return load_feed(user, "user.getTopTags", "toptags.tag", "name", NULL);
+}
 
-	memset(url, (char) 0, sizeof(url));
-	memset(cachename, (char) 0, sizeof(cachename));
 
-	encode(user, & encoded);
+char ** load_feed(
+	const char * user,
+	const char * method,
+	const char * path,
+	const char * last_node,
+	struct hash * track
+) {
+	struct hash h = { 0, NULL };
+	char * response, ** names = NULL, format[64], single_path[64];
+	unsigned n;
+	json_value * json;
 
-	snprintf(url, sizeof(url), fmt, encoded);
-	snprintf(cachename, sizeof(cachename), "usertags-%s", encoded);
+	if(user != NULL)
+		set(& h, "user", user);
 
-	free(encoded);
-	encoded = NULL;
-
-	if((resp = cache(url, cachename, 0)) != NULL) {
-		unsigned ntag = 0;
-		while(resp[n] != NULL) {
-			char * begin = strchr(resp[n], ',');
-			if(begin) {
-				char * end = strchr(begin, ',');
-				if(end) {
-					* end = 0;
-
-					tags = realloc(tags, sizeof(char *) * (ntag + 2));
-
-					assert(tags != NULL);
-
-					tags[ntag++] = strdup(begin);
-
-					assert(tags[ntag - 1] != NULL);
-
-					tags[ntag] = NULL;
-				}
-			}
-
-			free(resp[n]);
-
-			++n;
+	if(track != NULL) {
+		for(n = 0; n < track->size; ++n) {
+			set(& h, track->content[n].key, track->content[n].value);
 		}
-
-		free(resp);
 	}
 
-	return tags;
+	response = rest(method, & h);
+
+	json = json_parse(response);
+
+	empty(& h);
+
+	json_hash(json, & h, NULL);
+
+	snprintf(format, sizeof(format), "%s.%%d.%%31s", path);
+	snprintf(single_path, sizeof(single_path), "%s.%s", path, last_node);
+
+	for(n = 0; n < h.size; ++n) {
+		int x = 0;
+		char name[32];
+
+		if(
+			strcmp(h.content[n].key, path) == 0
+			||
+			(
+				sscanf(h.content[n].key, format, & x, name) > 0
+				&&
+				strcmp(name, last_node) == 0
+			)
+		) {
+			names = append(names, h.content[n].value);
+		}
+	}
+
+	empty(& h);
+	free(response);
+
+	return names;
 }
+

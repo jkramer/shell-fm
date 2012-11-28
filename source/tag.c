@@ -24,9 +24,10 @@
 
 #include "readline.h"
 #include "tag.h"
-#include "xmlrpc.h"
 #include "util.h"
 #include "globals.h"
+#include "rest.h"
+#include "json.h"
 
 char ** popular = NULL;
 
@@ -49,9 +50,9 @@ void tag(struct hash data) {
 	if(key == 'c')
 		return;
 
-	popular = merge(toptags(key, data), usertags(value(& rc, "username")), 0);
+	popular = merge(toptags(key, & data), usertags(value(& rc, "username")), 0);
 
-	setup.line = oldtags(key, data);
+	setup.line = load_tags(key, & data);
 
 	assert((tagstring = strdup(readline(& setup))) != NULL);
 
@@ -68,91 +69,70 @@ void tag(struct hash data) {
 }
 
 
-char * oldtags(char key, struct hash track) {
-	unsigned length, x;
-	char * tags = NULL, * url = calloc(512, sizeof(char)),
-		 * user = NULL, * artist = NULL, * arg = NULL,
-		 * file = NULL, ** resp;
-	
-	assert(url != NULL);
-	
+char * load_tags(char key, struct hash * track) {
+	char * response, * tag_string = NULL;
+	const char * method;
+	struct hash h = { 0, NULL };
+	unsigned n;
+	size_t total_length = 0;
+	json_value * json;
+
 	switch(key) {
 		case 'a':
-			file = "artisttags.xml";
+			method = "artist.getTags";
 			break;
+
 		case 'l':
-			file = "albumtags.xml";
+			method = "album.getTags";
+			set(& h, "album", value(track, "album"));
 			break;
+
 		case 't':
 		default:
-			file = "tracktags.xml";
+			set(& h, "track", value(track, "title"));
+			method = "track.getTags";
 	}
 
-	encode(value(& track, "creator"), & artist);
-	stripslashes(artist);
+	set(& h, "artist", value(track, "creator"));
 
-	encode(value(& rc, "username"), & user);
+	response = rest(method, & h);
 
-	length = snprintf(
-			url, 512, "http://ws.audioscrobbler.com/1.0/user/%s/%s?artist=%s",
-			user, file, artist);
+	json = json_parse(response);
 
-	free(user);
-	free(artist);
+	empty(& h);
 
-	if(key == 'l') {
-		encode(value(& track, "album"), & arg);
-		/* don't request tags for a not-existing album */
-		if(!strlen(arg)) {
-			free(arg);
-			return NULL;
-		}
-		stripslashes(arg);
-		length += snprintf(url + length, 512 - length, "&album=%s", arg);
-	} else if(key == 't') {
-		encode(value(& track, "title"), & arg);
-		stripslashes(arg);
-		length += snprintf(url + length, 512 - length, "&track=%s", arg);
-	}
+	json_hash(json, & h, NULL);
 
-	if(arg)
-		free(arg);
+	dump_hash(& h);
 
-	resp = fetch(url, NULL, NULL, NULL);
-	free(url);
+	for(n = 0; n < h.size; ++n) {
+		int x = 0;
+		char name[32];
 
-	if(!resp)
-		return NULL;
+		if(
+			strcmp(h.content[n].key, "tags.tag.name") == 0
+			||
+			(
+				sscanf(h.content[n].key, "tags.tag.%d.%31s", & x, name) > 0
+				&&
+				strcmp(name, "name") == 0
+			)
+		) {
+			size_t length = strlen(h.content[n].value);
 
-	for(x = 0, length = 0; resp[x]; ++x) {
-		char * pbeg = strstr(resp[x], "<name>"), * pend;
-		if(pbeg) {
-			pbeg += 6;
-			pend = strstr(pbeg, "</name>");
-			if(pend) {
-				char * thistag = strndup(pbeg, pend - pbeg);
-				unsigned nlength = strlen(thistag) + length;
+			tag_string = realloc(tag_string, total_length + length + 1);
 
-				assert(thistag != NULL);
+			sprintf(tag_string + total_length, n > 0 ? ",%s" : "%s", h.content[n].value);
 
-				if(length)
-					++nlength;
-
-				tags = realloc(tags, nlength + 1);
-
-				assert(tags != NULL);
-
-				sprintf(tags + length, "%s%s", length ? "," : "", thistag);
-
-				free(thistag);
-				length = nlength;
-			}
+			total_length += length + n;
 		}
 	}
 
-	purge(resp);
+	free(response);
+	json_value_free(json);
+	empty(& h);
 
-	return tags;
+	return tag_string;
 }
 
 
@@ -215,47 +195,40 @@ int tagcomplete(char * line, const unsigned max, int changed) {
 
 
 void sendtag(char key, char * tagstring, struct hash data) {
-	unsigned nsplt = 0;
-	int result = 0;
-	char ** splt = NULL;
-
-	if(tagstring) {
-		unsigned length = strlen(tagstring);
-		/* remove trailing commas */
-		while(length > 0 && tagstring[length-1] == ',')
-			tagstring[--length] = 0;
-
-		splt = split(tagstring, ",\n", & nsplt);
-	}
+	struct hash h = { 0, NULL };
+	const char * method, * error;
+	char * response;
 
 	switch(key) {
 		case 'a':
-			result =
-				xmlrpc("tagArtist", "sas", value(& data, "creator"), splt, "set");
+			method = "artist.addTags";
 			break;
 
 		case 'l':
-			result = xmlrpc(
-					"tagAlbum", "ssas",
-					value(& data, "creator"),
-					value(& data, "album"),
-					splt, "set"
-					);
+			method = "album.addTags";
+			set(& h, "album", value(& data, "album"));
 			break;
 
 		case 't':
-			result = xmlrpc(
-					"tagTrack", "ssas",
-					value(& data, "creator"),
-					value(& data, "title"),
-					splt, "set"
-					);
+			method = "track.addTags";
+			set(& h, "track", value(& data, "title"));
+			break;
+
+		default:
+			method = ""; // May not happen.
 			break;
 	}
 
-	if(!enabled(QUIET))
-		puts(result ? "Tagged." : "Sorry, failed.");
+	set(& h, "artist", value(& data, "creator"));
+	set(& h, "tags", tagstring);
 
-	purge(splt);
-	splt = NULL;
+	response = rest(method, & h);
+
+	if(!enabled(QUIET)) {
+		error = error_message(response);
+		puts(error == NULL ? "Tagged." : error);
+	}
+
+	free(response);
+	empty(& h);
 }

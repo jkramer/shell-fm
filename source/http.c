@@ -261,7 +261,7 @@ unsigned encode(const char * orig, char ** encoded) {
 	assert(* encoded != NULL);
 
 	while(i < strlen(orig)) {
-		if(isalnum(orig[i]) || orig[i] == ' ')
+		if(isalnum(orig[i]) || orig[i] == ' ' || orig[i] == '_')
 			(* encoded)[x++] = orig[i];
 		else {
 			snprintf(
@@ -394,49 +394,31 @@ const char * makeurl(const char * fmt, ...) {
 	return url;
 }
 
-char ** cache(const char * url, const char * name, int refresh) {
-	time_t expiry = 60 * 60 * 24;
-	char path[4096];
 
-	if(haskey(& rc, "expiry"))
-		expiry = atoi(value(& rc, "expiry"));
+const char * hash_query(struct hash * form) {
+	static char query[1024];
+	unsigned n, length = 0;
 
-	memset(path, (char) 0, sizeof(path));
-	strncpy(path, rcpath("cache"), sizeof(path));
-	if(access(path, W_OK | X_OK))
-		mkdir(path, 0700);
+	memset(query, 0, sizeof(query));
 
-	snprintf(path, sizeof(path), "%s/%s", rcpath("cache"), name);
+	for(n = 0; n < form->size && length < sizeof(query); ++n) {
+		char * encoded_key = NULL, * encoded_value = NULL;
+		int printed;
 
-	if(!refresh) {
-		if(access(path, R_OK | W_OK))
-			refresh = !0;
-		else {
-			time_t now = time(NULL);
-			struct stat status;
+		encode(form->content[n].key, & encoded_key);
+		encode(form->content[n].value, & encoded_value);
 
-			stat(path, & status);
-			if(status.st_mtime < now - expiry)
-				refresh = !0;
+		printed = snprintf(query + length, sizeof(query) - length, "%s=%s&", encoded_key, encoded_value);
+
+		free(encoded_key);
+		free(encoded_value);
+
+		if(printed > 0) {
+			length += printed;
 		}
 	}
 
-	if(!refresh)
-		return slurp(path);
-	else {
-		char ** data = fetch(url, NULL, NULL, NULL);
-		if(data) {
-			FILE * fd = fopen(path, "w");
-			if(fd != NULL) {
-				unsigned line = 0;
-				while(data[line])
-					fprintf(fd, "%s\n", data[line++]);
-				fclose(fd);
-			} else {
-				fputs("Couldn't write cache.\n", stderr);
-			}
-		}
+	query[--length] = '\0';
 
-		return data;
-	}
+	return query;
 }
