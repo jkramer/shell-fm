@@ -184,7 +184,7 @@ static int new_value
 #define string_add(b)  \
    do { if (!state.first_pass) string [string_length] = b;  ++ string_length; } while (0);
 
-const static long
+static const long
    flag_next = 1,  flag_reproc = 2,  flag_need_comma = 4,  flag_seek_value = 8, 
    flag_escaped = 16,  flag_string = 32,  flag_need_colon = 64,  flag_done = 128,
    flag_num_negative = 256,  flag_num_zero = 512,  flag_num_e = 1024,  
@@ -198,7 +198,7 @@ json_value * json_parse_ex (json_settings * settings, const json_char * json, ch
    json_value * top, * root, * alloc = 0;
    json_state state;
    long flags;
-   long num_digits, num_fraction, num_e;
+   long num_digits = 0, num_fraction = 0, num_e = 0;
 
    error[0] = '\0';
 
@@ -215,8 +215,8 @@ json_value * json_parse_ex (json_settings * settings, const json_char * json, ch
    {
       json_uchar uchar;
       unsigned char uc_b1, uc_b2, uc_b3, uc_b4;
-      json_char * string;
-      unsigned int string_length;
+      json_char * string = NULL;
+      unsigned int string_length = 0;
 
       top = root = 0;
       flags = flag_seek_value;
