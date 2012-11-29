@@ -62,7 +62,7 @@ int enqueue(struct hash * track) {
 int submit() {
 	char * body = NULL;
 	const char * error;
-	int retval = -1;
+	int retval = 0;
 
 	if(!queue_length || subfork > 0)
 		return 0;
@@ -82,7 +82,8 @@ int submit() {
 	error = error_message(body);
 
 	if(error) {
-		fprintf(stderr, "Failed to scrobble track(s). %s.\n", error);
+		fprintf(stderr, "Failed to scrobble track(s), error: %s. Query: %s\n", error, hash_query(& queue));
+		retval = 1;
 	}
 
 	empty(& queue);
@@ -93,8 +94,12 @@ int submit() {
 
 
 void subdead(int exitcode) {
-	if(exitcode == 0)
+	if(exitcode == 0) {
+		queue_length = 0;
 		empty(& queue);
+	} else {
+		fprintf(stderr, "Error while scrobbling track, will try again later.\n");
+	}
 
 	subfork = 0;
 }
