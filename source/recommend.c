@@ -52,12 +52,12 @@ void recommend(struct hash track) {
 	users = neighbors(value(& rc, "username"));
 	users = merge(users, friends(value(& rc, "username")), 0);
 
-	recipient = readline(& recipient_prompt);
+	recipient = strdup(readline(& recipient_prompt));
 
 	purge(users);
 	users = NULL;
 
-	message = readline(& comment_prompt);
+	message = strdup(readline(& comment_prompt));
 
 	switch(key) {
 		case 'a':
@@ -82,6 +82,9 @@ void recommend(struct hash track) {
 	set(& h, "artist", value(& track, "creator"));
 	set(& h, "message", message);
 	set(& h, "recipient", recipient);
+
+	free(recipient);
+	free(message);
 
 	response = rest(method, & h);
 
