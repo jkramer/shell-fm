@@ -21,19 +21,18 @@ static char ** users = NULL;
 static int usercomplete(char *, const unsigned, int);
 
 void recommend(struct hash track) {
-	char key, * message = NULL, * recipient = NULL;
+	char key, * message = NULL, * recipient = NULL, * response = NULL;
 	const char * method, * error;
-	char * response;
 	struct hash h = { 0, NULL };
 
-	struct prompt setup = {
+	struct prompt recipient_prompt = {
 		.prompt = "Recipient: ",
 		.line = NULL,
 		.history = NULL,
 		.callback = usercomplete,
 	};
 
-	struct prompt comment = {
+	struct prompt comment_prompt = {
 		.prompt = "Comment: ",
 		.line = NULL,
 		.history = NULL,
@@ -53,12 +52,12 @@ void recommend(struct hash track) {
 	users = neighbors(value(& rc, "username"));
 	users = merge(users, friends(value(& rc, "username")), 0);
 
-	recipient = readline(& setup);
+	recipient = readline(& recipient_prompt);
 
 	purge(users);
 	users = NULL;
 
-	message = readline(& comment);
+	message = readline(& comment_prompt);
 
 	switch(key) {
 		case 'a':
