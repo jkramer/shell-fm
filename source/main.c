@@ -176,7 +176,7 @@ int main(int argc, char ** argv) {
 #endif
 
 	if(!background && !quiet) {
-		puts("Shell.FM v" PACKAGE_VERSION ", (C) 2006-2010 by Jonas Kramer");
+		puts("Shell.FM v" PACKAGE_VERSION ", (C) 2006-2012 by Jonas Kramer");
 		puts("Published under the terms of the GNU General Public License (GPL).");
 
 #ifndef TUXBOX
@@ -512,7 +512,7 @@ int main(int argc, char ** argv) {
 			if(!background) {
 				printf(
 					"%s%c",
-					strdup(meta("%r", M_COLORED, & track)),
+					meta("%r", M_COLORED, & track),
 					// strdup(meta("%v", M_COLORED, & track)),
 					batch ? '\n' : '\r'
 				);

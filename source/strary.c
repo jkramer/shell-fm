@@ -19,6 +19,7 @@
 
 #include "compatibility.h"
 #include "strary.h"
+#include "util.h"
 
 
 /* Counts the elements of a NULL-terminated array of strings. */
@@ -91,20 +92,25 @@ void purge(char ** list) {
   false, the list is purged.
 */
 char * join(char ** list, int keep) {
-	unsigned i = 0, length = 0;
 	char * result = NULL;
 
 	if(list != NULL) {
-		while(list[i] != NULL) {
-			result = realloc(result, sizeof(char) * (length + strlen(list[i]) + 1));
+		unsigned i = 0;
+		size_t length = 0;
+
+		for(i = 0; list[i] != NULL; ++i) {
+			debug("join[%d]: %s\n", i, list[i]);
+			size_t chunk_length = strlen(list[i]);
+
+			result = realloc(result, sizeof(char) * (length + chunk_length + 1));
 
 			assert(result != NULL);
 
 			strcpy(result + length, list[i]);
-			length += strlen(list[i]);
-			result[length] = 0;
 
-			++i;
+			length += chunk_length;
+
+			result[length] = 0;
 		}
 
 		if(!keep)

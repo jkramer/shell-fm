@@ -2,9 +2,6 @@
 #ifndef SHELLFM_GLOBALS
 #define SHELLFM_GLOBALS
 
-/* for pid_t */
-#include <unistd.h>
-
 #include "hash.h"
 #include "playlist.h"
 

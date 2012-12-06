@@ -29,6 +29,7 @@
 #include "util.h"
 #include "rest.h"
 #include "json.h"
+#include "split.h"
 
 #include "globals.h"
 
@@ -39,6 +40,8 @@ int playpipe = 0;
 
 struct playlist playlist;
 char * current_station = NULL;
+unsigned resolve_artist(const char * name);
+void expand_station_url(char **);
 
 #define HTTP_STATION_PREFIX "http://www.last.fm/listen/"
 
@@ -111,7 +114,11 @@ int station(const char * station_url) {
 		snprintf(complete_url, size, "lastfm://%s", station_url);
 	}
 
+	expand_station_url(& complete_url);
+
 	set(& p, "station", complete_url);
+
+	debug("expanded station = <%s>\n", value(& p, "station"));
 
 	free(complete_url);
 
@@ -240,4 +247,80 @@ int play(struct playlist * list) {
 	playpipe = pipefd[1];
 
 	return !0;
+}
+
+
+unsigned resolve_artist(const char * name) {
+	unsigned artist_id = 0;
+	char * response = fetch(
+		makeurl("http://www.last.fm/ajax/getResource?type=artist&name=%s", name),
+		NULL, NULL, NULL
+	);
+
+	debug("response=<\n%s\n>\n", response);
+
+	if(response != NULL) {
+		struct hash h = { 0, NULL };
+		json_value * json;
+
+		assert((json = json_parse(response)) != NULL);
+
+		json_hash(json, & h, NULL);
+
+		if(haskey(& h, "resource.id"))
+			artist_id = atol(value(& h, "resource.id"));
+
+		json_value_free(json);
+		empty(& h);
+	}
+
+	free(response);
+
+	return artist_id;
+}
+
+
+void expand_station_url(char ** station_url) {
+	debug("checking url: %s\n", * station_url);
+
+	/* Allow URLs like artists/name1*name2*name3 to be entered and replace the
+	 * names with artist ids. */
+	if(strncmp(* station_url, "lastfm://artists/", 17) == 0) {
+		debug("expanding multiple artists radio\n");
+
+		unsigned name_count = 0, n;
+		char ** names = split((* station_url) + 17, "*", & name_count);
+		size_t url_length = 17;
+
+		* station_url = realloc(* station_url, 18);
+		sprintf(* station_url, "lastfm://artists/");
+
+		for(n = 0; n < name_count; ++n) {
+			unsigned artist_id = resolve_artist(names[n]);
+
+			debug("artist <%s> id <%d>\n", names[n], artist_id);
+
+			if(artist_id) {
+				char id_string[32] = { 0, };
+
+				snprintf(id_string, sizeof(id_string), "%d", artist_id);
+
+				url_length += strlen(id_string) + n;
+
+				* station_url = realloc(* station_url, url_length + 1);
+
+				if(n > 0)
+					strcat(* station_url, ",");
+
+				strcat(* station_url, id_string);
+			}
+		}
+
+		purge(names);
+
+		debug("new station: %s\n", * station_url);
+	}
+	else {
+		debug("nothing to expand\n");
+	}
 }

@@ -39,6 +39,7 @@
 
 #include "split.h"
 #include "ropen.h"
+#include "strary.h"
 
 struct hash track;
 
@@ -180,6 +181,8 @@ void handle_client(int client_socket) {
 						write(client_socket, reply, strlen(reply));
 					}
 				}
+
+				purge(lines);
 			}
 
 			else {

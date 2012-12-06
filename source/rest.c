@@ -21,7 +21,7 @@ void create_token();
 
 
 char * rest(const char * method, struct hash * p) {
-	char ** response, * json;
+	char * response;
 
 	if(haskey(& rc, "session")) {
 		set(p, "sk", value(& rc, "session"));
@@ -35,11 +35,10 @@ char * rest(const char * method, struct hash * p) {
 	debug("rest call signuture: <%s>\n", value(p, "api_sig"));
 
 	response = fetch(REST_API_BASE, NULL, hash_query(p), NULL);
-	json = join(response, 0);
 
-	debug("response:\n%s\n", json);
+	debug("response:\n%s\n", response);
 
-	return json;
+	return response;
 }
 
 
@@ -155,6 +154,9 @@ const char const * build_signature(struct hash * p) {
 	debug("plain signature: <%s>\n", plain);
 
 	strncpy(signature, plain_md5(plain), 32);
+
+	free(names);
+	free(plain);
 
 	return signature;
 }

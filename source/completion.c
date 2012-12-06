@@ -7,12 +7,8 @@
 
 
 #include <stdio.h>
-#include <termios.h>
-#include <unistd.h>
 #include <string.h>
-#include <sys/types.h>
 #include <stdlib.h>
-#include <fcntl.h>
 #include <sys/time.h>
 #include <signal.h>
 #include <stdarg.h>

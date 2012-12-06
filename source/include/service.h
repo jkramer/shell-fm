@@ -11,7 +11,6 @@
 extern int authenticate_plaintext(const char *, const char *);
 extern int authenticate(const char *, const char *);
 extern int station(const char *);
-extern int update(struct hash *);
 
 extern int play(struct playlist *);
 
