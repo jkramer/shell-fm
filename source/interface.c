@@ -600,7 +600,6 @@ char * shellescape(const char * string) {
 
 
 void quit() {
-	unlink(rcpath("session"));
 	unlinknp();
 	exit(EXIT_SUCCESS);
 }
