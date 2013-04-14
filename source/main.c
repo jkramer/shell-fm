@@ -100,7 +100,7 @@ int main(int argc, char ** argv) {
 
 
 	/* Parse through command line options. */
-	while(-1 != (option = getopt(argc, argv, ":dbhqi:p:D:y:")))
+	while(-1 != (option = getopt(argc, argv, ":dbhqi:p:D:y:Y:")))
 		switch(option) {
 			case 'd': /* Daemonize. */
 				background = !background;
@@ -129,6 +129,10 @@ int main(int argc, char ** argv) {
 
 			case 'y': /* Proxy address. */
 				set(& rc, "proxy", optarg);
+				break;
+
+			case 'Y': /* SOCKS proxy address. */
+				set(& rc, "socks-proxy", optarg);
 				break;
 
 			case 'q': /* Quiet mode. */
