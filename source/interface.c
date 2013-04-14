@@ -520,6 +520,8 @@ int rate(int rating) {
 		snprintf(full_method, sizeof(full_method), "track.%s", method);
 
 		response = rest(full_method, & p);
+		if(!response)
+			return 0;
 
 		error = error_message(response);
 

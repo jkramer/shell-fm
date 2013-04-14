@@ -57,6 +57,8 @@ void create_session() {
 		set(& h, "token", token);
 
 		response = rest("auth.getSession", & h);
+		if(!response)
+			return;
 		json = json_parse(response);
 
 		free(response);
@@ -95,6 +97,8 @@ void create_token() {
 	char * json_plain = rest("auth.getToken", & p);
 
 	debug("json:\n%s\n", json_plain);
+	if (!json_plain)
+		return;
 
 	assert(json_plain != NULL);
 

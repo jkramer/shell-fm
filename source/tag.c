@@ -96,6 +96,8 @@ char * load_tags(char key, struct hash * track) {
 	set(& h, "artist", value(track, "creator"));
 
 	response = rest(method, & h);
+	if(!response)
+		return NULL;
 
 	json = json_parse(response);
 
@@ -224,7 +226,7 @@ void sendtag(char key, char * tagstring, struct hash data) {
 
 	response = rest(method, & h);
 
-	if(!enabled(QUIET)) {
+	if(!enabled(QUIET) && response) {
 		error = error_message(response);
 		puts(error == NULL ? "Tagged." : error);
 	}
