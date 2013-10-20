@@ -59,7 +59,7 @@ int enqueue(struct hash * track) {
 
 
 /* Submit tracks from the queue. */
-int submit() {
+int submit(void) {
 	char * body = NULL;
 	const char * error = NULL;
 	int retval = 0;
@@ -107,7 +107,7 @@ void subdead(int exitcode) {
 
 
 /* Write the tracks from the scrobble queue to a file. */
-void dump_queue() {
+void dump_queue(void) {
 	// TODO
 	// const char * path = rcpath("scrobble-cache");
 
@@ -137,7 +137,7 @@ void dump_queue() {
 }
 
 
-void load_queue() {
+void load_queue(void) {
 	// TODO
 	// const char * path = rcpath("scrobble-cache");
 

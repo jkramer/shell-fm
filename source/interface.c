@@ -50,7 +50,7 @@ char * shellescape(const char *);
 void print_help(void);
 void rate_command(const char *);
 
-void handle_keyboard_input() {
+void handle_keyboard_input(void) {
 	int key;
 	char customkey[8] = { 0 }, * marked = NULL;
 
@@ -601,7 +601,7 @@ char * shellescape(const char * string) {
 }
 
 
-void quit() {
+void quit(void) {
 	unlinknp();
 	exit(EXIT_SUCCESS);
 }
@@ -651,15 +651,15 @@ void print_help(void) {
 }
 
 
-int volume_up() {
+int volume_up(void) {
 	return set_volume(volume + 1);
 }
 
-int volume_down() {
+int volume_down(void) {
 	return set_volume(volume - 1);
 }
 
-void mute() {
+void mute(void) {
   if(muted) {
     set_volume(saved_volume);
     muted = 0;

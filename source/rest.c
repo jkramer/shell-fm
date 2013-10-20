@@ -42,7 +42,7 @@ char * rest(const char * method, struct hash * p) {
 }
 
 
-void create_session() {
+void create_session(void) {
 	char token[32 + 1] = { 0, }, session_key[32 + 1] = { 0, }, * response;
 	struct hash h = { 0, NULL };
 	json_value * json;
@@ -91,7 +91,7 @@ void create_session() {
 }
 
 
-void create_token() {
+void create_token(void) {
 	json_value * json;
 	struct hash p = { 0, NULL };
 	char * json_plain = rest("auth.getToken", & p);
