@@ -3,7 +3,7 @@
 Shell.FM \- Lightweight, console-based player for Last.FM radio streams.
 .SH SYNOPSIS
 .B shell-fm
-[-d] [-i address] [-p port] [-b] [-D device] [-y proxy] [-h] lastfm://...
+[-d] [-i address] [-p port] [-b] [-D device] [-y proxy] [-Y socks-proxy] [-h] lastfm://...
 .SH DESCRIPTION
 Shell.FM is a lightweight, console-based player for radio streams provided by
 Last.FM.
@@ -34,6 +34,17 @@ is disabled. Default is /dev/audio.
 .TP
 .B \-y <proxy>
 Make shell-fm use the given host as proxy server for HTTP requests.
+.TP
+.B \-Y <SOCKS proxy>
+Make shell-fm use the given host as SOCKS proxy server for HTTP requests.
+The following command uses OpenSSH to create a port forwarding to a remote
+OpenSSH server acting as a SOCKS proxy server:
+.PP
+.RS
+.nf
+ssh -Nf -D 127.0.0.1:1080 remote.host
+.fi
+.RE
 .TP
 .B \-h
 Print help text and exit.
@@ -263,6 +274,9 @@ shell-fm doesn't work completly profectly on.
 .TP
 .B proxy = proxy server
 This allows you to specify a proxy server for the HTTP requests.
+.TP
+.B socks-proxy = SOCKS proxy server
+This allows you to specify a SOCKS proxy server for the HTTP requests.
 .TP
 .B expiry = some-number
 This defines the number of seconds until a cached page expires. The default is

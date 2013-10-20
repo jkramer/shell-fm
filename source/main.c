@@ -545,6 +545,7 @@ static void help(const char * argv0, int error_code) {
 		"  -b        batch mode.\n"
 		"  -D        device to play on.\n"
 		"  -y        proxy url to connect through.\n"
+		"  -Y        SOCKS proxy url to connect through.\n"
 		"  -h        this help.\n",
 		argv0
 	);
