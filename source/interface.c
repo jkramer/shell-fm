@@ -139,6 +139,10 @@ void handle_keyboard_input(void) {
 			}
 			break;
 
+		case 'D':
+			if(playfork)
+				kill(playfork, SIGUSR2);
+			break;
 		case 'A':
 			printf("%s", meta("Really ban all tracks by artist %a? [yN]", M_COLORED, & track));
 			fflush(stdout);
