@@ -82,7 +82,7 @@ char * fetch(const char * url, FILE ** handle, const char * post, const char * t
 	* file = (char) 0;
 	++file;
 
-	if(port && port < file) {
+	if(port) {
 		char * ptr = NULL;
 		* port = (char) 0;
 		++port;
