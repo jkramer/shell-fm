@@ -22,7 +22,7 @@ static int usercomplete(char *, const unsigned, int);
 
 void recommend(struct hash track) {
 	char key, * message = NULL, * recipient = NULL, * response = NULL;
-	const char * method, * error;
+	const char * method, * error = NULL;
 	struct hash h = { 0, NULL };
 
 	struct prompt recipient_prompt = {
@@ -88,7 +88,8 @@ void recommend(struct hash track) {
 
 	response = rest(method, & h);
 
-	error = error_message(response);
+	if (response)
+		error = error_message(response);
 
 	if(error != NULL) {
 		puts(error);

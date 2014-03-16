@@ -59,9 +59,9 @@ int enqueue(struct hash * track) {
 
 
 /* Submit tracks from the queue. */
-int submit() {
+int submit(void) {
 	char * body = NULL;
-	const char * error;
+	const char * error = NULL;
 	int retval = 0;
 
 	if(!queue_length || subfork > 0)
@@ -79,7 +79,8 @@ int submit() {
 
 	body = rest("track.scrobble", & queue); // TODO: Check for errors!
 
-	error = error_message(body);
+	if(body)
+		error = error_message(body);
 
 	if(error) {
 		fprintf(stderr, "Failed to scrobble track(s), error: %s. Query: %s\n", error, hash_query(& queue));
@@ -106,7 +107,7 @@ void subdead(int exitcode) {
 
 
 /* Write the tracks from the scrobble queue to a file. */
-void dump_queue() {
+void dump_queue(void) {
 	// TODO
 	// const char * path = rcpath("scrobble-cache");
 
@@ -136,7 +137,7 @@ void dump_queue() {
 }
 
 
-void load_queue() {
+void load_queue(void) {
 	// TODO
 	// const char * path = rcpath("scrobble-cache");
 

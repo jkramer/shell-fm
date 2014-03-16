@@ -50,6 +50,6 @@ void histapp(const char * radio) {
 }
 
 
-char ** load_history() {
+char ** load_history(void) {
 	return slurp(rcpath("radio-history"));
 }

@@ -95,6 +95,8 @@ char ** load_feed(
 	}
 
 	response = rest(method, & h);
+	if(!response)
+		return NULL;
 
 	json = json_parse(response);
 
