@@ -16,7 +16,7 @@
 
 static int cmpstringp(const void *, const void *);
 static int restore_key(const char *, char *);
-const char const * build_signature(struct hash *);
+char const * build_signature(struct hash *);
 void create_token();
 
 
@@ -123,7 +123,7 @@ void create_token(void) {
 }
 
 
-const char const * build_signature(struct hash * p) {
+char const * build_signature(struct hash * p) {
 	static char signature[32 + 1] = { 0, };
 	unsigned n, length = 0;
 	char ** const names = malloc(sizeof(char *) * p->size);
