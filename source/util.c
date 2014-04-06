@@ -232,7 +232,7 @@ char * strcasestr(const char * haystack, const char * needle) {
 #endif
 
 
-const char const * plain_md5(const char * input) {
+char const * plain_md5(const char * input) {
 	const unsigned char * md5;
 	static char plain[32 + 1] = { 0, };
 	unsigned ndigit;
